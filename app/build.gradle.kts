@@ -31,6 +31,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // 카카오맵 SDK는 ARM용 .so만 제공한다. Android Studio Run은 기기 ABI(x86_64 에뮬레이터)만
+        // 패키징하는데, 지정한 ABI 중 맞는 게 없으면 여기 적은 ABI를 모두 넣는다.
+        // 그래서 x86_64 에뮬레이터에서도 ARM .so가 들어가고 ARM 변환으로 실행된다.
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+
         buildConfigField("String", "OPINET_API_KEY", quoted(localProperty("OPINET_API_KEY")))
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", quoted(localProperty("KAKAO_NATIVE_APP_KEY")))
         buildConfigField("String", "KAKAO_REST_API_KEY", quoted(localProperty("KAKAO_REST_API_KEY")))
