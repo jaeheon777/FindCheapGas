@@ -14,6 +14,10 @@ GoogleService-Info.plist
 *.keystore
 keystore.properties
 signing.properties
+*.p12
+*.pem
+*.key
+*.pepk
 
 # ===== 빌드 결과물 =====
 build/
@@ -40,11 +44,17 @@ output-metadata.json
 *.iws
 out/
 
+# ===== VS Code =====
+.vscode/
+
 # ===== 로그, 임시 파일 =====
 *.log
 *.hprof
 *.tmp
 *.bak
+*.orig
+*.swp
+*~
 
 # ===== OS =====
 .DS_Store
