@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">FindCheapGas</string>
+
+    <!-- 하단 탭 -->
+    <string name="tab_map">지도</string>
+    <string name="tab_favorite">즐겨찾기</string>
+    <string name="tab_settings">설정</string>
+    <string name="coming_soon">준비 중입니다</string>
+
+    <!-- 지도 탭 -->
+    <string name="my_location">내 위치로</string>
+    <string name="permission_rationale">위치 권한을 허용하면 내 주변 주유소를 볼 수 있습니다</string>
+    <string name="permission_request">권한 허용</string>
+    <string name="permission_open_settings">설정 열기</string>
+    <string name="location_disabled">기기 위치가 꺼져 있습니다. 위치를 켜면 내 주변 주유소를 볼 수 있습니다</string>
+    <string name="location_open_settings">위치 켜기</string>
+    <string name="map_unavailable">이 기기에서는 지도를 표시할 수 없습니다</string>
+    <string name="map_auth_failed">카카오맵 인증에 실패했습니다.\n앱 키와 키 해시 등록을 확인해 주세요.</string>
+    <string name="map_error">지도를 불러오지 못했습니다.\n잠시 후 다시 시도해 주세요.</string>
 </resources>

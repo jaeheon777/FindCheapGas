@@ -6,4 +6,11 @@
     </style>
 
     <style name="Theme.FindCheapGas" parent="Base.Theme.FindCheapGas" />
+
+    <!-- 실행 직후 잠깐 보이는 로딩 화면. 첫 화면이 그려지면 Theme.FindCheapGas로 바뀐다. -->
+    <style name="Theme.FindCheapGas.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.FindCheapGas</item>
+    </style>
 </resources>

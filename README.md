@@ -159,21 +159,32 @@ flowchart TD
 
 ```
 app/src/main/java/com/example/findcheapgas/
-├── FindCheapGasApp.java   Application 클래스 (카카오맵 SDK 초기화, 디버그 키 해시 출력)
-├── MainActivity.java      메인 화면
-└── util/                  좌표 변환, 거리 계산 등
-    └── KeyHashUtil.java   앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
+├── FindCheapGasApp.java          Application 클래스 (카카오맵 SDK 초기화, 지도 사용 가능 여부, 디버그 키 해시 출력)
+├── MainActivity.java             메인 화면 (로딩 화면, 하단 탭 3개 전환)
+├── ui/                           화면 (Fragment)
+│   ├── map/
+│   │   └── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치 표시)
+│   ├── favorite/
+│   │   └── FavoriteFragment.java 즐겨찾기 탭 (준비 중)
+│   └── settings/
+│       └── SettingsFragment.java 설정 탭 (준비 중)
+├── viewmodel/
+│   └── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한 상태, 로딩 여부)
+├── data/
+│   └── repository/
+│       └── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
+├── model/
+│   ├── UserLocation.java         위치 좌표와 출처
+│   └── LocationPermissionState.java 위치 권한 상태
+└── util/                         좌표 변환, 거리 계산 등
+    └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 ```
 
 아래 패키지는 해당 기능을 만들 때 추가한다.
 
 ```
-├── ui/                 화면 (Activity, Fragment)
-│   ├── map/            지도 탭
-│   ├── favorite/       즐겨찾기 탭
-│   ├── settings/       설정 탭
+├── ui/
 │   └── detail/         주유소 상세 화면
-├── viewmodel/          화면 데이터 관리
 ├── data/
 │   ├── remote/         오피넷, 카카오 API 통신 (Retrofit)
 │   ├── local/          Room DB (즐겨찾기, 검색어, 캐시)
@@ -219,7 +230,7 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 
 - [x] 프로젝트 생성 및 저장소 설정
 - [ ] 1단계 - API 키 설정, 가짜 데이터 모드
-- [ ] 1단계 - 위치 권한 요청, 현재 위치 지도 표시
+- [x] 1단계 - 위치 권한 요청, 현재 위치 지도 표시
 - [ ] 1단계 - 주변 주유소 조회, 지도 마커 및 목록 표시
 - [ ] 1단계 - 유종, 반경, 정렬 선택
 - [ ] 1단계 - 주유소 상세 화면

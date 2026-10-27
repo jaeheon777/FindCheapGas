@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.proj4j)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
+    implementation(libs.core.splashscreen)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
