@@ -159,6 +159,15 @@ flowchart TD
 
 ```
 app/src/main/java/com/example/findcheapgas/
+├── FindCheapGasApp.java   Application 클래스 (카카오맵 SDK 초기화, 디버그 키 해시 출력)
+├── MainActivity.java      메인 화면
+└── util/                  좌표 변환, 거리 계산 등
+    └── KeyHashUtil.java   앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
+```
+
+아래 패키지는 해당 기능을 만들 때 추가한다.
+
+```
 ├── ui/                 화면 (Activity, Fragment)
 │   ├── map/            지도 탭
 │   ├── favorite/       즐겨찾기 탭
@@ -170,8 +179,7 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── local/          Room DB (즐겨찾기, 검색어, 캐시)
 │   ├── mock/           개발용 가짜 데이터
 │   └── repository/     데이터 출처 결정 (API / 캐시 / 가짜 데이터)
-├── model/              데이터 클래스 (주유소, 가격 등)
-└── util/               좌표 변환, 거리 계산 등
+└── model/              데이터 클래스 (주유소, 가격 등)
 ```
 
 ## 실행 방법
