@@ -17,4 +17,17 @@
     <string name="map_unavailable">이 기기에서는 지도를 표시할 수 없습니다</string>
     <string name="map_auth_failed">카카오맵 인증에 실패했습니다.\n앱 키와 키 해시 등록을 확인해 주세요.</string>
     <string name="map_error">지도를 불러오지 못했습니다.\n잠시 후 다시 시도해 주세요.</string>
+
+    <!-- 주변 주유소 목록 -->
+    <string name="station_sheet_title">주변 주유소</string>
+    <string name="station_sheet_title_count">주변 주유소 %1$d곳</string>
+    <string name="station_sheet_condition">%1$s · %2$skm · %3$s</string>
+    <string name="station_cheapest">최저가</string>
+    <string name="station_info">%1$s · %2$s</string>
+    <string name="station_locating">현재 위치를 확인하는 중입니다</string>
+    <string name="station_loading">주변 주유소를 불러오는 중입니다</string>
+    <string name="station_empty">반경 %1$skm 안에 주유소가 없습니다</string>
+    <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
+    <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
+    <string name="station_retry">다시 시도</string>
 </resources>

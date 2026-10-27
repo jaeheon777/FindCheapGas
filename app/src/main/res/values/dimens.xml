@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 주유소 목록 시트를 접었을 때 높이: 손잡이 + 제목 + 항목 약 1.5개 -->
+    <dimen name="station_sheet_peek_height">190dp</dimen>
+    <!-- 시트를 끝까지 올려도 지도가 이만큼은 보인다. -->
+    <dimen name="station_sheet_expanded_offset">96dp</dimen>
+</resources>

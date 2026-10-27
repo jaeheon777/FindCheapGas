@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -65,14 +66,114 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- 주변 주유소 목록. 접힌 상태 → 절반 → 거의 전체로 끌어올릴 수 있다. -->
+    <LinearLayout
+        android:id="@+id/station_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_station_sheet"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        app:behavior_expandedOffset="@dimen/station_sheet_expanded_offset"
+        app:behavior_fitToContents="false"
+        app:behavior_halfExpandedRatio="0.5"
+        app:behavior_hideable="false"
+        app:behavior_peekHeight="@dimen/station_sheet_peek_height"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="24dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/station_sheet_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/station_sheet_title"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+            <TextView
+                android:id="@+id/station_sheet_condition"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="휘발유 · 3km · 가격순" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/station_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                tools:listitem="@layout/item_station" />
+
+            <!-- 불러오는 중, 주유소 없음, 오류 안내 -->
+            <LinearLayout
+                android:id="@+id/station_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/station_status_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:indeterminate="true"
+                    app:indicatorSize="24dp" />
+
+                <TextView
+                    android:id="@+id/station_status_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/station_retry_button"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/station_retry" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 목록 시트 위쪽 끝에 붙어서 시트와 함께 움직인다. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_my_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="top|end"
         android:layout_margin="16dp"
         android:contentDescription="@string/my_location"
         app:fabSize="mini"
+        app:layout_anchor="@id/station_sheet"
+        app:layout_anchorGravity="top|end"
         app:srcCompat="@drawable/ic_my_location" />
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -25,13 +25,18 @@ import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.findcheapgas.FindCheapGasApp;
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.data.repository.LocationRepository;
+import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
+import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.viewmodel.MapViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kakao.vectormap.KakaoMap;
@@ -50,6 +55,9 @@ import com.kakao.vectormap.label.LabelOptions;
 import com.kakao.vectormap.label.LabelStyle;
 import com.kakao.vectormap.label.LabelStyles;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class MapFragment extends Fragment {
@@ -64,7 +72,7 @@ public class MapFragment extends Fragment {
     // 주변 1~3km가 한 화면에 보이는 정도
     private static final int DEFAULT_ZOOM_LEVEL = 15;
     private static final int CAMERA_ANIMATION_MS = 500;
-    // 나중에 추가할 주유소 마커보다 위에 그려지도록 높게 둔다.
+    // 기본 레이어에서 다른 라벨보다 위에 그려지도록 높게 둔다.
     private static final long MY_LOCATION_RANK = 10_000;
 
     private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
@@ -79,6 +87,7 @@ public class MapFragment extends Fragment {
     private KakaoMap kakaoMap;
     private LabelStyles myLocationStyles;
     private Label myLocationLabel;
+    private StationMarkers stationMarkers;
     private boolean mapRunning = false;
 
     private TextView mapMessage;
@@ -87,6 +96,16 @@ public class MapFragment extends Fragment {
     private TextView bannerText;
     private MaterialButton bannerButton;
     private FloatingActionButton myLocationButton;
+
+    private BottomSheetBehavior<View> sheetBehavior;
+    private TextView sheetTitle;
+    private RecyclerView stationList;
+    private LinearLayoutManager stationLayoutManager;
+    private StationAdapter stationAdapter;
+    private View stationStatus;
+    private View stationStatusProgress;
+    private TextView stationStatusText;
+    private View stationRetryButton;
 
     @Nullable
     @Override
@@ -110,6 +129,8 @@ public class MapFragment extends Fragment {
         bannerButton.setOnClickListener(v -> onBannerButtonClick());
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
 
+        setUpStationSheet(view);
+
         if (FindCheapGasApp.isMapAvailable()) {
             startMap(view.findViewById(R.id.map_container));
         } else {
@@ -117,10 +138,22 @@ public class MapFragment extends Fragment {
         }
 
         viewModel.getLocation().observe(getViewLifecycleOwner(), location -> showLocationOnMap(location, true));
-        viewModel.getLoading().observe(getViewLifecycleOwner(),
-                loading -> progress.setVisibility(Boolean.TRUE.equals(loading) ? View.VISIBLE : View.GONE));
+        viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
         viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBanner());
         viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBanner());
+
+        viewModel.getStations().observe(getViewLifecycleOwner(), this::showStations);
+        viewModel.getStationsLoading().observe(getViewLifecycleOwner(), loading -> {
+            renderProgress();
+            renderStationStatus();
+        });
+        viewModel.getStationsError().observe(getViewLifecycleOwner(), error -> renderStationStatus());
+        viewModel.getSelectedStationId().observe(getViewLifecycleOwner(), id -> {
+            stationAdapter.setSelectedId(id);
+            if (stationMarkers != null) {
+                stationMarkers.setSelected(id);
+            }
+        });
 
         // 지도 탭이 처음 열릴 때 한 번만 권한을 묻는다.
         if (!viewModel.isPermissionRequested()) {
@@ -172,7 +205,12 @@ public class MapFragment extends Fragment {
         kakaoMap = null;
         myLocationStyles = null;
         myLocationLabel = null;
+        stationMarkers = null;
         mapRunning = false;
+        sheetBehavior = null;
+        stationList = null;
+        stationLayoutManager = null;
+        stationAdapter = null;
     }
 
     // ---------- 권한 ----------
@@ -263,9 +301,25 @@ public class MapFragment extends Fragment {
                         return;
                     }
                     kakaoMap = map;
+                    // 아래 목록 시트에 가리는 만큼 지도 중심을 위로 올린다.
+                    map.setPadding(0, 0, 0, getResources().getDimensionPixelSize(R.dimen.station_sheet_peek_height));
+                    map.setOnLabelClickListener((clickedMap, layer, label) -> {
+                        String stationId = stationMarkers != null ? stationMarkers.stationIdOf(layer, label) : null;
+                        if (stationId == null) {
+                            return false;
+                        }
+                        mainHandler.post(() -> onMarkerClick(stationId));
+                        return true;
+                    });
+                    stationMarkers = StationMarkers.create(requireContext(), map);
+
                     UserLocation location = viewModel.getLocation().getValue();
                     if (location != null) {
                         showLocationOnMap(location, false);
+                    }
+                    List<GasStation> stations = viewModel.getStations().getValue();
+                    if (stations != null) {
+                        showStationMarkers(stations);
                     }
                 });
             }
@@ -393,5 +447,133 @@ public class MapFragment extends Fragment {
         paint.setColor(ContextCompat.getColor(requireContext(), R.color.my_location_dot));
         canvas.drawCircle(radius, radius, radius - shadow - border, paint);
         return bitmap;
+    }
+
+    // ---------- 주변 주유소 (마커, 아래 목록) ----------
+
+    private void setUpStationSheet(View view) {
+        sheetBehavior = BottomSheetBehavior.from(view.findViewById(R.id.station_sheet));
+        sheetTitle = view.findViewById(R.id.station_sheet_title);
+        stationList = view.findViewById(R.id.station_list);
+        stationStatus = view.findViewById(R.id.station_status);
+        stationStatusProgress = view.findViewById(R.id.station_status_progress);
+        stationStatusText = view.findViewById(R.id.station_status_text);
+        stationRetryButton = view.findViewById(R.id.station_retry_button);
+
+        TextView condition = view.findViewById(R.id.station_sheet_condition);
+        condition.setText(getString(R.string.station_sheet_condition,
+                viewModel.getFuelType().getLabel(),
+                radiusKm(),
+                viewModel.getSortOrder().getLabel()));
+
+        stationAdapter = new StationAdapter(this::onStationItemClick);
+        stationLayoutManager = new LinearLayoutManager(requireContext());
+        stationList.setLayoutManager(stationLayoutManager);
+        stationList.setAdapter(stationAdapter);
+        stationRetryButton.setOnClickListener(v -> viewModel.retryStations());
+    }
+
+    private void showStations(List<GasStation> stations) {
+        List<GasStation> list = stations != null ? stations : Collections.emptyList();
+        stationAdapter.submit(list, cheapestPrice(list));
+        stationAdapter.setSelectedId(viewModel.getSelectedStationId().getValue());
+        stationLayoutManager.scrollToPosition(0);
+        if (stations != null && !stations.isEmpty()) {
+            sheetTitle.setText(getString(R.string.station_sheet_title_count, stations.size()));
+        } else {
+            sheetTitle.setText(R.string.station_sheet_title);
+        }
+        showStationMarkers(list);
+        renderStationStatus();
+    }
+
+    private void showStationMarkers(List<GasStation> stations) {
+        if (stationMarkers == null) {
+            return; // 지도가 준비되면 onMapReady에서 다시 호출된다.
+        }
+        stationMarkers.show(stations, cheapestPrice(stations), viewModel.getSelectedStationId().getValue());
+    }
+
+    /** 위치 조회 중이거나 주유소 조회 중이면 위쪽 진행 막대를 보여준다. */
+    private void renderProgress() {
+        boolean busy = Boolean.TRUE.equals(viewModel.getLoading().getValue())
+                || Boolean.TRUE.equals(viewModel.getStationsLoading().getValue());
+        progress.setVisibility(busy ? View.VISIBLE : View.GONE);
+    }
+
+    /** 목록 대신 보여줄 안내: 불러오는 중 → 오류 → 주유소 없음 순서로 확인한다. */
+    private void renderStationStatus() {
+        List<GasStation> stations = viewModel.getStations().getValue();
+        StationError error = viewModel.getStationsError().getValue();
+        boolean loading = Boolean.TRUE.equals(viewModel.getStationsLoading().getValue());
+
+        String message = null;
+        boolean showProgress = false;
+        boolean showRetry = false;
+        if (loading) {
+            message = getString(R.string.station_loading);
+            showProgress = true;
+        } else if (error != null) {
+            message = getString(error == StationError.NETWORK
+                    ? R.string.station_error_network
+                    : R.string.station_error_opinet);
+            showRetry = true;
+        } else if (stations == null) {
+            // 아직 위치를 받기 전
+            message = getString(R.string.station_locating);
+            showProgress = true;
+        } else if (stations.isEmpty()) {
+            message = getString(R.string.station_empty, radiusKm());
+        }
+
+        if (message == null) {
+            stationStatus.setVisibility(View.GONE);
+            stationList.setVisibility(View.VISIBLE);
+            return;
+        }
+        stationStatusText.setText(message);
+        stationStatusProgress.setVisibility(showProgress ? View.VISIBLE : View.GONE);
+        stationRetryButton.setVisibility(showRetry ? View.VISIBLE : View.GONE);
+        stationStatus.setVisibility(View.VISIBLE);
+        stationList.setVisibility(View.GONE);
+    }
+
+    /** 지도에서 마커를 누르면 목록에서 그 주유소를 강조하고 맨 위로 스크롤한다. */
+    private void onMarkerClick(String stationId) {
+        if (getView() == null) {
+            return;
+        }
+        viewModel.selectStation(stationId);
+        int position = stationAdapter.positionOf(stationId);
+        if (position != RecyclerView.NO_POSITION) {
+            stationLayoutManager.scrollToPositionWithOffset(position, 0);
+        }
+    }
+
+    /** 목록 항목을 누르면 지도를 그 주유소로 옮긴다. 지도가 보이도록 시트는 접는다. */
+    private void onStationItemClick(GasStation station) {
+        viewModel.selectStation(station.getId());
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        if (kakaoMap != null) {
+            kakaoMap.moveCamera(
+                    CameraUpdateFactory.newCenterPosition(LatLng.from(station.getLatitude(), station.getLongitude())),
+                    CameraAnimation.from(CAMERA_ANIMATION_MS));
+        }
+    }
+
+    private static int cheapestPrice(List<GasStation> stations) {
+        int cheapest = Integer.MAX_VALUE;
+        for (GasStation station : stations) {
+            cheapest = Math.min(cheapest, station.getPrice());
+        }
+        return cheapest;
+    }
+
+    /** 3000 → "3", 1500 → "1.5" */
+    private String radiusKm() {
+        int meters = viewModel.getRadiusMeters();
+        return meters % 1000 == 0
+                ? String.valueOf(meters / 1000)
+                : String.format(Locale.KOREA, "%.1f", meters / 1000.0);
     }
 }

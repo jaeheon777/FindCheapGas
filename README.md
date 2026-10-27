@@ -163,21 +163,46 @@ app/src/main/java/com/example/findcheapgas/
 ├── MainActivity.java             메인 화면 (로딩 화면, 하단 탭 3개 전환)
 ├── ui/                           화면 (Fragment)
 │   ├── map/
-│   │   └── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치 표시)
+│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 주유소 목록 시트)
+│   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (최저가 강조, 선택 표시)
+│   │   └── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 브랜드, 가격, 거리)
 │   ├── favorite/
 │   │   └── FavoriteFragment.java 즐겨찾기 탭 (준비 중)
 │   └── settings/
 │       └── SettingsFragment.java 설정 탭 (준비 중)
 ├── viewmodel/
-│   └── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한 상태, 로딩 여부)
+│   └── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 주유소 목록, 로딩, 오류, 선택한 주유소)
 ├── data/
+│   ├── remote/                   오피넷 API 통신 (Retrofit)
+│   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do) 요청 정의
+│   │   ├── OpinetAroundResponse.java 응답 구조와 해석 (가짜 데이터도 같은 구조)
+│   │   ├── OpinetRemoteDataSource.java 실제 API 호출
+│   │   └── OpinetException.java  오피넷 오류 응답 (한도 초과, 형식 오류 등)
+│   ├── local/                    기기에 저장하는 데이터
+│   │   ├── AppDatabase.java      Room DB
+│   │   ├── StationCacheEntity.java 주변 주유소 조회 결과 캐시 (20분)
+│   │   ├── StationCacheDao.java  캐시 조회, 저장, 오래된 캐시 삭제
+│   │   └── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences)
+│   ├── mock/
+│   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (반경 밖 주유소 제외)
 │   └── repository/
-│       └── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
+│       ├── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
+│       └── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API)
 ├── model/
 │   ├── UserLocation.java         위치 좌표와 출처
-│   └── LocationPermissionState.java 위치 권한 상태
-└── util/                         좌표 변환, 거리 계산 등
+│   ├── LocationPermissionState.java 위치 권한 상태
+│   ├── GasStation.java           주유소 (이름, 브랜드, 가격, 거리, KATEC·WGS84 좌표)
+│   ├── StationQuery.java         주변 주유소 조회 조건 (위치, 유종, 반경, 정렬)
+│   ├── StationError.java         조회 실패 원인 (네트워크, 오피넷)
+│   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)
+│   ├── SortOrder.java            정렬 기준 (가격순, 거리순)
+│   └── Brand.java                브랜드 코드 → 한글 이름
+└── util/
+    ├── CoordinateConverter.java  WGS84 ↔ KATEC 좌표 변환 (Proj4J)
+    ├── FormatUtil.java           가격(1,659원), 거리(1.2km) 표시 형식
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
+
+app/src/main/assets/mock/         가짜 데이터 (강남역 주변, 유종별 around_B027.json 등)
 ```
 
 아래 패키지는 해당 기능을 만들 때 추가한다.
@@ -185,12 +210,8 @@ app/src/main/java/com/example/findcheapgas/
 ```
 ├── ui/
 │   └── detail/         주유소 상세 화면
-├── data/
-│   ├── remote/         오피넷, 카카오 API 통신 (Retrofit)
-│   ├── local/          Room DB (즐겨찾기, 검색어, 캐시)
-│   ├── mock/           개발용 가짜 데이터
-│   └── repository/     데이터 출처 결정 (API / 캐시 / 가짜 데이터)
-└── model/              데이터 클래스 (주유소, 가격 등)
+└── data/
+    └── remote/         카카오 로컬 API 통신
 ```
 
 ## 실행 방법
@@ -230,9 +251,9 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 
 - [x] 프로젝트 생성 및 저장소 설정
 - [x] 1단계 - API 키 설정, 기본 라이브러리 구성
-- [ ] 1단계 - 가짜 데이터 모드, API 응답 캐싱
+- [x] 1단계 - 가짜 데이터 모드, API 응답 캐싱
 - [x] 1단계 - 위치 권한 요청, 현재 위치 지도 표시
-- [ ] 1단계 - 주변 주유소 조회, 지도 마커 및 목록 표시
+- [x] 1단계 - 주변 주유소 조회, 지도 마커 및 목록 표시
 - [ ] 1단계 - 유종, 반경, 정렬 선택
 - [ ] 1단계 - 주유소 상세 화면
 - [ ] 2단계 - 장소 검색, 주유소 이름 검색
