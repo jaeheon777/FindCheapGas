@@ -471,6 +471,41 @@ public class MapFragment extends Fragment {
         stationList.setLayoutManager(stationLayoutManager);
         stationList.setAdapter(stationAdapter);
         stationRetryButton.setOnClickListener(v -> viewModel.retryStations());
+
+        // 시트는 화면 높이만큼 크고 아래로 내려가 있으므로, 화면 밖으로 나간 만큼 목록 아래 여백을 늘려
+        // 어느 상태에서든 마지막 항목까지 스크롤하면 화면 안에 보이게 한다.
+        View sheet = view.findViewById(R.id.station_sheet);
+        int baseBottomPadding = stationList.getPaddingBottom();
+        sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState != BottomSheetBehavior.STATE_DRAGGING
+                        && newState != BottomSheetBehavior.STATE_SETTLING) {
+                    fitListToVisibleSheet(sheet, baseBottomPadding);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+            }
+        });
+        // 처음 배치, 화면 회전 등으로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 여백을 바꾸지 않도록 post한다.
+        sheet.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                v.post(() -> fitListToVisibleSheet(sheet, baseBottomPadding)));
+    }
+
+    /** 시트에서 부모 아래로 잘려 나간 높이만큼 목록 아래 여백을 준다. */
+    private void fitListToVisibleSheet(View sheet, int baseBottomPadding) {
+        if (stationList == null || !(sheet.getParent() instanceof View)) {
+            return;
+        }
+        int parentHeight = ((View) sheet.getParent()).getHeight();
+        int hidden = Math.max(0, sheet.getBottom() - parentHeight);
+        int padding = baseBottomPadding + hidden;
+        if (stationList.getPaddingBottom() != padding) {
+            stationList.setPadding(stationList.getPaddingLeft(), stationList.getPaddingTop(),
+                    stationList.getPaddingRight(), padding);
+        }
     }
 
     private void showStations(List<GasStation> stations) {
