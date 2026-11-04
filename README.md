@@ -177,6 +177,20 @@
  - 누르면 앱이 열리고 해당 주유소로 이동
 ```
 
+### 화면 예시
+
+가짜 데이터(강남역 주변)로 찍은 화면입니다. 가격과 주소, 전화번호는 실제 주유소 정보가 아닙니다. 내 차 정보는 연비 11km/L, 주유량 50L이고, GS칼텍스에 리터당 100원(1회 한도 3,000원) 할인과 농협알뜰 선호를 설정한 상태입니다.
+
+| 지도 탭 | 주유소 목록 | 예상 이득 계산 내역 |
+|:---:|:---:|:---:|
+| <img src="docs/images/map.png" width="250"> | <img src="docs/images/list.png" width="250"> | <img src="docs/images/detail.png" width="250"> |
+| 예상 이득 색깔 마커와 필터 | 예상 이득순, 할인 적용과 선호(★) 표시 | 기준 주유소와 비교한 기름값, 할인, 이동 비용 |
+
+| 내 차 정보 입력 | 내 브랜드 설정 | 브랜드 빠른 필터 |
+|:---:|:---:|:---:|
+| <img src="docs/images/onboarding.png" width="250"> | <img src="docs/images/brand.png" width="250"> | <img src="docs/images/filter.png" width="250"> |
+| 처음 실행할 때 (건너뛸 수 있음) | 리터당 할인, 1회 할인 한도, 선호, 숨기기 | 할인 브랜드만, 선호 브랜드만, 브랜드별 선택 |
+
 화면 캡처는 개발을 진행하면서 추가합니다.
 
 ## 동작 방식
@@ -353,6 +367,7 @@ app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모�
 app/src/test/java/com/example/findcheapgas/util/
 └── RoadDistanceCheckTest.java    도로 거리 계수 측정 (강남역 → 실제 주유소, 직선거리와 카카오 길찾기 도로 거리 비교, -ProadDistanceCheck=true일 때만 실행)
 docs/road-distance-check.csv      도로 거리 계수 측정 결과 (주유소, 직선거리, 도로 거리, 비율)
+docs/images/                      README 화면 예시 캡처 (가짜 데이터)
 ```
 
 아래 패키지는 해당 기능을 만들 때 추가합니다.
