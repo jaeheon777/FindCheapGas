@@ -58,6 +58,7 @@ public class StationDetailActivity extends AppCompatActivity {
     private static final String EXTRA_PRICE = "price";
     private static final String EXTRA_DISTANCE = "distance";
     private static final String EXTRA_FUEL_TYPE = "fuel_type";
+    private static final String EXTRA_ORIGIN_LABEL = "origin_label";
     private static final String EXTRA_SAVING = "saving";
 
     // 1회 할인 한도를 비워 둔 채 할인액이 이 금액 이상이면 "한도가 있다면..." 주의 문구를 보여준다.
@@ -80,8 +81,12 @@ public class StationDetailActivity extends AppCompatActivity {
     private View facilitiesEmpty;
     private View selfNote;
 
-    /** 목록의 주유소 정보, 예상 이득 계산 결과, 지금 고른 유종으로 상세 화면을 여는 Intent */
-    public static Intent createIntent(Context context, StationSaving saving, FuelType fuelType) {
+    /**
+     * 목록의 주유소 정보, 예상 이득 계산 결과, 지금 고른 유종으로 상세 화면을 여는 Intent
+     *
+     * @param originLabel 조회 위치 이름 (예: 내 위치, 강남역). "강남역에서 0.7km"처럼 거리 앞에 붙는다.
+     */
+    public static Intent createIntent(Context context, StationSaving saving, FuelType fuelType, String originLabel) {
         GasStation station = saving.getStation();
         return new Intent(context, StationDetailActivity.class)
                 .putExtra(EXTRA_SAVING, saving)
@@ -90,7 +95,8 @@ public class StationDetailActivity extends AppCompatActivity {
                 .putExtra(EXTRA_BRAND_CODE, station.getBrandCode())
                 .putExtra(EXTRA_PRICE, station.getPrice())
                 .putExtra(EXTRA_DISTANCE, station.getDistance())
-                .putExtra(EXTRA_FUEL_TYPE, fuelType.getCode());
+                .putExtra(EXTRA_FUEL_TYPE, fuelType.getCode())
+                .putExtra(EXTRA_ORIGIN_LABEL, originLabel);
     }
 
     /** 상세 화면이 돌려준 결과에서 주유소 ID를 꺼낸다. 없으면 null */
@@ -155,8 +161,10 @@ public class StationDetailActivity extends AppCompatActivity {
     private void showSummary(Intent intent) {
         String name = intent.getStringExtra(EXTRA_NAME);
         ((TextView) findViewById(R.id.detail_name)).setText(name);
+        String originLabel = intent.getStringExtra(EXTRA_ORIGIN_LABEL);
         ((TextView) findViewById(R.id.detail_info)).setText(getString(R.string.detail_info,
                 Brand.nameOf(intent.getStringExtra(EXTRA_BRAND_CODE)),
+                originLabel != null ? originLabel : getString(R.string.origin_my_location),
                 FormatUtil.formatDistance(intent.getDoubleExtra(EXTRA_DISTANCE, 0))));
         ((TextView) findViewById(R.id.detail_selected_fuel)).setText(selectedFuelType.getLabel());
         ((TextView) findViewById(R.id.detail_selected_price)).setText(

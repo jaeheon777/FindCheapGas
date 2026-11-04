@@ -16,8 +16,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
@@ -40,6 +44,7 @@ import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
+import com.example.findcheapgas.model.SearchOrigin;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
@@ -50,10 +55,13 @@ import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.util.StationListBuilder;
 import com.example.findcheapgas.viewmodel.MapViewModel;
+import com.example.findcheapgas.viewmodel.SearchViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
 import com.kakao.vectormap.LatLng;
@@ -102,6 +110,8 @@ public class MapFragment extends Fragment {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private MapViewModel viewModel;
+    // 검색창 상태. 검색 결과 시트도 같은 ViewModel을 쓴다.
+    private SearchViewModel searchViewModel;
 
     private MapView mapView;
     private KakaoMap kakaoMap;
@@ -120,6 +130,10 @@ public class MapFragment extends Fragment {
     private FloatingActionButton myLocationButton;
     private View mapLegend;
 
+    private MaterialButtonToggleGroup searchModeGroup;
+    private EditText searchInput;
+
+    private Chip originChip;
     private Chip fuelTypeChip;
     private Chip radiusChip;
     private Chip brandChip;
@@ -149,6 +163,7 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(MapViewModel.class);
+        searchViewModel = new ViewModelProvider(this).get(SearchViewModel.class);
 
         mapMessage = view.findViewById(R.id.map_message);
         progress = view.findViewById(R.id.location_progress);
@@ -162,6 +177,7 @@ public class MapFragment extends Fragment {
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
 
         setUpStationSheet(view);
+        setUpSearch(view);
         setUpFilters(view);
 
         if (FindCheapGasApp.isMapAvailable()) {
@@ -170,7 +186,25 @@ public class MapFragment extends Fragment {
             showMapMessage(R.string.map_unavailable);
         }
 
-        viewModel.getLocation().observe(getViewLifecycleOwner(), location -> showLocationOnMap(location, true));
+        // 내 위치는 파란 점만 옮기고, 지도는 조회 위치(내 위치 또는 검색한 장소)로 옮긴다.
+        viewModel.getLocation().observe(getViewLifecycleOwner(), this::updateMyLocationLabel);
+        viewModel.getOrigin().observe(getViewLifecycleOwner(), origin -> {
+            moveCameraToOrigin(origin, true);
+            renderOriginChip(origin);
+            renderFilters();
+        });
+        viewModel.getMockAreaNotice().observe(getViewLifecycleOwner(), show -> {
+            if (Boolean.TRUE.equals(show)) {
+                Snackbar.make(view, R.string.mock_area_notice, Snackbar.LENGTH_LONG).show();
+                viewModel.onMockAreaNoticeShown();
+            }
+        });
+        viewModel.getSearchedStationMissing().observe(getViewLifecycleOwner(), name -> {
+            if (name != null) {
+                Snackbar.make(view, getString(R.string.searched_station_missing, name), Snackbar.LENGTH_LONG).show();
+                viewModel.onSearchedStationMissingShown();
+            }
+        });
         viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
         viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBanner());
         viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBanner());
@@ -243,6 +277,8 @@ public class MapFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         mainHandler.removeCallbacksAndMessages(null);
+        searchInput = null;
+        searchModeGroup = null;
         mapView = null;
         kakaoMap = null;
         myLocationStyles = null;
@@ -302,11 +338,11 @@ public class MapFragment extends Fragment {
         }
     }
 
+    /** 장소 기준이어도 내 위치 기준으로 돌아간다. */
     private void onMyLocationClick() {
-        if (viewModel.hasPermission()) {
-            viewModel.refreshLocation();
-        } else {
-            // 권한이 없으면 내 위치를 알 수 없으므로 권한부터 받는다.
+        viewModel.returnToMyLocation();
+        if (!viewModel.hasPermission()) {
+            // 권한이 없으면 내 위치를 알 수 없으므로 권한도 받는다 (그동안은 기본 위치 기준).
             onBannerButtonClick();
         }
     }
@@ -356,10 +392,8 @@ public class MapFragment extends Fragment {
                     });
                     stationMarkers = StationMarkers.create(requireContext(), map);
 
-                    UserLocation location = viewModel.getLocation().getValue();
-                    if (location != null) {
-                        showLocationOnMap(location, false);
-                    }
+                    moveCameraToOrigin(viewModel.getOrigin().getValue(), false);
+                    updateMyLocationLabel(viewModel.getLocation().getValue());
                     List<StationSaving> stations = viewModel.getStations().getValue();
                     if (stations != null) {
                         showStationMarkers(stations);
@@ -367,13 +401,13 @@ public class MapFragment extends Fragment {
                 });
             }
 
-            // 지도가 처음 열릴 위치. 위치를 아직 못 받았으면 기본 위치에서 시작한다.
+            // 지도가 처음 열릴 위치. 조회 위치를 아직 못 정했으면 기본 위치에서 시작한다.
             @NonNull
             @Override
             public LatLng getPosition() {
-                UserLocation location = viewModel.getLocation().getValue();
-                if (location != null) {
-                    return LatLng.from(location.getLatitude(), location.getLongitude());
+                SearchOrigin origin = viewModel.getOrigin().getValue();
+                if (origin != null) {
+                    return LatLng.from(origin.getLatitude(), origin.getLongitude());
                 }
                 return LatLng.from(LocationRepository.DEFAULT_LATITUDE, LocationRepository.DEFAULT_LONGITUDE);
             }
@@ -422,22 +456,29 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void showLocationOnMap(UserLocation location, boolean animate) {
-        if (kakaoMap == null || location == null) {
+    /** 지도 중심을 조회 위치로 옮긴다. */
+    private void moveCameraToOrigin(SearchOrigin origin, boolean animate) {
+        if (kakaoMap == null || origin == null) {
             return; // 지도가 준비되면 onMapReady에서 다시 호출된다.
         }
-        LatLng position = LatLng.from(location.getLatitude(), location.getLongitude());
+        LatLng position = LatLng.from(origin.getLatitude(), origin.getLongitude());
         CameraUpdate update = CameraUpdateFactory.newCenterPosition(position, DEFAULT_ZOOM_LEVEL);
         if (animate) {
             kakaoMap.moveCamera(update, CameraAnimation.from(CAMERA_ANIMATION_MS));
         } else {
             kakaoMap.moveCamera(update);
         }
-        updateMyLocationLabel(location, position);
     }
 
-    /** 카카오맵 SDK v2에는 내 위치 표시 기능이 없어서 파란 점 Label을 직접 올린다. */
-    private void updateMyLocationLabel(UserLocation location, LatLng position) {
+    /**
+     * 카카오맵 SDK v2에는 내 위치 표시 기능이 없어서 파란 점 Label을 직접 올린다.
+     * 조회 위치가 검색한 장소여도 파란 점은 내 위치에 둔다.
+     */
+    private void updateMyLocationLabel(UserLocation location) {
+        if (kakaoMap == null || location == null) {
+            return; // 지도가 준비되면 onMapReady에서 다시 호출된다.
+        }
+        LatLng position = LatLng.from(location.getLatitude(), location.getLongitude());
         LabelManager labelManager = kakaoMap.getLabelManager();
         if (labelManager == null) {
             return;
@@ -572,8 +613,15 @@ public class MapFragment extends Fragment {
     private void showStations(List<StationSaving> stations) {
         List<StationSaving> list = stations != null ? stations : Collections.emptyList();
         stationAdapter.submit(list, cheapestPrice(list));
-        stationAdapter.setSelectedId(viewModel.getSelectedStationId().getValue());
-        stationLayoutManager.scrollToPosition(0);
+        String selectedId = viewModel.getSelectedStationId().getValue();
+        stationAdapter.setSelectedId(selectedId);
+        // 주유소 이름 검색에서 고른 주유소처럼 선택된 주유소가 있으면 그 줄을, 없으면 맨 위를 보여준다.
+        int selectedPosition = selectedId != null ? stationAdapter.positionOf(selectedId) : RecyclerView.NO_POSITION;
+        if (selectedPosition != RecyclerView.NO_POSITION) {
+            stationLayoutManager.scrollToPositionWithOffset(selectedPosition, 0);
+        } else {
+            stationLayoutManager.scrollToPosition(0);
+        }
         if (stations != null && !stations.isEmpty()) {
             sheetTitle.setText(getString(R.string.station_sheet_title_count, stations.size()));
         } else {
@@ -622,7 +670,9 @@ public class MapFragment extends Fragment {
             showProgress = true;
         } else if (stations.isEmpty()) {
             StationListBuilder.EmptyReason reason = viewModel.getEmptyReason().getValue();
-            if (reason == StationListBuilder.EmptyReason.BRAND_FILTER) {
+            if (reason == StationListBuilder.EmptyReason.RADIUS && viewModel.isOutsideMockArea()) {
+                message = getString(R.string.mock_area_notice);
+            } else if (reason == StationListBuilder.EmptyReason.BRAND_FILTER) {
                 message = getString(R.string.station_empty_brand_filter);
             } else if (reason == StationListBuilder.EmptyReason.HIDDEN_BRANDS) {
                 message = getString(R.string.station_empty_hidden_brands);
@@ -690,8 +740,8 @@ public class MapFragment extends Fragment {
             return;
         }
         detailOpening = true;
-        detailLauncher.launch(StationDetailActivity.createIntent(
-                requireContext(), saving, viewModel.getFuelType().getValue()));
+        detailLauncher.launch(StationDetailActivity.createIntent(requireContext(), saving,
+                viewModel.getFuelType().getValue(), originLabel(viewModel.getOrigin().getValue())));
     }
 
     /** 상세 화면에서 돌아오면 그 주유소를 선택한 채로 지도를 그 위치로 옮긴다. */
@@ -734,6 +784,93 @@ public class MapFragment extends Fragment {
             cheapest = Math.min(cheapest, saving.getStation().getPrice());
         }
         return cheapest;
+    }
+
+    // ---------- 검색창, 조회 위치 ----------
+
+    private void setUpSearch(View view) {
+        searchModeGroup = view.findViewById(R.id.search_mode_group);
+        searchInput = view.findViewById(R.id.search_input);
+        View searchButton = view.findViewById(R.id.search_button);
+
+        SearchViewModel.Mode mode = searchViewModel.getMode().getValue();
+        searchModeGroup.check(mode == SearchViewModel.Mode.STATION ? R.id.search_mode_station : R.id.search_mode_place);
+        renderSearchHint(mode);
+        searchModeGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) {
+                return;
+            }
+            SearchViewModel.Mode newMode = checkedId == R.id.search_mode_station
+                    ? SearchViewModel.Mode.STATION : SearchViewModel.Mode.PLACE;
+            searchViewModel.setMode(newMode);
+            renderSearchHint(newMode);
+        });
+
+        // 입력 중에는 검색하지 않는다. 검색 버튼이나 키보드의 검색 키를 눌렀을 때만 검색한다.
+        searchButton.setOnClickListener(v -> submitSearch());
+        searchInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                submitSearch();
+                return true;
+            }
+            return false;
+        });
+
+        originChip = view.findViewById(R.id.chip_origin);
+        originChip.setOnCloseIconClickListener(v -> viewModel.returnToMyLocation());
+        originChip.setOnClickListener(v -> moveCameraToOrigin(viewModel.getOrigin().getValue(), true));
+    }
+
+    private void renderSearchHint(SearchViewModel.Mode mode) {
+        searchInput.setHint(mode == SearchViewModel.Mode.STATION
+                ? R.string.search_hint_station : R.string.search_hint_place);
+    }
+
+    private void submitSearch() {
+        SearchViewModel.SubmitResult result = searchViewModel.submit(searchInput.getText().toString());
+        if (result == SearchViewModel.SubmitResult.TOO_SHORT) {
+            Toast.makeText(requireContext(), R.string.search_too_short, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (result == SearchViewModel.SubmitResult.BLANK) {
+            Toast.makeText(requireContext(), R.string.search_blank, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        hideKeyboard();
+        if (getChildFragmentManager().findFragmentByTag(SearchResultSheet.TAG) == null) {
+            new SearchResultSheet().show(getChildFragmentManager(), SearchResultSheet.TAG);
+        }
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = ContextCompat.getSystemService(requireContext(), InputMethodManager.class);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(searchInput.getWindowToken(), 0);
+        }
+        searchInput.clearFocus();
+    }
+
+    /** 검색한 장소·주유소 기준일 때만 "강남역 기준" 칩을 보여준다. */
+    private void renderOriginChip(SearchOrigin origin) {
+        if (origin == null || !origin.isPlace()) {
+            originChip.setVisibility(View.GONE);
+            return;
+        }
+        String text = getString(R.string.origin_chip, origin.getName());
+        originChip.setText(text);
+        originChip.setContentDescription(getString(R.string.origin_chip_description, origin.getName()));
+        originChip.setVisibility(View.VISIBLE);
+    }
+
+    /** 조회 위치 이름: 검색한 장소 이름, 내 위치, 기본 위치(서울시청) */
+    private String originLabel(SearchOrigin origin) {
+        if (origin != null && origin.isPlace()) {
+            return origin.getName();
+        }
+        if (origin != null && origin.isDefaultLocation()) {
+            return getString(R.string.origin_default_location);
+        }
+        return getString(R.string.origin_my_location);
     }
 
     // ---------- 유종, 반경, 브랜드, 정렬 선택 ----------
@@ -797,7 +934,7 @@ public class MapFragment extends Fragment {
         popup.show();
     }
 
-    /** 필터 칩, 정렬 버튼, 시트의 조건 문구를 지금 선택에 맞춘다. */
+    /** 필터 칩, 정렬 버튼, 시트의 조건 문구(조회 위치 · 유종 · 반경 · 정렬)를 지금 선택에 맞춘다. */
     private void renderFilters() {
         FuelType fuelType = viewModel.getFuelType().getValue();
         SearchRadius radius = viewModel.getRadius().getValue();
@@ -812,7 +949,8 @@ public class MapFragment extends Fragment {
         sortButton.setText(sortOrder.getLabel());
         sortButton.setContentDescription(getString(R.string.station_sort_description, sortOrder.getLabel()));
         conditionText.setText(getString(R.string.station_sheet_condition,
-                fuelType.getLabel(), radius.getLabel(), sortOrder.getLabel()));
+                originLabel(viewModel.getOrigin().getValue()), fuelType.getLabel(), radius.getLabel(),
+                sortOrder.getLabel()));
     }
 
     /** 브랜드 칩 글자: "브랜드: 전체", "할인 브랜드", "SK 외 2" 등 */

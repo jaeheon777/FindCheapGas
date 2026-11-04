@@ -40,4 +40,15 @@ public interface OpinetApi {
             @Query("code") String apiKey,
             @Query("id") String id,
             @Query("out") String out);
+
+    /**
+     * 상호로 주유소 검색. 사용자가 주유소 이름 검색을 했을 때만 부른다 (두 글자 이상, 같은 검색어는 30분 캐시).
+     *
+     * @param osnm 상호 (일부만 넣어도 된다)
+     */
+    @GET("searchByName.do")
+    Call<ResponseBody> searchByName(
+            @Query("code") String apiKey,
+            @Query("osnm") String osnm,
+            @Query("out") String out);
 }

@@ -1,14 +1,18 @@
 package com.example.findcheapgas.data.remote;
 
+import static com.example.findcheapgas.data.remote.OpinetJson.array;
+import static com.example.findcheapgas.data.remote.OpinetJson.firstNonEmpty;
+import static com.example.findcheapgas.data.remote.OpinetJson.number;
+import static com.example.findcheapgas.data.remote.OpinetJson.oilArray;
+import static com.example.findcheapgas.data.remote.OpinetJson.preview;
+import static com.example.findcheapgas.data.remote.OpinetJson.text;
+
 import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.StationDetail;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,17 +34,7 @@ public final class OpinetDetailResponse {
 
     /** 응답 본문을 상세정보로 바꾼다. 형식이 다르거나 주유소가 없으면 OpinetException을 던진다. */
     public static StationDetail parse(String body) throws OpinetException {
-        JsonElement root;
-        try {
-            root = JsonParser.parseString(body == null ? "" : body);
-        } catch (JsonParseException e) {
-            throw new OpinetException("JSON이 아닌 응답: " + preview(body), e);
-        }
-        JsonObject result = object(root, "RESULT");
-        JsonArray oils = result != null ? array(result, "OIL") : null;
-        if (oils == null) {
-            throw new OpinetException("RESULT.OIL이 없는 응답: " + preview(body));
-        }
+        JsonArray oils = oilArray(body);
         if (oils.size() == 0 || !oils.get(0).isJsonObject()) {
             throw new OpinetException("주유소 정보가 없는 응답: " + preview(body));
         }
@@ -96,45 +90,6 @@ public final class OpinetDetailResponse {
         return false;
     }
 
-    private static JsonObject object(JsonElement parent, String key) {
-        if (parent == null || !parent.isJsonObject()) {
-            return null;
-        }
-        JsonElement value = parent.getAsJsonObject().get(key);
-        return value != null && value.isJsonObject() ? value.getAsJsonObject() : null;
-    }
-
-    private static JsonArray array(JsonObject parent, String key) {
-        JsonElement value = parent.get(key);
-        return value != null && value.isJsonArray() ? value.getAsJsonArray() : null;
-    }
-
-    /** 문자열이나 숫자를 문자열로. 없거나 null, 객체면 빈 문자열 */
-    private static String text(JsonObject parent, String key) {
-        JsonElement value = parent.get(key);
-        if (value == null || !value.isJsonPrimitive()) {
-            return "";
-        }
-        return value.getAsString().trim();
-    }
-
-    /** 숫자나 숫자 문자열("1,659" 포함). 읽을 수 없으면 0 */
-    private static double number(JsonObject parent, String key) {
-        JsonElement value = parent.get(key);
-        if (value == null || !value.isJsonPrimitive()) {
-            return 0;
-        }
-        JsonPrimitive primitive = value.getAsJsonPrimitive();
-        if (primitive.isNumber()) {
-            return primitive.getAsDouble();
-        }
-        try {
-            return Double.parseDouble(primitive.getAsString().replace(",", "").trim());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
-
     private static boolean isYes(JsonObject parent, String key) {
         return "Y".equalsIgnoreCase(text(parent, key));
     }
@@ -149,17 +104,5 @@ public final class OpinetDetailResponse {
             return Boolean.FALSE;
         }
         return null;
-    }
-
-    private static String firstNonEmpty(String first, String second) {
-        return first.isEmpty() ? second : first;
-    }
-
-    private static String preview(String body) {
-        if (body == null) {
-            return "(없음)";
-        }
-        String trimmed = body.trim();
-        return trimmed.length() > 200 ? trimmed.substring(0, 200) + "…" : trimmed;
     }
 }

@@ -32,8 +32,8 @@
 
     <!--
         지도 위쪽 영역. 위에서부터 차례로 쌓여서 서로 겹치지 않는다.
-        - 검색창 (3단계에서 추가)
-        - 필터 줄: 유종, 반경, 브랜드 빠른 필터
+        - 검색창: [장소 | 주유소 이름] 선택, 검색어, 검색 버튼 (검색 버튼이나 키보드의 검색 키를 눌렀을 때만 검색)
+        - 필터 줄: 조회 위치 칩(검색한 장소 기준일 때만), 유종, 반경, 브랜드 빠른 필터
         - 위치 권한 / 기기 위치 안내
     -->
     <LinearLayout
@@ -43,6 +43,82 @@
         android:layout_gravity="top"
         android:orientation="vertical"
         android:paddingTop="8dp">
+
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="6dp"
+                android:paddingEnd="4dp">
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/search_mode_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:checkedButton="@id/search_mode_place"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/search_mode_place"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="@string/search_mode_place"
+                        android:textAppearance="?attr/textAppearanceLabelMedium" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/search_mode_station"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="@string/search_mode_station"
+                        android:textAppearance="?attr/textAppearanceLabelMedium" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="@string/search_hint_place"
+                    android:imeOptions="actionSearch"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <ImageButton
+                    android:id="@+id/search_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search_button"
+                    android:src="@drawable/ic_search" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -57,6 +133,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
+                <!-- 검색한 장소·주유소 기준으로 조회 중일 때만 보인다. X를 누르면 내 위치 기준으로 돌아간다. -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_origin"
+                    style="@style/Widget.FindCheapGas.OriginChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone"
+                    tools:text="강남역 기준"
+                    tools:visibility="visible" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_fuel_type"

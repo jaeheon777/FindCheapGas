@@ -2,6 +2,6 @@
 <resources>
     <!-- 주유소 목록 시트를 접었을 때 높이: 손잡이 + 제목·조건 문구·계산 기준 문구 + 항목 약 1.5개 -->
     <dimen name="station_sheet_peek_height">238dp</dimen>
-    <!-- 시트를 끝까지 올려도 지도가 이만큼은 보인다. -->
-    <dimen name="station_sheet_expanded_offset">96dp</dimen>
+    <!-- 시트를 끝까지 올려도 검색창, 필터 줄과 지도 일부가 보인다. -->
+    <dimen name="station_sheet_expanded_offset">152dp</dimen>
 </resources>

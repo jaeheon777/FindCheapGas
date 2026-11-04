@@ -8,7 +8,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
+import com.example.findcheapgas.BuildConfig;
 import com.example.findcheapgas.data.local.StationFilterPreferences;
+import com.example.findcheapgas.data.mock.MockOpinetDataSource;
 import com.example.findcheapgas.data.repository.BrandSettingsRepository;
 import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.data.repository.LocationRepository;
@@ -19,11 +21,13 @@ import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
+import com.example.findcheapgas.model.SearchOrigin;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.model.StationSearchResult;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.util.StationListBuilder;
 
@@ -32,13 +36,15 @@ import java.util.List;
 
 /**
  * 지도 탭의 화면 상태를 가진다.
- * - 위치: 현재 좌표, 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
+ * - 위치: 현재 좌표(지도 위 파란 점), 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
+ * - 조회 위치: 현재 위치 또는 검색한 장소·주유소 (SearchOriginState). 주변 조회, 거리, 이동 비용, 기준 주유소,
+ *   예상 이득은 모두 조회 위치 기준이다. 장소 기준일 때 내 위치를 새로 받아도 조회 위치는 그대로다.
  * - 주유소: 주변 주유소 목록, 조회 중 여부, 오류, 선택한 주유소
  * - 선택: 유종, 반경, 정렬, 브랜드 빠른 필터 (마지막 선택을 StationFilterPreferences에 저장)
  * - 내 차 정보: CarInfoRepository의 LiveData를 그대로 내보낸다 (계산 기준 문구)
  * - 내 브랜드 설정: BrandSettingsRepository의 LiveData를 그대로 내보낸다 (빠른 필터 메뉴)
  *
- * API 호출은 유종이 바뀌거나 위치를 새로 받았을 때만 한다. 오피넷에서 받은 5km 안 전체 목록(fetchedStations)을
+ * API 호출은 유종이 바뀌거나 조회 위치가 바뀌었을 때만 한다. 오피넷에서 받은 5km 안 전체 목록(fetchedStations)을
  * 들고 있다가, 반경, 정렬, 브랜드 빠른 필터, 내 차 정보, 내 브랜드 설정이 바뀌면
  * StationListBuilder로 화면 목록(stations)만 다시 만든다.
  * 화면 목록의 각 항목에는 예상 이득 계산 결과(StationSaving)가 들어 있다.
@@ -55,7 +61,15 @@ public class MapViewModel extends AndroidViewModel {
     private final BrandSettingsRepository brandSettingsRepository;
     private final Observer<BrandSettings> brandSettingsObserver = settings -> updateDisplayedStations();
 
+    // 내 위치 (파란 점). 조회 위치와 다를 수 있다.
     private final MutableLiveData<UserLocation> location = new MutableLiveData<>();
+    // 조회 위치. 바뀌면 지도가 그 위치로 옮겨 간다. 아직 없으면 null
+    private final MutableLiveData<SearchOrigin> origin = new MutableLiveData<>();
+    // 가짜 데이터 모드에서 강남역에서 먼 곳을 골랐을 때 한 번 보여줄 안내. 보여주면 false로 되돌린다.
+    private final MutableLiveData<Boolean> mockAreaNotice = new MutableLiveData<>(false);
+    // 주유소 이름 검색에서 고른 주유소가 지금 목록에 없을 때(그 유종을 안 팔거나 필터에 걸림) 한 번 보여줄 상호.
+    // 보여주면 null로 되돌린다.
+    private final MutableLiveData<String> searchedStationMissing = new MutableLiveData<>();
     private final MutableLiveData<LocationPermissionState> permissionState =
             new MutableLiveData<>(LocationPermissionState.UNKNOWN);
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
@@ -81,8 +95,12 @@ public class MapViewModel extends AndroidViewModel {
     // 지도 탭을 처음 열 때 한 번만 권한을 묻기 위한 표시
     private boolean permissionRequested = false;
 
-    // 마지막 조회 위치. 다시 시도하거나 유종을 바꿀 때 이 위치로 조회한다. 지도를 움직여도 바뀌지 않는다.
-    private UserLocation searchLocation;
+    // 조회 위치를 정하는 규칙. 다시 시도하거나 유종을 바꿀 때 지금 조회 위치로 조회한다. 지도를 움직여도 바뀌지 않는다.
+    private final SearchOriginState originState = new SearchOriginState();
+    // 위치 조회가 끝나면 장소 기준이어도 내 위치 기준으로 돌아갈지 (내 위치 버튼, 칩 X)
+    private boolean returnToMyLocationPending = false;
+    // 주유소 이름 검색에서 고른 주유소. 그 위치로 조회가 끝나면 선택하고 비운다.
+    private StationSearchResult pendingSelectStation;
     // 마지막으로 받은 5km 안 전체 목록 (정렬 전). 조회 전이거나 실패했으면 null
     private List<GasStation> fetchedStations;
     // 조회가 겹치면 마지막 요청의 결과만 반영한다.
@@ -105,6 +123,33 @@ public class MapViewModel extends AndroidViewModel {
 
     public LiveData<UserLocation> getLocation() {
         return location;
+    }
+
+    public LiveData<SearchOrigin> getOrigin() {
+        return origin;
+    }
+
+    public LiveData<Boolean> getMockAreaNotice() {
+        return mockAreaNotice;
+    }
+
+    public void onMockAreaNoticeShown() {
+        mockAreaNotice.setValue(false);
+    }
+
+    public LiveData<String> getSearchedStationMissing() {
+        return searchedStationMissing;
+    }
+
+    public void onSearchedStationMissingShown() {
+        searchedStationMissing.setValue(null);
+    }
+
+    /** 가짜 데이터 모드이고 조회 위치가 가짜 데이터가 있는 강남역 주변 밖인지 */
+    public boolean isOutsideMockArea() {
+        SearchOrigin current = origin.getValue();
+        return BuildConfig.USE_MOCK_DATA && current != null
+                && MockOpinetDataSource.isOutsideMockArea(current.getLatitude(), current.getLongitude());
     }
 
     public LiveData<LocationPermissionState> getPermissionState() {
@@ -179,7 +224,7 @@ public class MapViewModel extends AndroidViewModel {
 
     public void onPermissionGranted() {
         permissionState.setValue(LocationPermissionState.GRANTED);
-        refreshLocation();
+        refreshLocation(false);
     }
 
     public void onPermissionDenied(boolean permanently) {
@@ -188,27 +233,74 @@ public class MapViewModel extends AndroidViewModel {
                 : LocationPermissionState.DENIED);
         if (location.getValue() == null) {
             // 권한이 없어도 기본 위치(서울시청) 주변 주유소는 보여준다.
-            UserLocation defaultLocation = repository.getDefaultLocation();
-            location.setValue(defaultLocation);
-            loadStations(defaultLocation);
+            onMyLocation(repository.getDefaultLocation(), false);
         }
     }
 
     /**
-     * 위치를 다시 가져오고, 그 위치 기준으로 주변 주유소를 조회한다.
+     * 내 위치 버튼, "OO 기준" 칩의 X. 장소 기준이면 내 위치 기준으로 돌아간다.
+     * 권한이 있으면 위치를 새로 받고, 없으면 마지막으로 받은 위치(보통 기본 위치)로 돌아간다.
+     */
+    public void returnToMyLocation() {
+        if (repository.hasPermission()) {
+            refreshLocation(true);
+            return;
+        }
+        SearchOrigin changed = originState.returnToLastMyLocation();
+        if (changed != null) {
+            setOrigin(changed);
+        }
+    }
+
+    /** 장소 검색 결과를 골랐을 때. 그 장소를 조회 위치로 주변 주유소를 조회한다. */
+    public void selectPlace(String name, double latitude, double longitude) {
+        pendingSelectStation = null;
+        setOrigin(originState.selectPlace(name, latitude, longitude));
+    }
+
+    /** 주유소 이름 검색 결과를 골랐을 때. 그 주유소 위치를 조회 위치로 조회하고, 끝나면 그 주유소를 선택한다. */
+    public void selectSearchedStation(StationSearchResult station) {
+        SearchOrigin changed = originState.selectPlace(station.getName(), station.getLatitude(),
+                station.getLongitude());
+        pendingSelectStation = station;
+        setOrigin(changed);
+    }
+
+    /**
+     * 위치를 다시 가져온다. 내 위치 기준이면 그 위치로 주변 주유소를 조회하고,
+     * 장소 기준이면 파란 점만 옮기고 조회 위치는 그대로 둔다 (returnToMyLocation이면 내 위치 기준으로 돌아간다).
      * 결과는 매번 새 값으로 넣어서 같은 좌표여도 카메라가 다시 이동한다.
      */
-    public void refreshLocation() {
+    private void refreshLocation(boolean returnToMyLocation) {
+        returnToMyLocationPending |= returnToMyLocation;
         if (Boolean.TRUE.equals(loading.getValue())) {
-            return;
+            return; // 진행 중인 위치 조회가 끝날 때 returnToMyLocationPending을 반영한다.
         }
         locationEnabled.setValue(repository.isLocationEnabled());
         loading.setValue(true);
         repository.fetchCurrentLocation(result -> {
             loading.setValue(false);
-            location.setValue(result);
-            loadStations(result);
+            boolean returnNow = returnToMyLocationPending;
+            returnToMyLocationPending = false;
+            onMyLocation(result, returnNow);
         });
+    }
+
+    private void onMyLocation(UserLocation result, boolean returnToMyLocation) {
+        location.setValue(result);
+        SearchOrigin changed = originState.onMyLocation(result, returnToMyLocation);
+        if (changed != null) {
+            setOrigin(changed);
+        }
+    }
+
+    /** 조회 위치를 바꾸고 그 위치로 주변 주유소를 조회한다. */
+    private void setOrigin(SearchOrigin newOrigin) {
+        origin.setValue(newOrigin);
+        if (newOrigin.isPlace() && isOutsideMockArea()) {
+            mockAreaNotice.setValue(true);
+        }
+        loadStations(newOrigin);
     }
 
     /** 화면으로 돌아올 때 호출. 기기 위치가 꺼져 있다가 켜졌으면 위치를 다시 가져온다. */
@@ -217,14 +309,15 @@ public class MapViewModel extends AndroidViewModel {
         boolean enabled = repository.isLocationEnabled();
         locationEnabled.setValue(enabled);
         if (wasDisabled && enabled && permissionState.getValue() == LocationPermissionState.GRANTED) {
-            refreshLocation();
+            refreshLocation(false);
         }
     }
 
     /** 오류 화면의 다시 시도 버튼 */
     public void retryStations() {
-        if (searchLocation != null) {
-            loadStations(searchLocation);
+        SearchOrigin current = originState.getOrigin();
+        if (current != null) {
+            loadStations(current);
         }
     }
 
@@ -236,8 +329,9 @@ public class MapViewModel extends AndroidViewModel {
         fuelType.setValue(newFuelType);
         filterPreferences.setFuelType(newFuelType);
         // 위치를 아직 못 받았으면 위치를 받은 뒤 이 유종으로 조회된다.
-        if (searchLocation != null) {
-            loadStations(searchLocation);
+        SearchOrigin current = originState.getOrigin();
+        if (current != null) {
+            loadStations(current);
         }
     }
 
@@ -290,8 +384,7 @@ public class MapViewModel extends AndroidViewModel {
         return null;
     }
 
-    private void loadStations(UserLocation center) {
-        searchLocation = center;
+    private void loadStations(SearchOrigin center) {
         int requestId = ++stationRequestId;
         stationsLoading.setValue(true);
         stationsError.setValue(null);
@@ -305,7 +398,12 @@ public class MapViewModel extends AndroidViewModel {
                 }
                 fetchedStations = result;
                 stationsLoading.setValue(false);
-                updateDisplayedStations();
+                StationSearchResult selectAfter = pendingSelectStation;
+                pendingSelectStation = null;
+                updateDisplayedStations(selectAfter != null ? selectAfter.getId() : null);
+                if (selectAfter != null && findStation(selectAfter.getId()) == null) {
+                    searchedStationMissing.setValue(selectAfter.getName());
+                }
             }
 
             @Override
@@ -314,6 +412,7 @@ public class MapViewModel extends AndroidViewModel {
                     return;
                 }
                 fetchedStations = null;
+                pendingSelectStation = null;
                 selectedStationId.setValue(null);
                 stationsLoading.setValue(false);
                 stationsError.setValue(error);
@@ -330,12 +429,22 @@ public class MapViewModel extends AndroidViewModel {
      * 선택한 주유소가 새 목록에 없으면 선택을 먼저 해제해서, 화면이 지워진 주유소를 선택한 채로 그리지 않게 한다.
      */
     private void updateDisplayedStations() {
+        updateDisplayedStations(null);
+    }
+
+    /**
+     * @param selectId 새 목록에 있으면 목록을 내보내기 전에 선택할 주유소 (주유소 이름 검색에서 고른 곳). 없으면 null
+     */
+    private void updateDisplayedStations(String selectId) {
         if (fetchedStations == null) {
             return;
         }
         BrandSettings brandSettings = brandSettingsRepository.getCurrent();
         List<StationSaving> result = StationListBuilder.build(fetchedStations, radius.getValue(),
                 sortOrder.getValue(), carInfoRepository.getCurrent(), brandSettings, brandFilter.getValue());
+        if (selectId != null && containsStation(result, selectId)) {
+            selectedStationId.setValue(selectId);
+        }
         String selectedId = selectedStationId.getValue();
         if (selectedId != null && !containsStation(result, selectedId)) {
             selectedStationId.setValue(null);

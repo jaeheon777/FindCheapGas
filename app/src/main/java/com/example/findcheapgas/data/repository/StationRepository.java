@@ -19,6 +19,7 @@ import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.util.CoordinateConverter;
+import com.example.findcheapgas.util.StationDistances;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
@@ -36,6 +37,7 @@ import java.util.concurrent.Executors;
  * 주변 주유소를 어디서 가져올지 정한다.
  * 1. Room 캐시 (같은 위치·유종으로 20분 안에 조회한 결과)
  * 2. 캐시가 없으면 USE_MOCK_DATA에 따라 가짜 데이터(assets) 또는 실제 오피넷 API
+ * 조회 위치는 현재 위치나 검색한 장소(StationQuery의 위치)이고, 거리는 이 위치 기준이다.
  * 오피넷에는 항상 최대 반경 5km로 요청한다. 반경을 줄이거나 정렬을 바꾸는 것은 API를 다시 부르지 않고
  * StationListBuilder가 이 결과로 처리하므로, 여기서 돌려주는 목록은 정렬하지 않은 5km 안 전체 목록이다.
  * 결과는 메인 스레드에서 Callback으로 돌려준다.
@@ -101,13 +103,9 @@ public class StationRepository {
         List<GasStation> cached = readCache(key, minSavedAt);
         if (cached != null) {
             Log.d(TAG, "캐시 사용: " + key + " (" + cached.size() + "곳)");
-            // 캐시는 약 100m 단위로 묶여 있으므로 거리는 지금 위치 기준으로 다시 계산한다.
-            List<GasStation> stations = new ArrayList<>(cached.size());
-            for (GasStation station : cached) {
-                stations.add(station.withDistance(
-                        CoordinateConverter.distanceMeters(katec, station.getKatecX(), station.getKatecY())));
-            }
-            return Collections.unmodifiableList(stations);
+            // 캐시는 약 100m 단위로 묶여 있으므로 거리는 이번 조회 위치 기준으로 다시 계산한다.
+            return Collections.unmodifiableList(
+                    StationDistances.fromOrigin(cached, query.getLatitude(), query.getLongitude()));
         }
 
         List<OpinetAroundResponse.Oil> oils;

@@ -5,6 +5,7 @@ import android.util.Log;
 import com.example.findcheapgas.BuildConfig;
 import com.example.findcheapgas.model.StationDetail;
 import com.example.findcheapgas.model.StationQuery;
+import com.example.findcheapgas.model.StationSearchResult;
 import com.example.findcheapgas.util.CoordinateConverter;
 
 import java.io.IOException;
@@ -21,12 +22,12 @@ import retrofit2.Retrofit;
 /**
  * 실제 오피넷 API를 호출한다. 백그라운드 스레드에서만 부른다.
  * 요청 URL에 API 키(code 파라미터)가 들어가므로 HTTP 로깅 인터셉터를 붙이지 않고, 요청 URL이나
- * Request, Response 객체를 로그나 예외 메시지에 넣지 않는다. 디버그 빌드에서 상세 응답 본문만 로그로 남긴다.
+ * Request, Response 객체를 로그나 예외 메시지에 넣지 않는다. 디버그 빌드에서 상세, 상호 검색 응답 본문만 로그로 남긴다.
  */
 public class OpinetRemoteDataSource {
 
     private static final String TAG = "OpinetRemote";
-    // 디버그 빌드에서 상세정보 응답 본문을 남기는 태그. 실제 필드 이름을 확인할 때 Logcat에서 이 태그로 거른다.
+    // 디버그 빌드에서 상세정보, 상호 검색 응답 본문을 남기는 태그. 실제 필드 이름을 확인할 때 Logcat에서 이 태그로 거른다.
     private static final String BODY_LOG_TAG = "OpinetBody";
     // Logcat 한 줄 길이 제한(약 4,000자)보다 짧게 나눠서 찍는다.
     private static final int LOG_CHUNK = 3000;
@@ -81,6 +82,20 @@ public class OpinetRemoteDataSource {
             logBody("detailById " + stationId, body);
         }
         return OpinetDetailResponse.parse(body);
+    }
+
+    /**
+     * 상호로 주유소 검색. 응답 필드 이름을 확인할 수 있게 디버그 빌드에서 본문을 로그로 남긴다.
+     *
+     * @throws IOException     네트워크 연결 실패, 시간 초과
+     * @throws OpinetException 오피넷 오류 응답
+     */
+    public List<StationSearchResult> searchByName(String keyword) throws IOException, OpinetException {
+        String body = execute(api.searchByName(BuildConfig.OPINET_API_KEY, keyword, "json"));
+        if (BuildConfig.DEBUG) {
+            logBody("searchByName", body);
+        }
+        return OpinetSearchResponse.parse(body);
     }
 
     /** 요청을 보내고 본문을 문자열로 돌려준다. 실패 메시지에는 HTTP 코드만 넣는다. */

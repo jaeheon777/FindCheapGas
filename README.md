@@ -62,7 +62,8 @@
 
 ### 계산의 가정과 한계
 
-- **편도 거리**: 현재 위치에서 주유소까지 가는 거리만 계산합니다. 주유한 뒤에는 원래 가려던 곳으로 이어서 간다고 보고, 돌아오는 거리는 넣지 않습니다.
+- **편도 거리**: 조회 위치에서 주유소까지 가는 거리만 계산합니다. 주유한 뒤에는 원래 가려던 곳으로 이어서 간다고 보고, 돌아오는 거리는 넣지 않습니다.
+- **조회 위치**: 기본은 현재 위치이고, 장소나 주유소 이름을 검색해서 고르면 그 위치가 조회 위치가 됩니다. 거리, 이동 비용, 기준 주유소, 예상 이득은 모두 "조회 위치에서 출발한다면"으로 계산합니다. 검색한 위치로 조회 중이면 지도 위에 "강남역 기준" 같은 표시가 나오고, 목록 위쪽과 상세 화면에도 "강남역에서 0.7km"처럼 조회 위치 이름을 보여줍니다.
 - **도로 거리 계수 1.4**: 실제 도로는 직선이 아니어서 도로 거리는 직선거리보다 깁니다. 미국 전역 66,011곳에서 가장 가까운 병원까지의 운전 거리와 직선거리를 비교한 연구에서 그 비율(우회 계수)이 1.417로 나타났고, 연구진은 직선거리에 약 1.4를 곱하면 운전 거리의 적절한 대체값이 된다고 결론지었습니다 [1]. 이 앱은 이 값을 따릅니다.
   - 미국 자료이므로 국내 도로에서는 차이가 있을 수 있습니다.
   - 짧은 거리일수록 우회 비율이 더 커지는 경향이 있어 [2], 5km 이내 거리에서는 실제 거리가 더 길 수 있습니다.
@@ -209,6 +210,8 @@ flowchart TD
     H --> I[지도에 이득 색깔 마커 표시<br>하단 목록 표시]
 ```
 
+장소나 주유소 이름을 검색해서 결과를 고르면, 현재 위치 대신 고른 위치를 조회 위치로 삼아 좌표 변환부터 같은 순서로 처리합니다. 내 위치 버튼이나 "강남역 기준" 표시의 X를 누르면 다시 현재 위치 기준으로 돌아갑니다.
+
 ### 좌표 변환
 
 휴대폰 GPS와 카카오맵은 위도·경도(WGS84) 좌표를 사용하고, 오피넷 API는 KATEC 좌표를 사용합니다.
@@ -251,7 +254,9 @@ flowchart TD
 
 ### 카카오 로컬 API
 
-키워드로 장소를 검색하거나 주소를 좌표로 변환할 때 사용합니다. 집·회사 위치 등록에도 사용합니다.
+지도 탭의 장소 검색에 사용합니다. 키워드 검색(`/v2/local/search/keyword.json`)으로 찾고, 결과가 없으면 주소 검색(`/v2/local/search/address.json`)을 한 번 더 해 봅니다. REST API 키는 `Authorization: KakaoAK {키}` 헤더로 보내고, 키와 헤더는 로그에 남기지 않습니다. 키가 비었거나 틀리면(401, 403) 장소 검색을 사용할 수 없다고 안내합니다.
+
+오피넷 호출이 아니므로 하루 300회 제한과 관계없고, 가짜 데이터 모드에서도 실제 카카오 API를 사용합니다. 가짜 주유소 데이터는 강남역 주변에만 있어서, 가짜 데이터 모드에서 강남역에서 5km보다 먼 곳을 고르면 강남역 주변 주유소만 볼 수 있다고 안내합니다. 나중에 집·회사 위치 등록에도 사용합니다.
 
 ### 카카오모빌리티 길찾기 API
 
@@ -266,9 +271,10 @@ flowchart TD
 | 방식 | 내용 |
 |---|---|
 | 가짜 데이터 모드 | 실제 API 응답과 같은 구조의 JSON 파일을 두고, 개발 중에는 이 파일을 읽습니다. `local.properties`의 `USE_MOCK_DATA` 값으로 전환합니다. |
-| 응답 캐싱 | 같은 위치와 유종으로 조회한 결과는 일정 시간(10~30분) 동안 저장해 두고 재사용합니다. 주유소 상세정보는 주유소별로 30분 동안 재사용합니다. 유가는 하루에 몇 번만 바뀌기 때문에 이 정도면 충분합니다. |
+| 응답 캐싱 | 같은 위치와 유종으로 조회한 결과는 일정 시간(10~30분) 동안 저장해 두고 재사용합니다. 주유소 상세정보는 주유소별로, 주유소 이름 검색 결과는 같은 검색어별로 30분 동안 재사용합니다. 유가는 하루에 몇 번만 바뀌기 때문에 이 정도면 충분합니다. |
 | 앱 안에서 다시 계산 | 정렬, 반경, 브랜드 필터, 내 차 정보, 할인 설정을 바꿀 때는 API를 다시 부르지 않고 이미 받은 목록으로 다시 계산합니다. 오피넷에는 항상 최대 반경 5km로 요청해 두고, 1km나 3km를 고르면 받아 둔 목록에서 그 안의 주유소만 보여줍니다. 유종을 바꿀 때만 새로 조회합니다. |
 | 수동 재검색 | 지도를 움직일 때마다 자동으로 조회하지 않고, "이 지역에서 다시 검색" 버튼을 눌렀을 때만 조회합니다. |
+| 검색 최소화 | 입력 중에는 검색하지 않고, 검색 버튼이나 키보드의 검색 키를 눌렀을 때만 검색합니다. 주유소 이름 검색은 두 글자 이상일 때만 오피넷을 부르고, 같은 검색을 연달아 누르면 한 번만 요청합니다. |
 | 상세 조회 최소화 | 주변 검색 결과에 이름, 가격, 거리, 좌표가 포함되어 있으므로 상세 정보는 주유소를 눌렀을 때만 조회합니다. |
 | 갱신 주기 제한 | 즐겨찾기와 집·회사 비교는 당겨서 새로고침하거나 일정 시간이 지났을 때만 다시 가져옵니다. 위젯은 3시간마다 갱신하고, 7일 추이는 하루에 한 번만 가져옵니다. |
 | 호출 횟수 기록 | 실제 API를 호출할 때마다 오늘 호출 횟수를 기록하고 설정 화면에 표시합니다. |
@@ -284,12 +290,14 @@ app/src/main/java/com/example/findcheapgas/
 ├── MainActivity.java             메인 화면 (로딩 화면, 처음 실행이면 내 차 정보 입력 화면으로 이동, 하단 탭 3개 전환)
 ├── ui/                           화면 (Fragment)
 │   ├── map/
-│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경·브랜드 필터 줄, 마커 색 범례, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 계산 결과와 함께 상세 화면 열기)
+│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 검색창(장소 / 주유소 이름), 조회 위치 칩("강남역 기준", X를 누르면 내 위치 기준), 유종·반경·브랜드 필터 줄, 마커 색 범례, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 계산 결과와 함께 상세 화면 열기)
 │   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (예상 이득 색: 초록 이득, 노랑 비슷, 빨강 손해, 선택 표시)
 │   │   ├── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 선호 브랜드 ★, 브랜드, 거리, 가격, 예상 이득, 이득 1위·최저가·할인 적용 배지)
+│   │   ├── SearchResultSheet.java 검색 결과 시트 (검색 중, 결과 없음, 오류 안내, 고르면 그 위치를 조회 위치로 바꾸고 닫힘)
+│   │   ├── SearchResultAdapter.java 검색 결과 목록 (장소: 이름, 분류, 주소 / 주유소: 상호, 브랜드, 주소)
 │   │   └── BrandFilterSheet.java 브랜드 빠른 필터 시트 (전체 / 할인 브랜드만 / 선호 브랜드만 / 브랜드별 체크, 숨긴 브랜드 제외, 바로 적용)
 │   ├── detail/
-│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보, 예상 이득 계산 내역, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
+│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보와 조회 위치에서 거리, 예상 이득 계산 내역, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
 │   ├── onboarding/
 │   │   └── OnboardingActivity.java 내 차 정보 입력 (처음 실행: 연비, 주유량, 주로 넣는 유종, 저장하고 시작 / 건너뛰기, 수정: 저장 / 취소)
 │   ├── brand/
@@ -301,40 +309,59 @@ app/src/main/java/com/example/findcheapgas/
 │   └── settings/
 │       └── SettingsFragment.java 설정 탭 (내 차 정보와 기본값 사용 여부, 기본값으로 되돌리기, 내 브랜드 요약(누르면 내 브랜드 화면), 나머지 항목은 준비 중)
 ├── viewmodel/
-│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬·브랜드 빠른 필터, 내 차 정보, 내 브랜드 설정, 예상 이득을 계산한 주유소 목록, 목록이 빈 이유, 로딩, 오류, 선택한 주유소)
+│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 조회 위치(현재 위치 또는 검색한 장소·주유소), 권한, 유종·반경·정렬·브랜드 빠른 필터, 내 차 정보, 내 브랜드 설정, 예상 이득을 계산한 주유소 목록, 목록이 빈 이유, 로딩, 오류, 선택한 주유소)
+│   ├── SearchOriginState.java    조회 위치 규칙 (내 위치를 따라가기, 장소를 고르면 고정, 내 위치 기준으로 돌아가기)
+│   ├── SearchViewModel.java      검색창 상태 (장소 / 주유소 이름, 검색 중, 결과, 오류, 같은 검색은 한 번만 요청, 숨긴 브랜드 제외)
 │   ├── DetailViewModel.java      상세 화면 상태 (상세 조회 결과, 로딩, 오류). 화면을 처음 열 때 한 번만 조회
 │   ├── OnboardingViewModel.java  내 차 정보 입력 화면 상태 (입력칸별 오류, 고른 유종), 저장과 처음 실행 완료 처리
 │   ├── SettingsViewModel.java    설정 탭 상태 (내 차 정보, 기본값으로 되돌리기, 내 브랜드 설정)
 │   └── BrandSettingsViewModel.java 내 브랜드 화면 상태 (입력 검사와 저장, 할인 지우기)
 ├── data/
-│   ├── remote/                   오피넷 API 통신 (Retrofit)
-│   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do, 항상 반경 5km), 주유소 상세정보(detailById.do) 요청 정의
+│   ├── remote/                   외부 API 통신 (Retrofit). 바로 아래는 오피넷, kakao/는 카카오 로컬 API
+│   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do, 항상 반경 5km), 주유소 상세정보(detailById.do), 상호로 주유소 검색(searchByName.do) 요청 정의
 │   │   ├── OpinetAroundResponse.java 반경 내 주유소 응답 구조와 해석 (가짜 데이터도 같은 구조)
 │   │   ├── OpinetDetailResponse.java 상세정보 응답 해석 (필드가 없거나 비어 있어도 읽음, 가짜 데이터도 같은 구조)
-│   │   ├── OpinetRemoteDataSource.java 실제 API 호출 (요청 URL은 로그에 남기지 않음, 디버그 빌드에서 상세 응답 본문만 로그)
-│   │   └── OpinetException.java  오피넷 오류 응답 (한도 초과, 형식 오류 등)
+│   │   ├── OpinetSearchResponse.java 상호 검색 응답 해석 (필드가 없어도 읽음, 좌표 없는 항목 제외, 가짜 상세 데이터도 같은 해석)
+│   │   ├── OpinetJson.java       오피넷 응답을 한 칸씩 꺼내 읽는 도구 (상세정보, 상호 검색이 같이 씀)
+│   │   ├── OpinetRemoteDataSource.java 실제 API 호출 (요청 URL은 로그에 남기지 않음, 디버그 빌드에서 상세·상호 검색 응답 본문만 로그)
+│   │   ├── OpinetException.java  오피넷 오류 응답 (한도 초과, 형식 오류 등)
+│   │   └── kakao/                카카오 로컬 API 통신 (오피넷과 Retrofit 설정을 따로 둠)
+│   │       ├── KakaoLocalApi.java 키워드 검색, 주소 검색 요청 정의
+│   │       ├── KakaoLocalDataSource.java 실제 호출 (Authorization 헤더는 인터셉터로 붙이고 로그에 남기지 않음, 키워드 결과가 없으면 주소 검색)
+│   │       ├── KakaoLocalResponse.java 응답 해석 (장소 이름, 주소, 마지막 분류, 좌표. 좌표 없는 항목 제외)
+│   │       └── KakaoException.java 카카오 오류 응답 (401·403 키 오류, 그 밖의 HTTP 오류, 형식 오류)
 │   ├── local/                    기기에 저장하는 데이터
 │   │   ├── AppDatabase.java      Room DB
 │   │   ├── StationCacheEntity.java 주변 주유소 조회 결과 캐시 (위치·유종별 5km 안 전체 목록, 20분)
 │   │   ├── StationCacheDao.java  캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
 │   │   ├── StationDetailCacheDao.java 상세 캐시 조회, 저장, 오래된 캐시 삭제
+│   │   ├── StationSearchCacheEntity.java 주유소 이름 검색 결과 캐시 (검색어별, 30분)
+│   │   ├── StationSearchCacheDao.java 이름 검색 캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences), 300회에 도달하면 호출을 막음
 │   │   ├── DailyLimitReachedException.java 하루 호출 한도에 도달해서 호출하지 않았을 때
 │   │   ├── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬, 브랜드 빠른 필터 (SharedPreferences, 정렬 기본값은 예상 이득순)
 │   │   ├── CarInfoPreferences.java 내 차 정보, 직접 입력 여부, 처음 실행 화면 완료 여부 (SharedPreferences)
 │   │   └── BrandPreferences.java 브랜드별 리터당 할인, 1회 할인 한도, 선호, 숨기기 (SharedPreferences)
 │   ├── mock/
-│   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (주변 주유소는 5km 밖 제외, 상세정보는 주유소 ID별 파일)
+│   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (주변 주유소는 5km 밖 제외, 상세정보는 주유소 ID별 파일, 상호 검색은 상세 파일에서 상호로 찾기, 강남역 주변 5km 밖인지 확인)
 │   └── repository/
 │       ├── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
 │       ├── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환
 │       ├── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 앱 전체에서 하나
 │       ├── StationErrors.java    조회 중 난 예외 → 실패 원인 (하루 한도, 네트워크, 오피넷), 주변·상세 조회가 같이 씀
+│       ├── PlaceSearchRepository.java 장소 검색 (카카오 로컬 API, 가짜 데이터 모드에서도 실제 API)
+│       ├── StationSearchRepository.java 주유소 이름 검색 출처 결정 (캐시 → 가짜 데이터 또는 실제 API, 실제 호출은 하루 한도 확인)
+│       ├── StationNameSearch.java 주유소 이름 검색 규칙 (두 글자 이상, 같은 검색어 30분 캐시)
+│       ├── SearchErrors.java     검색 중 난 예외 → 실패 원인 (카카오 키 오류, 카카오, 네트워크, 하루 한도, 오피넷)
 │       ├── CarInfoRepository.java 지금 계산에 쓰는 내 차 정보를 LiveData로 제공, 앱 전체에서 하나
 │       └── BrandSettingsRepository.java 지금 계산에 쓰는 내 브랜드 설정을 LiveData로 제공, 앱 전체에서 하나
 ├── model/
 │   ├── UserLocation.java         위치 좌표와 출처
+│   ├── SearchOrigin.java         조회 위치 (내 위치 또는 검색한 장소, 이름, 좌표)
+│   ├── Place.java                장소 검색 결과 (이름, 주소, 분류, 좌표)
+│   ├── StationSearchResult.java  주유소 이름 검색 결과 (ID, 브랜드, 상호, 주소, 좌표. 가격 없음)
+│   ├── SearchError.java          검색 실패 원인 (카카오 키 오류, 카카오, 네트워크, 하루 한도, 오피넷)
 │   ├── CarInfo.java              내 차 정보 (연비, 평소 주유량, 기본값 여부, 입력 범위)
 │   ├── LocationPermissionState.java 위치 권한 상태
 │   ├── GasStation.java           주유소 (이름, 브랜드, 가격, 거리, KATEC·WGS84 좌표)
@@ -347,7 +374,7 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── BrandFilter.java          브랜드 빠른 필터 (할인 브랜드만, 선호 브랜드만, 브랜드별 체크, 지금 설정에 맞게 정리, 칩 문구)
 │   ├── StationDetail.java        주유소 상세정보 (주소, 전화, 부가시설, 셀프 여부와 추정 여부, 유종별 가격)
 │   ├── FuelPrice.java            유종별 가격 한 줄 (유종, 가격, 가격 기준 일시)
-│   ├── StationQuery.java         주변 주유소 조회 조건 (위치, 유종). 반경은 항상 5km
+│   ├── StationQuery.java         주변 주유소 조회 조건 (조회 위치, 유종). 반경은 항상 5km
 │   ├── StationError.java         조회 실패 원인 (네트워크, 하루 한도 도달, 오피넷)
 │   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)
 │   ├── SearchRadius.java         화면에 보여줄 반경 (1km, 3km, 5km)
@@ -359,6 +386,8 @@ app/src/main/java/com/example/findcheapgas/
     ├── CarInfoValidator.java     연비(3~40km/L, 소수점 한 자리), 주유량(5~150L, 정수) 입력 검사
     ├── BrandSettingValidator.java 리터당 할인(0~500원, 정수), 1회 할인 한도(0~100,000원, 정수, 비우면 한도 없음) 입력 검사
     ├── SavingCalculator.java     예상 이득 계산 (기준 주유소 정하기, 할인액, 기름값, 이동 비용, 예상 총비용, 이득 1위)
+    ├── StationDistances.java     주유소 거리를 조회 위치 기준으로 다시 계산
+    ├── StationSearchResults.java 주유소 이름 검색 결과 중 보여줄 것 (숨긴 브랜드 제외, 최대 30곳)
     ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 숨긴 브랜드 제외 → 브랜드 빠른 필터 → 예상 이득 계산(브랜드 할인) → 정렬 → 화면 목록, 목록이 빈 이유
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 
@@ -373,9 +402,7 @@ docs/images/                      README 화면 예시 캡처 (가짜 데이터)
 아래 패키지는 해당 기능을 만들 때 추가합니다.
 
 ```
-├── widget/             홈 화면 위젯, 주기적 갱신
-└── data/
-    └── remote/         카카오 로컬 API 통신
+└── widget/             홈 화면 위젯, 주기적 갱신
 ```
 
 ## 실행 방법
@@ -426,7 +453,7 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 - [x] 2단계 - 예상 이득 계산, 예상 이득순 정렬, 이득 색깔 마커
 - [x] 2단계 - 내 브랜드 설정 (할인, 1회 할인 한도, 선호, 숨기기), 브랜드 빠른 필터
 - [x] 2단계 - 도로 거리 계수 검증 (표본 주유소 실제 도로 거리와 비교)
-- [ ] 3단계 - 장소 검색, 주유소 이름 검색
+- [x] 3단계 - 장소 검색, 주유소 이름 검색
 - [ ] 3단계 - 즐겨찾기
 - [ ] 3단계 - 길찾기 연동, 이 지역에서 다시 검색
 - [ ] 4단계 - 집·회사 기준 비교

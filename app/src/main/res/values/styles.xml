@@ -9,6 +9,17 @@
         <item name="android:checkable">false</item>
     </style>
 
+    <!-- 지도 위 조회 위치 칩 ("강남역 기준"): 강조 색, 오른쪽 X를 누르면 내 위치 기준으로 돌아간다 -->
+    <style name="Widget.FindCheapGas.OriginChip" parent="Widget.Material3.Chip.Assist.Elevated">
+        <item name="chipBackgroundColor">?attr/colorPrimaryContainer</item>
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+        <item name="closeIcon">@drawable/ic_close</item>
+        <item name="closeIconTint">?attr/colorOnPrimaryContainer</item>
+        <item name="closeIconVisible">true</item>
+        <item name="closeIconSize">18dp</item>
+        <item name="android:checkable">false</item>
+    </style>
+
     <!-- 지도 색 범례 한 칸: 색 점 + 글자 (점 색은 각 TextView의 drawableTint) -->
     <style name="Widget.FindCheapGas.MapLegendItem" parent="">
         <item name="android:drawablePadding">4dp</item>
