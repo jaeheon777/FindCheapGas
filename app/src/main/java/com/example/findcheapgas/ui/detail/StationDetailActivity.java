@@ -304,7 +304,13 @@ public class StationDetailActivity extends AppCompatActivity {
         if (loading) {
             message = R.string.detail_loading;
         } else if (error != null && !hasDetail) {
-            message = error == StationError.NETWORK ? R.string.detail_error_network : R.string.detail_error_opinet;
+            if (error == StationError.NETWORK) {
+                message = R.string.detail_error_network;
+            } else if (error == StationError.DAILY_LIMIT) {
+                message = R.string.detail_error_daily_limit;
+            } else {
+                message = R.string.detail_error_opinet;
+            }
         }
         if (message == 0) {
             status.setVisibility(View.GONE);
@@ -312,7 +318,8 @@ public class StationDetailActivity extends AppCompatActivity {
         }
         statusText.setText(message);
         statusProgress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        retryButton.setVisibility(loading ? View.GONE : View.VISIBLE);
+        // 하루 한도에 도달했으면 다시 시도해도 오늘은 조회할 수 없다.
+        retryButton.setVisibility(loading || error == StationError.DAILY_LIMIT ? View.GONE : View.VISIBLE);
         status.setVisibility(View.VISIBLE);
     }
 

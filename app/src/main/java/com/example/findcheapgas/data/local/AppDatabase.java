@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 /**
- * 앱 로컬 DB. 지금은 주변 주유소 조회 캐시와 상세정보 캐시만 있고, 즐겨찾기와 최근 검색어는 나중에 추가한다.
+ * 앱 로컬 DB. 지금은 주변 주유소 조회 캐시와 상세정보 캐시만 있고, 즐겨찾기는 나중에 추가한다.
  * 버전 2: 상세정보 캐시 추가
  */
 @Database(entities = {StationCacheEntity.class, StationDetailCacheEntity.class}, version = 2, exportSchema = false)

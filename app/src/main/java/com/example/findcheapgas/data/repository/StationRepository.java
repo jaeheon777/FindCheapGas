@@ -8,6 +8,7 @@ import android.util.Log;
 import com.example.findcheapgas.BuildConfig;
 import com.example.findcheapgas.data.local.ApiCallCounter;
 import com.example.findcheapgas.data.local.AppDatabase;
+import com.example.findcheapgas.data.local.DailyLimitReachedException;
 import com.example.findcheapgas.data.local.StationCacheDao;
 import com.example.findcheapgas.data.local.StationCacheEntity;
 import com.example.findcheapgas.data.mock.MockOpinetDataSource;
@@ -75,15 +76,11 @@ public class StationRepository {
             try {
                 List<GasStation> stations = load(query);
                 mainHandler.post(() -> callback.onSuccess(stations));
-            } catch (IOException e) {
-                Log.w(TAG, "주유소 조회 실패 (네트워크)", e);
-                mainHandler.post(() -> callback.onError(StationError.NETWORK));
-            } catch (OpinetException e) {
-                Log.w(TAG, "주유소 조회 실패 (오피넷): " + e.getMessage(), e);
-                mainHandler.post(() -> callback.onError(StationError.OPINET));
-            } catch (RuntimeException e) {
-                Log.e(TAG, "주유소 조회 중 알 수 없는 오류", e);
-                mainHandler.post(() -> callback.onError(StationError.OPINET));
+            } catch (IOException | OpinetException | DailyLimitReachedException | RuntimeException e) {
+                // 하루 한도 도달, 네트워크, 오피넷 오류를 구분해서 화면에 알려준다.
+                Log.w(TAG, "주유소 조회 실패: " + e.getMessage(), e);
+                StationError error = StationErrors.from(e);
+                mainHandler.post(() -> callback.onError(error));
             }
         });
     }
@@ -93,7 +90,7 @@ public class StationRepository {
         executor.shutdownNow();
     }
 
-    private List<GasStation> load(StationQuery query) throws IOException, OpinetException {
+    private List<GasStation> load(StationQuery query) throws IOException, OpinetException, DailyLimitReachedException {
         long now = System.currentTimeMillis();
         long minSavedAt = now - CACHE_TTL_MS;
         cacheDao.deleteOlderThan(minSavedAt);
@@ -121,7 +118,8 @@ public class StationRepository {
             if (!OpinetRemoteDataSource.hasApiKey()) {
                 throw new OpinetException("local.properties에 OPINET_API_KEY가 없습니다.");
             }
-            int count = callCounter.increment();
+            // 오늘 300회를 이미 불렀으면 여기서 멈추고 호출하지 않는다 (캐시와 가짜 데이터는 영향 없음).
+            int count = callCounter.acquire();
             Log.i(TAG, "오피넷 API 호출: 오늘 " + count + "회 / " + ApiCallCounter.DAILY_LIMIT + "회");
             oils = remoteDataSource.fetchAround(query, katec);
             Log.d(TAG, "오피넷 응답: " + key + " (" + oils.size() + "곳)");

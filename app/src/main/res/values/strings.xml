@@ -60,6 +60,7 @@
     <string name="station_empty_hidden_brands">반경 안의 주유소가 모두 숨긴 브랜드입니다.\n설정 탭의 내 브랜드에서 숨기기를 끌 수 있습니다.</string>
     <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
     <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
+    <string name="station_error_daily_limit">오늘 조회 한도(300회)에 도달했습니다.\n내일 다시 시도해 주세요. 저장된 결과는 계속 볼 수 있습니다.</string>
     <string name="station_retry">다시 시도</string>
     <string name="station_basis_description">계산 기준 %1$s, 눌러서 내 차 정보 수정</string>
 
@@ -70,6 +71,7 @@
     <string name="detail_loading">상세 정보를 불러오는 중입니다</string>
     <string name="detail_error_network">인터넷에 연결할 수 없어 상세 정보를 불러오지 못했습니다.\n연결 상태를 확인해 주세요.</string>
     <string name="detail_error_opinet">상세 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
+    <string name="detail_error_daily_limit">오늘 조회 한도(300회)에 도달해 상세 정보를 불러오지 못했습니다.\n내일 다시 시도해 주세요. 저장된 결과는 계속 볼 수 있습니다.</string>
     <string name="detail_address">주소</string>
     <string name="detail_address_empty">등록된 주소가 없습니다</string>
     <string name="detail_phone">전화</string>
@@ -155,7 +157,6 @@
     <string name="settings_car_info">내 차 정보</string>
     <string name="settings_car_info_default">기본값 사용 중</string>
     <string name="settings_car_info_user_entered">직접 입력한 값으로 계산 중</string>
-    <string name="settings_car_info_edit">수정</string>
     <string name="settings_car_info_description">내 차 정보: 연비 %1$s, 평소 주유량 %2$s, %3$s. 눌러서 수정</string>
     <string name="settings_car_info_reset">기본값으로 되돌리기</string>
     <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸습니다</string>

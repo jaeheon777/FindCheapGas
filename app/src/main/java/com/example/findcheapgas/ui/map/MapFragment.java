@@ -127,6 +127,7 @@ public class MapFragment extends Fragment {
     private TextView conditionText;
     private TextView basisText;
 
+    private View stationSheet;
     private BottomSheetBehavior<View> sheetBehavior;
     private TextView sheetTitle;
     private RecyclerView stationList;
@@ -248,6 +249,7 @@ public class MapFragment extends Fragment {
         myLocationLabel = null;
         stationMarkers = null;
         mapRunning = false;
+        stationSheet = null;
         sheetBehavior = null;
         stationList = null;
         stationLayoutManager = null;
@@ -494,7 +496,8 @@ public class MapFragment extends Fragment {
     // ---------- 주변 주유소 (마커, 아래 목록) ----------
 
     private void setUpStationSheet(View view) {
-        sheetBehavior = BottomSheetBehavior.from(view.findViewById(R.id.station_sheet));
+        stationSheet = view.findViewById(R.id.station_sheet);
+        sheetBehavior = BottomSheetBehavior.from(stationSheet);
         sheetTitle = view.findViewById(R.id.station_sheet_title);
         stationList = view.findViewById(R.id.station_list);
         stationStatus = view.findViewById(R.id.station_status);
@@ -510,7 +513,7 @@ public class MapFragment extends Fragment {
 
         // 시트는 화면 높이만큼 크고 아래로 내려가 있으므로, 화면 밖으로 나간 만큼 목록 아래 여백을 늘려
         // 어느 상태에서든 마지막 항목까지 스크롤하면 화면 안에 보이게 한다.
-        View sheet = view.findViewById(R.id.station_sheet);
+        View sheet = stationSheet;
         int baseBottomPadding = stationList.getPaddingBottom();
         sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
@@ -543,7 +546,7 @@ public class MapFragment extends Fragment {
         if (sheetBehavior == null || mapLegend == null || mapMessage.getVisibility() == View.VISIBLE) {
             return;
         }
-        View sheet = getView() != null ? getView().findViewById(R.id.station_sheet) : null;
+        View sheet = stationSheet;
         if (sheet == null || !(sheet.getParent() instanceof View)) {
             return;
         }
@@ -610,10 +613,9 @@ public class MapFragment extends Fragment {
             message = getString(R.string.station_loading);
             showProgress = true;
         } else if (error != null) {
-            message = getString(error == StationError.NETWORK
-                    ? R.string.station_error_network
-                    : R.string.station_error_opinet);
-            showRetry = true;
+            message = getString(errorMessage(error));
+            // 하루 한도에 도달했으면 다시 시도해도 오늘은 조회할 수 없다.
+            showRetry = error != StationError.DAILY_LIMIT;
         } else if (stations == null) {
             // 아직 위치를 받기 전
             message = getString(R.string.station_locating);
@@ -639,6 +641,18 @@ public class MapFragment extends Fragment {
         stationRetryButton.setVisibility(showRetry ? View.VISIBLE : View.GONE);
         stationStatus.setVisibility(View.VISIBLE);
         stationList.setVisibility(View.GONE);
+    }
+
+    @StringRes
+    private static int errorMessage(StationError error) {
+        switch (error) {
+            case NETWORK:
+                return R.string.station_error_network;
+            case DAILY_LIMIT:
+                return R.string.station_error_daily_limit;
+            default:
+                return R.string.station_error_opinet;
+        }
     }
 
     /**

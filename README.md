@@ -255,6 +255,7 @@ flowchart TD
 | 상세 조회 최소화 | 주변 검색 결과에 이름, 가격, 거리, 좌표가 포함되어 있으므로 상세 정보는 주유소를 눌렀을 때만 조회합니다. |
 | 갱신 주기 제한 | 즐겨찾기와 집·회사 비교는 당겨서 새로고침하거나 일정 시간이 지났을 때만 다시 가져옵니다. 위젯은 3시간마다 갱신하고, 7일 추이는 하루에 한 번만 가져옵니다. |
 | 호출 횟수 기록 | 실제 API를 호출할 때마다 오늘 호출 횟수를 기록하고 설정 화면에 표시합니다. |
+| 하루 한도 차단 | 오늘 실제 호출이 300회에 도달하면 더 이상 호출하지 않고, 주변 조회와 상세 조회 모두 한도에 도달했다는 안내를 보여줍니다. 캐시에 저장된 결과와 가짜 데이터는 계속 쓸 수 있습니다. |
 
 ## 프로젝트 구조
 
@@ -301,7 +302,8 @@ app/src/main/java/com/example/findcheapgas/
 │   │   ├── StationCacheDao.java  캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
 │   │   ├── StationDetailCacheDao.java 상세 캐시 조회, 저장, 오래된 캐시 삭제
-│   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences)
+│   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences), 300회에 도달하면 호출을 막음
+│   │   ├── DailyLimitReachedException.java 하루 호출 한도에 도달해서 호출하지 않았을 때
 │   │   ├── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬, 브랜드 빠른 필터 (SharedPreferences, 정렬 기본값은 예상 이득순)
 │   │   ├── CarInfoPreferences.java 내 차 정보, 직접 입력 여부, 처음 실행 화면 완료 여부 (SharedPreferences)
 │   │   └── BrandPreferences.java 브랜드별 리터당 할인, 1회 할인 한도, 선호, 숨기기 (SharedPreferences)
@@ -311,6 +313,7 @@ app/src/main/java/com/example/findcheapgas/
 │       ├── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
 │       ├── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환
 │       ├── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 앱 전체에서 하나
+│       ├── StationErrors.java    조회 중 난 예외 → 실패 원인 (하루 한도, 네트워크, 오피넷), 주변·상세 조회가 같이 씀
 │       ├── CarInfoRepository.java 지금 계산에 쓰는 내 차 정보를 LiveData로 제공, 앱 전체에서 하나
 │       └── BrandSettingsRepository.java 지금 계산에 쓰는 내 브랜드 설정을 LiveData로 제공, 앱 전체에서 하나
 ├── model/
@@ -328,7 +331,7 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── StationDetail.java        주유소 상세정보 (주소, 전화, 부가시설, 셀프 여부와 추정 여부, 유종별 가격)
 │   ├── FuelPrice.java            유종별 가격 한 줄 (유종, 가격, 가격 기준 일시)
 │   ├── StationQuery.java         주변 주유소 조회 조건 (위치, 유종). 반경은 항상 5km
-│   ├── StationError.java         조회 실패 원인 (네트워크, 오피넷)
+│   ├── StationError.java         조회 실패 원인 (네트워크, 하루 한도 도달, 오피넷)
 │   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)
 │   ├── SearchRadius.java         화면에 보여줄 반경 (1km, 3km, 5km)
 │   ├── SortOrder.java            정렬 기준과 비교 방법 (예상 이득순(선호 브랜드는 정렬용 점수 +500원), 가격순, 거리순)

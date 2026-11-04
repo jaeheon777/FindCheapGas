@@ -2,6 +2,7 @@ package com.example.findcheapgas.model;
 
 /** 주유소 조회 실패 원인 */
 public enum StationError {
-    NETWORK,  // 인터넷 연결 없음, 시간 초과 등
-    OPINET    // 오피넷이 오류나 알 수 없는 응답을 보냄 (하루 호출 한도 초과 포함)
+    NETWORK,      // 인터넷 연결 없음, 시간 초과 등
+    DAILY_LIMIT,  // 오늘 실제 API 호출이 앱에서 정한 하루 한도(300회)에 도달해서 호출하지 않음
+    OPINET        // 오피넷이 오류나 알 수 없는 응답을 보냄 (오피넷 쪽 한도 초과 응답 포함)
 }
