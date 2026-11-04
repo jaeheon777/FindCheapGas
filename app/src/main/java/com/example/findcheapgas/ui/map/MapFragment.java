@@ -34,6 +34,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.findcheapgas.FindCheapGasApp;
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.data.repository.LocationRepository;
+import com.example.findcheapgas.model.BrandFilter;
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
@@ -46,6 +48,7 @@ import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.util.FormatUtil;
+import com.example.findcheapgas.util.StationListBuilder;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
@@ -119,6 +122,7 @@ public class MapFragment extends Fragment {
 
     private Chip fuelTypeChip;
     private Chip radiusChip;
+    private Chip brandChip;
     private MaterialButton sortButton;
     private TextView conditionText;
     private TextView basisText;
@@ -173,6 +177,9 @@ public class MapFragment extends Fragment {
         viewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType -> renderFilters());
         viewModel.getRadius().observe(getViewLifecycleOwner(), radius -> renderFilters());
         viewModel.getSortOrder().observe(getViewLifecycleOwner(), sortOrder -> renderFilters());
+        // 칩 글자는 저장된 필터를 지금 브랜드 설정에 맞게 정리한 값으로 쓰므로 둘 다 본다.
+        viewModel.getBrandFilter().observe(getViewLifecycleOwner(), filter -> renderBrandChip());
+        viewModel.getBrandSettings().observe(getViewLifecycleOwner(), settings -> renderBrandChip());
         // 내 차 정보 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
         viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::renderCalculationBasis);
 
@@ -587,7 +594,10 @@ public class MapFragment extends Fragment {
         progress.setVisibility(busy ? View.VISIBLE : View.GONE);
     }
 
-    /** 목록 대신 보여줄 안내: 불러오는 중 → 오류 → 주유소 없음 순서로 확인한다. */
+    /**
+     * 목록 대신 보여줄 안내: 불러오는 중 → 오류 → 주유소 없음 순서로 확인한다.
+     * 주유소가 없으면 반경 때문인지, 숨긴 브랜드나 빠른 필터 때문인지 나눠서 알려준다.
+     */
     private void renderStationStatus() {
         List<StationSaving> stations = viewModel.getStations().getValue();
         StationError error = viewModel.getStationsError().getValue();
@@ -609,7 +619,14 @@ public class MapFragment extends Fragment {
             message = getString(R.string.station_locating);
             showProgress = true;
         } else if (stations.isEmpty()) {
-            message = getString(R.string.station_empty, viewModel.getRadius().getValue().getLabel());
+            StationListBuilder.EmptyReason reason = viewModel.getEmptyReason().getValue();
+            if (reason == StationListBuilder.EmptyReason.BRAND_FILTER) {
+                message = getString(R.string.station_empty_brand_filter);
+            } else if (reason == StationListBuilder.EmptyReason.HIDDEN_BRANDS) {
+                message = getString(R.string.station_empty_hidden_brands);
+            } else {
+                message = getString(R.string.station_empty, viewModel.getRadius().getValue().getLabel());
+            }
         }
 
         if (message == null) {
@@ -705,11 +722,12 @@ public class MapFragment extends Fragment {
         return cheapest;
     }
 
-    // ---------- 유종, 반경, 정렬 선택 ----------
+    // ---------- 유종, 반경, 브랜드, 정렬 선택 ----------
 
     private void setUpFilters(View view) {
         fuelTypeChip = view.findViewById(R.id.chip_fuel_type);
         radiusChip = view.findViewById(R.id.chip_radius);
+        brandChip = view.findViewById(R.id.chip_brand);
         sortButton = view.findViewById(R.id.btn_sort);
         conditionText = view.findViewById(R.id.station_sheet_condition);
         basisText = view.findViewById(R.id.station_sheet_basis);
@@ -719,6 +737,8 @@ public class MapFragment extends Fragment {
         fuelTypeChip.setOnCloseIconClickListener(v -> showFuelTypeMenu(fuelTypeChip));
         radiusChip.setOnClickListener(this::showRadiusMenu);
         radiusChip.setOnCloseIconClickListener(v -> showRadiusMenu(radiusChip));
+        brandChip.setOnClickListener(v -> showBrandFilter());
+        brandChip.setOnCloseIconClickListener(v -> showBrandFilter());
         sortButton.setOnClickListener(this::showSortMenu);
         basisText.setOnClickListener(v ->
                 startActivity(OnboardingActivity.createEditIntent(requireContext())));
@@ -732,6 +752,13 @@ public class MapFragment extends Fragment {
     private void showRadiusMenu(View anchor) {
         showChoiceMenu(anchor, SearchRadius.values(), viewModel.getRadius().getValue(),
                 SearchRadius::getLabel, viewModel::setRadius);
+    }
+
+    /** 여러 개를 고를 수 있어서 팝업 메뉴 대신 시트를 연다. 이미 열려 있으면 다시 열지 않는다. */
+    private void showBrandFilter() {
+        if (getChildFragmentManager().findFragmentByTag(BrandFilterSheet.TAG) == null) {
+            new BrandFilterSheet().show(getChildFragmentManager(), BrandFilterSheet.TAG);
+        }
     }
 
     /** 정렬 메뉴는 SortOrder 상수 순서대로 만든다 (예상 이득순, 가격순, 거리순). */
@@ -772,6 +799,18 @@ public class MapFragment extends Fragment {
         sortButton.setContentDescription(getString(R.string.station_sort_description, sortOrder.getLabel()));
         conditionText.setText(getString(R.string.station_sheet_condition,
                 fuelType.getLabel(), radius.getLabel(), sortOrder.getLabel()));
+    }
+
+    /** 브랜드 칩 글자: "브랜드: 전체", "할인 브랜드", "SK 외 2" 등 */
+    private void renderBrandChip() {
+        BrandFilter filter = viewModel.getBrandFilter().getValue();
+        BrandSettings settings = viewModel.getBrandSettings().getValue();
+        if (filter == null || settings == null) {
+            return;
+        }
+        String label = filter.effective(settings).label();
+        brandChip.setText(label);
+        brandChip.setContentDescription(getString(R.string.filter_brand_description, label));
     }
 
     /** 시트 제목 아래 계산 기준 문구. 기본값이면 "(기본값)"이 붙는다. */

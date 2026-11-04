@@ -33,7 +33,7 @@
     <!--
         지도 위쪽 영역. 위에서부터 차례로 쌓여서 서로 겹치지 않는다.
         - 검색창 (3단계에서 추가)
-        - 필터 줄: 유종, 반경 (2단계에서 같은 줄 끝에 브랜드 필터 칩 추가)
+        - 필터 줄: 유종, 반경, 브랜드 빠른 필터
         - 위치 권한 / 기기 위치 안내
     -->
     <LinearLayout
@@ -72,6 +72,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     tools:text="반경 3km" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_brand"
+                    style="@style/Widget.FindCheapGas.FilterDropdownChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    tools:text="브랜드: 전체" />
             </LinearLayout>
         </HorizontalScrollView>
 

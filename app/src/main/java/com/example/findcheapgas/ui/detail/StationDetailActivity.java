@@ -243,7 +243,8 @@ public class StationDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * 할인액 줄. 할인 설정이 없으면 "할인 설정 없음".
+     * 할인액 줄. 내 브랜드 설정의 할인을 보여주고, 할인이 없으면 "할인 없음".
+     * 예: "리터당 100원 · 할인 3,000원 (1회 한도 3,000원 적용)", "리터당 100원 · 할인 4,000원 (한도 미적용)"
      * 1회 할인 한도를 비워 뒀으면 "한도 미적용"을 쓰고, 그 상태에서 할인액이 5,000원 이상이면 주의 문구를 붙인다.
      */
     private void showDiscountRow(LinearLayout rows, StationSaving saving) {
@@ -254,18 +255,21 @@ public class StationDetailActivity extends AppCompatActivity {
             return;
         }
         String perLiter = FormatUtil.formatPrice(rule.getPerLiter());
+        String discount = FormatUtil.formatWon(saving.getDiscountAmount());
         String note;
         String warning = null;
         Integer cap = rule.getCap();
         if (cap == null) {
-            note = getString(R.string.detail_saving_discount_no_cap, perLiter);
+            note = getString(R.string.detail_saving_discount_no_cap, perLiter, discount);
             if (saving.getDiscountAmount() >= NO_CAP_WARNING_DISCOUNT) {
                 warning = getString(R.string.detail_saving_discount_no_cap_warning);
             }
         } else if (saving.isDiscountCapApplied()) {
-            note = getString(R.string.detail_saving_discount_cap_applied, perLiter, FormatUtil.formatPrice(cap));
+            note = getString(R.string.detail_saving_discount_cap_applied, perLiter, discount,
+                    FormatUtil.formatPrice(cap));
         } else {
-            note = getString(R.string.detail_saving_discount_cap_not_reached, perLiter, FormatUtil.formatPrice(cap));
+            note = getString(R.string.detail_saving_discount_cap_not_reached, perLiter, discount,
+                    FormatUtil.formatPrice(cap));
         }
         addSavingRow(rows, R.string.detail_saving_discount,
                 getString(R.string.detail_saving_discount_value, FormatUtil.formatWon(saving.getDiscountAmount())),

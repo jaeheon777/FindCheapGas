@@ -8,12 +8,12 @@ import java.util.Comparator;
  * 저장할 때는 name()을 쓰므로 상수 이름은 바꾸지 않는다.
  */
 public enum SortOrder {
-    // 예상 이득이 큰 곳 먼저. 화면에 보이는 원 단위 이득이 같으면 싼 곳, 그다음 가까운 곳
-    // 내 브랜드 설정을 만들면 이득이 비슷할 때 선호 브랜드를 위로 올린다.
-    SAVING("예상 이득순", Comparator.comparingLong((StationSaving s) -> -s.getSavingWon())
+    // 정렬용 점수(원 단위 예상 이득, 선호 브랜드는 +500원)가 큰 곳 먼저. 같으면 싼 곳, 그다음 가까운 곳
+    // "차이가 500원 이내면 같다고 보는" 비교는 전이성이 깨져서 쓰지 않는다.
+    SAVING("예상 이득순", Comparator.comparingLong((StationSaving s) -> -s.getSortScoreWon())
             .thenComparingInt(s -> s.getStation().getPrice())
             .thenComparingDouble(s -> s.getStation().getDistance())),
-    // 같은 가격이면 가까운 곳 먼저
+    // 같은 가격이면 가까운 곳 먼저. 가격순과 거리순은 선호 브랜드를 반영하지 않는다.
     PRICE("가격순", Comparator.comparingInt((StationSaving s) -> s.getStation().getPrice())
             .thenComparingDouble(s -> s.getStation().getDistance())),
     // 같은 거리면 싼 곳 먼저

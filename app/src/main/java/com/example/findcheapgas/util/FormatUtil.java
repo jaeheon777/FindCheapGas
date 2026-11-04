@@ -1,12 +1,16 @@
 package com.example.findcheapgas.util;
 
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.StationSaving;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
-/** 가격, 계산 금액, 예상 이득, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
+/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -37,6 +41,42 @@ public final class FormatUtil {
         }
         String amount = formatWon(Math.abs(won));
         return won > 0 ? "약 " + amount + " 이득" : "약 " + amount + " 손해";
+    }
+
+    /**
+     * 내 브랜드 목록 한 줄의 할인 요약.
+     * "리터당 100원 할인 · 1회 한도 3,000원", 한도를 비워 두면 "리터당 100원 할인 · 한도 미적용", 할인이 없으면 "할인 없음"
+     */
+    public static String formatDiscountSummary(DiscountRule rule) {
+        if (!rule.hasDiscount()) {
+            return "할인 없음";
+        }
+        String perLiter = "리터당 " + formatPrice(rule.getPerLiter()) + " 할인";
+        Integer cap = rule.getCap();
+        return cap != null ? perLiter + " · 1회 한도 " + formatPrice(cap) : perLiter + " · 한도 미적용";
+    }
+
+    /** 설정 탭 "내 브랜드" 요약. 0곳인 항목은 뺀다. "할인 2곳 · 선호 1곳 · 숨김 1곳", 아무것도 없으면 "설정한 브랜드 없음" */
+    public static String formatBrandSummary(BrandSettings settings) {
+        List<String> parts = new ArrayList<>();
+        if (settings.discountCount() > 0) {
+            parts.add("할인 " + settings.discountCount() + "곳");
+        }
+        if (settings.preferredCount() > 0) {
+            parts.add("선호 " + settings.preferredCount() + "곳");
+        }
+        if (settings.hiddenCount() > 0) {
+            parts.add("숨김 " + settings.hiddenCount() + "곳");
+        }
+        if (parts.isEmpty()) {
+            return "설정한 브랜드 없음";
+        }
+        // String.join은 API 26부터라서 직접 잇는다.
+        StringBuilder summary = new StringBuilder(parts.get(0));
+        for (int i = 1; i < parts.size(); i++) {
+            summary.append(" · ").append(parts.get(i));
+        }
+        return summary.toString();
     }
 
     /** 1234.5(m) → "1.2km" */

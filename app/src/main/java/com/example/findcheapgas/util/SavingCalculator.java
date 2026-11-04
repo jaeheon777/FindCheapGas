@@ -4,11 +4,11 @@ import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.DiscountPolicy;
 import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.GasStation;
-import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationSaving;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -29,6 +29,12 @@ public final class SavingCalculator {
     /** 직선거리 → 도로 거리 추정 계수 */
     public static final double ROAD_DISTANCE_FACTOR = 1.4;
 
+    // 이득 1위 판정: 실제 원 단위 예상 이득이 큰 곳, 같으면 싼 곳, 그다음 가까운 곳. 선호 브랜드는 반영하지 않는다.
+    private static final Comparator<StationSaving> BY_ACTUAL_SAVING =
+            Comparator.comparingLong((StationSaving s) -> -s.getSavingWon())
+                    .thenComparingInt(s -> s.getStation().getPrice())
+                    .thenComparingDouble(s -> s.getStation().getDistance());
+
     private SavingCalculator() {
     }
 
@@ -48,8 +54,8 @@ public final class SavingCalculator {
             results.add(estimate(station, carInfo, policy.ruleFor(station), baseline, baselineTotal));
         }
 
-        // 예상 이득순 정렬의 맨 앞이 1위. 그래도 이득이 1원도 안 되면 가장 가까운 곳이 가장 유리하다.
-        StationSaving best = Collections.min(results, SortOrder.SAVING.getComparator());
+        // 실제 예상 이득이 가장 큰 곳이 1위. 그래도 이득이 1원도 안 되면 가장 가까운 곳이 가장 유리하다.
+        StationSaving best = Collections.min(results, BY_ACTUAL_SAVING);
         int bestIndex = best.getSavingWon() >= 1 ? results.indexOf(best) : stations.indexOf(baseline);
         results.set(bestIndex, results.get(bestIndex).markedBest());
         return results;

@@ -6,4 +6,6 @@
     <color name="badge_best_background">#FF81C995</color>
     <color name="badge_best_text">#FF0D3B1E</color>
     <color name="badge_cheapest">#FF8AB4F8</color>
+    <color name="badge_discount">#FFD7AEFB</color>
+    <color name="preferred_star">#FFFDD663</color>
 </resources>

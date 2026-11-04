@@ -2,6 +2,7 @@
 <!--
     설정 탭. 위에서부터
     - 내 차 정보: 연비, 평소 주유량, 기본값 사용 여부 (누르면 수정 화면), 기본값으로 되돌리기
+    - 내 브랜드: 할인·선호·숨김 요약 (누르면 내 브랜드 화면)
     - 다른 설정: 아직 준비 중인 항목 (코드에서 채운다)
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -123,6 +124,34 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/settings_car_info_reset" />
+
+        <TextView
+            style="@style/Widget.FindCheapGas.SettingsSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_brand" />
+
+        <!-- 내 브랜드: 요약 (예: 할인 2곳 · 선호 1곳 · 숨김 1곳), 누르면 내 브랜드 화면 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/settings_brand_card"
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true">
+
+            <TextView
+                android:id="@+id/settings_brand_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="16dp"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                app:drawableEndCompat="@drawable/ic_chevron_right"
+                app:drawableTint="?attr/colorOnSurfaceVariant"
+                tools:text="할인 2곳 · 선호 1곳 · 숨김 1곳" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             style="@style/Widget.FindCheapGas.SettingsSectionTitle"

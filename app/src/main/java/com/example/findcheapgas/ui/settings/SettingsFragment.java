@@ -13,22 +13,23 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.findcheapgas.R;
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.ui.brand.BrandSettingsActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.viewmodel.SettingsViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
 /**
- * 설정 탭. 지금은 내 차 정보만 있고, 나머지 항목은 "준비 중"으로 보여준다.
- * 내 차 정보를 누르면 수정 화면(OnboardingActivity 수정 모드)이 열린다.
- * 값은 CarInfoRepository의 LiveData를 보고 그리므로 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
+ * 설정 탭. 지금은 내 차 정보와 내 브랜드가 있고, 나머지 항목은 "준비 중"으로 보여준다.
+ * 내 차 정보를 누르면 수정 화면(OnboardingActivity 수정 모드)이, 내 브랜드를 누르면 내 브랜드 화면이 열린다.
+ * 값은 각 Repository의 LiveData를 보고 그리므로 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
  */
 public class SettingsFragment extends Fragment {
 
     // 아직 만들지 않은 설정 항목 (README 화면 구성 순서)
     private static final int[] COMING_SOON_ITEMS = {
-            R.string.settings_brand,
             R.string.settings_places,
             R.string.settings_default_filter,
             R.string.settings_dark_mode,
@@ -42,6 +43,8 @@ public class SettingsFragment extends Fragment {
     private TextView fuelAmountText;
     private TextView carInfoStatus;
     private View resetButton;
+    private View brandCard;
+    private TextView brandSummary;
 
     public SettingsFragment() {
         super(R.layout.fragment_settings);
@@ -57,6 +60,8 @@ public class SettingsFragment extends Fragment {
         fuelAmountText = view.findViewById(R.id.settings_fuel_amount);
         carInfoStatus = view.findViewById(R.id.settings_car_info_status);
         resetButton = view.findViewById(R.id.settings_car_info_reset);
+        brandCard = view.findViewById(R.id.settings_brand_card);
+        brandSummary = view.findViewById(R.id.settings_brand_summary);
 
         carInfoCard.setOnClickListener(v ->
                 startActivity(OnboardingActivity.createEditIntent(requireContext())));
@@ -67,9 +72,20 @@ public class SettingsFragment extends Fragment {
                     .show();
         });
 
+        brandCard.setOnClickListener(v ->
+                startActivity(BrandSettingsActivity.createIntent(requireContext())));
+
         addComingSoonItems(view.findViewById(R.id.settings_coming_soon_list));
 
         viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::showCarInfo);
+        viewModel.getBrandSettings().observe(getViewLifecycleOwner(), this::showBrandSummary);
+    }
+
+    /** "할인 2곳 · 선호 1곳 · 숨김 1곳", 아무것도 없으면 "설정한 브랜드 없음" */
+    private void showBrandSummary(BrandSettings settings) {
+        String summary = FormatUtil.formatBrandSummary(settings);
+        brandSummary.setText(summary);
+        brandCard.setContentDescription(getString(R.string.settings_brand_description, summary));
     }
 
     private void showCarInfo(CarInfo carInfo) {

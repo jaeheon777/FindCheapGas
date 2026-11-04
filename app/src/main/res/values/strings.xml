@@ -29,6 +29,18 @@
     <string name="filter_radius">반경 %1$s</string>
     <string name="filter_fuel_type_description">유종 %1$s, 눌러서 변경</string>
     <string name="filter_radius_description">반경 %1$s, 눌러서 변경</string>
+    <string name="filter_brand_description">브랜드 필터 %1$s, 눌러서 변경</string>
+
+    <!-- 브랜드 빠른 필터 시트 -->
+    <string name="brand_filter_title">브랜드 필터</string>
+    <string name="brand_filter_description">고른 것 중 하나라도 맞는 주유소를 보여줍니다. 누르면 바로 적용됩니다.</string>
+    <string name="brand_filter_all">전체</string>
+    <string name="brand_filter_discount_only">할인 브랜드만</string>
+    <string name="brand_filter_preferred_only">선호 브랜드만</string>
+    <string name="brand_filter_discount_disabled">할인을 설정한 브랜드가 없습니다. 설정 탭의 내 브랜드에서 할인을 입력하면 고를 수 있습니다.</string>
+    <string name="brand_filter_preferred_disabled">선호 브랜드가 없습니다. 설정 탭의 내 브랜드에서 선호를 켜면 고를 수 있습니다.</string>
+    <string name="brand_filter_discount_suffix">" · 리터당 %1$s 할인"</string>
+    <string name="brand_filter_hidden_note">숨긴 브랜드 %1$d곳은 여기에 나오지 않습니다. 설정 탭의 내 브랜드에서 바꿀 수 있습니다.</string>
 
     <!-- 주변 주유소 목록 -->
     <string name="station_sheet_title">주변 주유소</string>
@@ -39,9 +51,13 @@
     <string name="station_best">이득 1위</string>
     <string name="station_best_baseline">가까운 곳이 가장 유리</string>
     <string name="station_info">%1$s · %2$s</string>
+    <string name="station_preferred">선호 브랜드</string>
+    <string name="station_discount_applied">%1$s 할인 적용</string>
     <string name="station_locating">현재 위치를 확인하는 중입니다</string>
     <string name="station_loading">주변 주유소를 불러오는 중입니다</string>
     <string name="station_empty">반경 %1$s 안에 주유소가 없습니다</string>
+    <string name="station_empty_brand_filter">선택한 브랜드의 주유소가 반경 안에 없습니다</string>
+    <string name="station_empty_hidden_brands">반경 안의 주유소가 모두 숨긴 브랜드입니다.\n설정 탭의 내 브랜드에서 숨기기를 끌 수 있습니다.</string>
     <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
     <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
     <string name="station_retry">다시 시도</string>
@@ -82,11 +98,11 @@
     <string name="detail_saving_fuel_cost_note">%1$s × %2$s</string>
     <string name="detail_saving_fuel_cost_note_discount">%1$s × %2$s − 할인 %3$s</string>
     <string name="detail_saving_discount">할인액</string>
-    <string name="detail_saving_discount_none">할인 설정 없음</string>
+    <string name="detail_saving_discount_none">할인 없음</string>
     <string name="detail_saving_discount_value">−%1$s</string>
-    <string name="detail_saving_discount_cap_applied">리터당 %1$s, 1회 한도 %2$s 적용</string>
-    <string name="detail_saving_discount_cap_not_reached">리터당 %1$s, 1회 한도 %2$s 이내</string>
-    <string name="detail_saving_discount_no_cap">리터당 %1$s, 한도 미적용</string>
+    <string name="detail_saving_discount_cap_applied">리터당 %1$s · 할인 %2$s (1회 한도 %3$s 적용)</string>
+    <string name="detail_saving_discount_cap_not_reached">리터당 %1$s · 할인 %2$s (1회 한도 %3$s 이내)</string>
+    <string name="detail_saving_discount_no_cap">리터당 %1$s · 할인 %2$s (한도 미적용)</string>
     <string name="detail_saving_discount_no_cap_warning">한도가 있다면 실제 할인은 이보다 적을 수 있습니다</string>
     <string name="detail_saving_road_distance">추정 도로 거리</string>
     <string name="detail_saving_road_distance_note">직선 %1$s × 1.4 (추정, 편도)</string>
@@ -145,6 +161,35 @@
     <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸습니다</string>
     <string name="settings_other">다른 설정</string>
     <string name="settings_brand">내 브랜드</string>
+    <string name="settings_brand_description">내 브랜드: %1$s. 눌러서 수정</string>
+
+    <!-- 내 브랜드 화면 -->
+    <string name="brand_settings_title">내 브랜드</string>
+    <string name="brand_settings_back">뒤로</string>
+    <string name="brand_settings_description">브랜드마다 카드·멤버십 할인, 선호, 숨기기를 정합니다. 할인은 예상 이득 계산에 반영되고, 선호 브랜드는 예상 이득순에서 위로 올라가며, 숨긴 브랜드는 지도와 목록에 나오지 않습니다.</string>
+    <string name="brand_settings_preferred">★ 선호</string>
+    <string name="brand_settings_hidden">숨김</string>
+    <string name="brand_settings_item_description">%1$s, %2$s. 눌러서 수정</string>
+    <!-- 내 브랜드 수정 시트 -->
+    <string name="brand_edit_per_liter">리터당 할인</string>
+    <string name="brand_edit_per_liter_unit">원/L</string>
+    <string name="brand_edit_per_liter_placeholder">0</string>
+    <string name="brand_edit_per_liter_helper">0~500원. 비우면 할인 없음</string>
+    <string name="brand_edit_cap">1회 할인 한도</string>
+    <string name="brand_edit_cap_unit">원</string>
+    <string name="brand_edit_cap_placeholder">한도 미적용</string>
+    <string name="brand_edit_cap_helper">0~100,000원. 카드사 앱에서 1회 또는 월 할인 한도를 확인해 입력하세요.</string>
+    <string name="brand_edit_conditions_note">리터당 할인과 1회 할인 한도만 계산에 반영합니다. 전월 실적, 월 누적 한도 같은 카드사 조건은 반영하지 않습니다.</string>
+    <string name="brand_edit_preferred">선호 브랜드</string>
+    <string name="brand_edit_preferred_helper">예상 이득순에서 위로 올립니다. 표시되는 이득 금액은 바뀌지 않습니다.</string>
+    <string name="brand_edit_hidden">숨기기</string>
+    <string name="brand_edit_hidden_helper">지도와 목록에 나오지 않고 계산에서도 빠집니다. 선호와 함께 켤 수 없습니다.</string>
+    <string name="brand_edit_save">저장</string>
+    <string name="brand_edit_cancel">취소</string>
+    <string name="brand_edit_clear_discount">할인 지우기</string>
+    <string name="brand_edit_error_per_liter_range">0~500원 사이로 입력해 주세요</string>
+    <string name="brand_edit_error_cap_range">0~100,000원 사이로 입력해 주세요</string>
+    <string name="brand_edit_error_integer">원 단위 정수로 입력해 주세요</string>
     <string name="settings_places">집·회사 위치</string>
     <string name="settings_default_filter">기본 유종·반경</string>
     <string name="settings_dark_mode">다크 모드</string>

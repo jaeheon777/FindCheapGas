@@ -36,6 +36,11 @@
         <activity
             android:name=".ui.detail.StationDetailActivity"
             android:exported="false" />
+        <!-- 내 브랜드 (설정 탭에서 연다). 수정 시트에 입력할 때 키보드가 시트를 가리지 않게 한다. -->
+        <activity
+            android:name=".ui.brand.BrandSettingsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

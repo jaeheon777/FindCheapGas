@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * 한 브랜드의 할인 조건: 리터당 할인(원/L)과 1회 할인 한도(원).
  * 한도를 입력하지 않았으면 cap이 null이고, 한도 없이 계산한다 (화면에는 "한도 미적용"으로 표시).
- * 이번 단계에서는 모든 브랜드가 NONE이다. 내 브랜드 설정에서 값을 채운다.
+ * 값은 내 브랜드 설정(BrandSetting)에서 채운다. 설정하지 않은 브랜드는 NONE이다.
  */
 public final class DiscountRule implements Serializable {
 

@@ -3,6 +3,8 @@ package com.example.findcheapgas.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import com.example.findcheapgas.model.BrandSetting;
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.GasStation;
@@ -84,5 +86,25 @@ public class FormatUtilTest {
         // 기본값과 같은 숫자를 직접 입력해도 "내 차 기준"
         assertEquals("내 차 기준 · 연비 12km/L · 40L",
                 FormatUtil.formatCalculationBasis(CarInfo.userEntered(120, 40)));
+    }
+
+    @Test
+    public void discountSummary() {
+        assertEquals("리터당 100원 할인 · 1회 한도 3,000원",
+                FormatUtil.formatDiscountSummary(new DiscountRule(100, 3_000)));
+        assertEquals("리터당 100원 할인 · 한도 미적용", FormatUtil.formatDiscountSummary(new DiscountRule(100, null)));
+        assertEquals("할인 없음", FormatUtil.formatDiscountSummary(DiscountRule.NONE));
+    }
+
+    @Test
+    public void brandSummary() {
+        assertEquals("설정한 브랜드 없음", FormatUtil.formatBrandSummary(BrandSettings.EMPTY));
+        BrandSettings settings = BrandSettings.EMPTY
+                .with("SKE", new BrandSetting(100, 3_000, true, false))
+                .with("GSC", new BrandSetting(50, null, false, false))
+                .with("SOL", new BrandSetting(0, null, false, true));
+        assertEquals("할인 2곳 · 선호 1곳 · 숨김 1곳", FormatUtil.formatBrandSummary(settings));
+        assertEquals("선호 1곳", FormatUtil.formatBrandSummary(
+                BrandSettings.EMPTY.with("SKE", new BrandSetting(0, null, true, false))));
     }
 }

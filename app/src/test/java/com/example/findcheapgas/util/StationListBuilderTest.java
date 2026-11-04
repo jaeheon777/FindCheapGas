@@ -4,7 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.example.findcheapgas.model.CarInfo;
-import com.example.findcheapgas.model.DiscountPolicy;
+import com.example.findcheapgas.model.BrandFilter;
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.SearchRadius;
@@ -41,7 +42,8 @@ public class StationListBuilderTest {
     }
 
     private static List<StationSaving> build(List<GasStation> all, SearchRadius radius, SortOrder sortOrder) {
-        return StationListBuilder.build(all, radius, sortOrder, CarInfo.DEFAULT, DiscountPolicy.NONE);
+        return StationListBuilder.build(all, radius, sortOrder, CarInfo.DEFAULT,
+                BrandSettings.EMPTY, BrandFilter.ALL);
     }
 
     private static final List<GasStation> ALL = Arrays.asList(

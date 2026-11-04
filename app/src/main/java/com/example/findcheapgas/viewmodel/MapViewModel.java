@@ -9,11 +9,13 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import com.example.findcheapgas.data.local.StationFilterPreferences;
+import com.example.findcheapgas.data.repository.BrandSettingsRepository;
 import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.data.repository.LocationRepository;
 import com.example.findcheapgas.data.repository.StationRepository;
+import com.example.findcheapgas.model.BrandFilter;
+import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
-import com.example.findcheapgas.model.DiscountPolicy;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
@@ -32,11 +34,13 @@ import java.util.List;
  * 지도 탭의 화면 상태를 가진다.
  * - 위치: 현재 좌표, 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
  * - 주유소: 주변 주유소 목록, 조회 중 여부, 오류, 선택한 주유소
- * - 선택: 유종, 반경, 정렬 (마지막 선택을 StationFilterPreferences에 저장)
+ * - 선택: 유종, 반경, 정렬, 브랜드 빠른 필터 (마지막 선택을 StationFilterPreferences에 저장)
  * - 내 차 정보: CarInfoRepository의 LiveData를 그대로 내보낸다 (계산 기준 문구)
+ * - 내 브랜드 설정: BrandSettingsRepository의 LiveData를 그대로 내보낸다 (빠른 필터 메뉴)
  *
  * API 호출은 유종이 바뀌거나 위치를 새로 받았을 때만 한다. 오피넷에서 받은 5km 안 전체 목록(fetchedStations)을
- * 들고 있다가, 반경, 정렬, 내 차 정보가 바뀌면 StationListBuilder로 화면 목록(stations)만 다시 만든다.
+ * 들고 있다가, 반경, 정렬, 브랜드 빠른 필터, 내 차 정보, 내 브랜드 설정이 바뀌면
+ * StationListBuilder로 화면 목록(stations)만 다시 만든다.
  * 화면 목록의 각 항목에는 예상 이득 계산 결과(StationSaving)가 들어 있다.
  */
 public class MapViewModel extends AndroidViewModel {
@@ -47,6 +51,9 @@ public class MapViewModel extends AndroidViewModel {
     private final CarInfoRepository carInfoRepository;
     // 내 차 정보가 바뀌면 받아 둔 목록으로 다시 계산한다. ViewModel이 없어질 때 해제한다.
     private final Observer<CarInfo> carInfoObserver = carInfo -> updateDisplayedStations();
+    // 내 브랜드 설정(할인, 선호, 숨기기)이 바뀌어도 같은 방식으로 다시 계산한다.
+    private final BrandSettingsRepository brandSettingsRepository;
+    private final Observer<BrandSettings> brandSettingsObserver = settings -> updateDisplayedStations();
 
     private final MutableLiveData<UserLocation> location = new MutableLiveData<>();
     private final MutableLiveData<LocationPermissionState> permissionState =
@@ -57,9 +64,14 @@ public class MapViewModel extends AndroidViewModel {
     private final MutableLiveData<FuelType> fuelType = new MutableLiveData<>();
     private final MutableLiveData<SearchRadius> radius = new MutableLiveData<>();
     private final MutableLiveData<SortOrder> sortOrder = new MutableLiveData<>();
+    // 저장해 둔 그대로의 빠른 필터. 화면에 적용할 때는 BrandFilter.effective()로 정리한다.
+    private final MutableLiveData<BrandFilter> brandFilter = new MutableLiveData<>();
 
     // 화면에 보여줄 목록 (반경 필터, 예상 이득 계산, 정렬 적용). 아직 조회하지 않았으면 null
     private final MutableLiveData<List<StationSaving>> stations = new MutableLiveData<>();
+    // 화면 목록이 비었을 때 이유 (반경, 숨긴 브랜드, 빠른 필터). stations보다 먼저 바꾼다.
+    private final MutableLiveData<StationListBuilder.EmptyReason> emptyReason =
+            new MutableLiveData<>(StationListBuilder.EmptyReason.NONE);
     private final MutableLiveData<Boolean> stationsLoading = new MutableLiveData<>(false);
     // 오류가 없으면 null
     private final MutableLiveData<StationError> stationsError = new MutableLiveData<>();
@@ -84,8 +96,11 @@ public class MapViewModel extends AndroidViewModel {
         fuelType.setValue(filterPreferences.getFuelType());
         radius.setValue(filterPreferences.getRadius());
         sortOrder.setValue(filterPreferences.getSortOrder());
+        brandFilter.setValue(filterPreferences.getBrandFilter());
         carInfoRepository = CarInfoRepository.getInstance(application);
         carInfoRepository.getCarInfo().observeForever(carInfoObserver);
+        brandSettingsRepository = BrandSettingsRepository.getInstance(application);
+        brandSettingsRepository.getBrandSettings().observeForever(brandSettingsObserver);
     }
 
     public LiveData<UserLocation> getLocation() {
@@ -106,6 +121,10 @@ public class MapViewModel extends AndroidViewModel {
 
     public LiveData<List<StationSaving>> getStations() {
         return stations;
+    }
+
+    public LiveData<StationListBuilder.EmptyReason> getEmptyReason() {
+        return emptyReason;
     }
 
     public LiveData<Boolean> getStationsLoading() {
@@ -135,6 +154,15 @@ public class MapViewModel extends AndroidViewModel {
     /** 항상 값이 있다 (입력하지 않았으면 CarInfo.DEFAULT). */
     public LiveData<CarInfo> getCarInfo() {
         return carInfoRepository.getCarInfo();
+    }
+
+    public LiveData<BrandFilter> getBrandFilter() {
+        return brandFilter;
+    }
+
+    /** 항상 값이 있다. */
+    public LiveData<BrandSettings> getBrandSettings() {
+        return brandSettingsRepository.getBrandSettings();
     }
 
     public boolean hasPermission() {
@@ -233,6 +261,16 @@ public class MapViewModel extends AndroidViewModel {
         updateDisplayedStations();
     }
 
+    /** 빠른 필터를 바꾸면 API를 부르지 않고 받아 둔 목록에서 다시 고르고 다시 계산한다. */
+    public void setBrandFilter(BrandFilter newFilter) {
+        if (newFilter.equals(brandFilter.getValue())) {
+            return;
+        }
+        brandFilter.setValue(newFilter);
+        filterPreferences.setBrandFilter(newFilter);
+        updateDisplayedStations();
+    }
+
     /** 마커나 목록 항목을 눌렀을 때 */
     public void selectStation(String stationId) {
         selectedStationId.setValue(stationId);
@@ -279,26 +317,33 @@ public class MapViewModel extends AndroidViewModel {
                 selectedStationId.setValue(null);
                 stationsLoading.setValue(false);
                 stationsError.setValue(error);
+                emptyReason.setValue(StationListBuilder.EmptyReason.NONE);
                 stations.setValue(Collections.emptyList());
             }
         });
     }
 
     /**
-     * 받아 둔 전체 목록 → 반경 필터 → 예상 이득 계산 → 정렬 → 화면. 목록이 바뀌는 곳은 모두 여기를 거친다.
-     * 내 차 정보는 CarInfoRepository의 지금 값을 쓴다. 할인은 내 브랜드 설정을 만들 때까지 모두 0이다.
+     * 받아 둔 전체 목록 → 반경 필터 → 숨긴 브랜드 제외 → 브랜드 빠른 필터 → 예상 이득 계산 → 정렬 → 화면.
+     * 목록이 바뀌는 곳은 모두 여기를 거친다.
+     * 내 차 정보와 내 브랜드 설정(할인 정책, 선호, 숨기기)은 각 Repository의 지금 값을 쓴다.
      * 선택한 주유소가 새 목록에 없으면 선택을 먼저 해제해서, 화면이 지워진 주유소를 선택한 채로 그리지 않게 한다.
      */
     private void updateDisplayedStations() {
         if (fetchedStations == null) {
             return;
         }
+        BrandSettings brandSettings = brandSettingsRepository.getCurrent();
         List<StationSaving> result = StationListBuilder.build(fetchedStations, radius.getValue(),
-                sortOrder.getValue(), carInfoRepository.getCurrent(), DiscountPolicy.NONE);
+                sortOrder.getValue(), carInfoRepository.getCurrent(), brandSettings, brandFilter.getValue());
         String selectedId = selectedStationId.getValue();
         if (selectedId != null && !containsStation(result, selectedId)) {
             selectedStationId.setValue(null);
         }
+        emptyReason.setValue(result.isEmpty()
+                ? StationListBuilder.emptyReason(fetchedStations, radius.getValue(), brandSettings,
+                        brandFilter.getValue())
+                : StationListBuilder.EmptyReason.NONE);
         stations.setValue(result);
     }
 
@@ -315,6 +360,7 @@ public class MapViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         carInfoRepository.getCarInfo().removeObserver(carInfoObserver);
+        brandSettingsRepository.getBrandSettings().removeObserver(brandSettingsObserver);
         stationRepository.shutdown();
     }
 }
