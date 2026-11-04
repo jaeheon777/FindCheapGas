@@ -22,4 +22,14 @@ public enum FuelType {
     public String getLabel() {
         return label;
     }
+
+    /** 저장해 둔 유종 코드로 찾는다. 없거나 모르는 값이면 defaultValue */
+    public static FuelType fromCode(String code, FuelType defaultValue) {
+        for (FuelType type : values()) {
+            if (type.code.equals(code)) {
+                return type;
+            }
+        }
+        return defaultValue;
+    }
 }

@@ -15,7 +15,6 @@ import com.example.findcheapgas.data.remote.OpinetAroundResponse;
 import com.example.findcheapgas.data.remote.OpinetException;
 import com.example.findcheapgas.data.remote.OpinetRemoteDataSource;
 import com.example.findcheapgas.model.GasStation;
-import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.util.CoordinateConverter;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -35,8 +33,10 @@ import java.util.concurrent.Executors;
 
 /**
  * 주변 주유소를 어디서 가져올지 정한다.
- * 1. Room 캐시 (같은 위치·유종·반경·정렬로 20분 안에 조회한 결과)
+ * 1. Room 캐시 (같은 위치·유종으로 20분 안에 조회한 결과)
  * 2. 캐시가 없으면 USE_MOCK_DATA에 따라 가짜 데이터(assets) 또는 실제 오피넷 API
+ * 오피넷에는 항상 최대 반경 5km로 요청한다. 반경을 줄이거나 정렬을 바꾸는 것은 API를 다시 부르지 않고
+ * StationListBuilder가 이 결과로 처리하므로, 여기서 돌려주는 목록은 정렬하지 않은 5km 안 전체 목록이다.
  * 결과는 메인 스레드에서 Callback으로 돌려준다.
  */
 public class StationRepository {
@@ -110,7 +110,7 @@ public class StationRepository {
                 stations.add(station.withDistance(
                         CoordinateConverter.distanceMeters(katec, station.getKatecX(), station.getKatecY())));
             }
-            return sorted(stations, query.getSortOrder());
+            return Collections.unmodifiableList(stations);
         }
 
         List<OpinetAroundResponse.Oil> oils;
@@ -127,22 +127,23 @@ public class StationRepository {
             Log.d(TAG, "오피넷 응답: " + key + " (" + oils.size() + "곳)");
         }
 
-        List<GasStation> stations = sorted(toStations(oils), query.getSortOrder());
+        List<GasStation> stations = toStations(oils);
         cacheDao.save(new StationCacheEntity(key, gson.toJson(stations, STATION_LIST_TYPE), now));
-        return stations;
+        return Collections.unmodifiableList(stations);
     }
 
     /**
      * 위도·경도를 소수점 셋째 자리(위도 약 111m, 경도 약 88m)로 반올림해서 가까운 위치끼리 같은 캐시를 쓴다.
-     * 가짜 데이터와 실제 API 결과가 섞이지 않도록 출처도 넣는다.
+     * 가짜 데이터와 실제 API 결과가 섞이지 않도록 출처도 넣는다. 반경과 정렬은 앱에서 처리하므로 키에 넣지 않는다.
+     * 예: around5km|mock|37.498,127.028|B027
+     * 예전 키(mock|37.498,127.028|B027|3000|1)와 앞부분이 달라서 겹치지 않고, 남아 있는 예전 캐시는 20분이 지나면 지워진다.
      */
     private static String cacheKey(StationQuery query) {
-        return String.format(Locale.US, "%s|%.3f,%.3f|%s|%d|%d",
+        return String.format(Locale.US, "around%dkm|%s|%.3f,%.3f|%s",
+                StationQuery.FETCH_RADIUS_METERS / 1000,
                 BuildConfig.USE_MOCK_DATA ? "mock" : "api",
                 query.getLatitude(), query.getLongitude(),
-                query.getFuelType().getCode(),
-                query.getRadiusMeters(),
-                query.getSortOrder().getCode());
+                query.getFuelType().getCode());
     }
 
     private List<GasStation> readCache(String key, long minSavedAt) {
@@ -169,15 +170,6 @@ public class StationRepository {
             stations.add(new GasStation(oil.uniId, oil.brandCode, oil.name, oil.price, oil.distance,
                     oil.katecX, oil.katecY, wgs84.latitude, wgs84.longitude));
         }
-        return stations;
-    }
-
-    private static List<GasStation> sorted(List<GasStation> stations, SortOrder sortOrder) {
-        Comparator<GasStation> byPrice = Comparator.comparingInt(GasStation::getPrice);
-        Comparator<GasStation> byDistance = Comparator.comparingDouble(GasStation::getDistance);
-        Collections.sort(stations, sortOrder == SortOrder.DISTANCE
-                ? byDistance.thenComparing(byPrice)
-                : byPrice.thenComparing(byDistance));
         return stations;
     }
 }

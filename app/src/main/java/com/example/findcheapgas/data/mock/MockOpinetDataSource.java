@@ -16,7 +16,8 @@ import java.util.List;
 
 /**
  * 개발용 가짜 데이터. assets/mock/around_{유종코드}.json을 읽는다 (강남역 주변 주유소).
- * 실제 API처럼 요청 위치에서 거리를 다시 계산하고, 반경 밖 주유소는 뺀다. 정렬은 Repository가 한다.
+ * 실제 API처럼 요청 위치에서 거리를 다시 계산하고, 최대 반경(5km) 밖 주유소는 뺀다.
+ * 화면 반경 필터와 정렬은 StationListBuilder가 한다.
  */
 public class MockOpinetDataSource {
 
@@ -43,7 +44,7 @@ public class MockOpinetDataSource {
         List<OpinetAroundResponse.Oil> inRadius = new ArrayList<>();
         for (OpinetAroundResponse.Oil oil : all) {
             double distance = CoordinateConverter.distanceMeters(katec, oil.katecX, oil.katecY);
-            if (distance <= query.getRadiusMeters()) {
+            if (distance <= StationQuery.FETCH_RADIUS_METERS) {
                 oil.distance = distance;
                 inRadius.add(oil);
             }

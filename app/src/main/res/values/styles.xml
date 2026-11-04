@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 지도 위 필터 줄의 칩: 누르면 선택 메뉴가 열리고, 오른쪽에 ▼ 표시 -->
+    <style name="Widget.FindCheapGas.FilterDropdownChip" parent="Widget.Material3.Chip.Assist.Elevated">
+        <item name="closeIcon">@drawable/ic_arrow_drop_down</item>
+        <item name="closeIconVisible">true</item>
+        <item name="closeIconSize">20dp</item>
+        <item name="closeIconStartPadding">0dp</item>
+        <item name="android:checkable">false</item>
+    </style>
+</resources>

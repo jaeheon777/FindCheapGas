@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "station_cache")
 public class StationCacheEntity {
 
-    // 데이터 출처 + 반올림한 위치 + 유종 + 반경 + 정렬 (StationRepository.cacheKey 참고)
+    // 조회 반경(5km) + 데이터 출처 + 반올림한 위치 + 유종 (StationRepository.cacheKey 참고)
     @PrimaryKey
     @NonNull
     public String cacheKey;

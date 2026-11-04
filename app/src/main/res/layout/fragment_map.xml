@@ -30,41 +30,88 @@
         android:indeterminate="true"
         android:visibility="gone" />
 
-    <!-- 위치 권한 거부, 기기 위치 꺼짐 안내 -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/location_banner"
-        style="?attr/materialCardViewElevatedStyle"
+    <!--
+        지도 위쪽 영역. 위에서부터 차례로 쌓여서 서로 겹치지 않는다.
+        - 검색창 (3단계에서 추가)
+        - 필터 줄: 유종, 반경 (2단계에서 같은 줄 끝에 브랜드 필터 칩 추가)
+        - 위치 권한 / 기기 위치 안내
+    -->
+    <LinearLayout
+        android:id="@+id/map_top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:layout_margin="12dp"
-        android:visibility="gone">
+        android:orientation="vertical"
+        android:paddingTop="8dp">
 
-        <LinearLayout
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="8dp">
+            android:clipToPadding="false"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:scrollbars="none">
 
-            <TextView
-                android:id="@+id/location_banner_text"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/location_banner_button"
-                style="?attr/borderlessButtonStyle"
+            <LinearLayout
+                android:id="@+id/filter_row"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+                android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_fuel_type"
+                    style="@style/Widget.FindCheapGas.FilterDropdownChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="휘발유" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_radius"
+                    style="@style/Widget.FindCheapGas.FilterDropdownChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    tools:text="반경 3km" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- 위치 권한 거부, 기기 위치 꺼짐 안내 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/location_banner"
+            style="?attr/materialCardViewElevatedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/location_banner_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/location_banner_button"
+                    style="?attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
 
     <!-- 주변 주유소 목록. 접힌 상태 → 절반 → 거의 전체로 끌어올릴 수 있다. -->
     <LinearLayout
@@ -88,30 +135,53 @@
             android:paddingTop="8dp"
             android:paddingBottom="8dp" />
 
+        <!-- 제목 줄: 왼쪽에 제목과 조건 문구, 오른쪽에 정렬 버튼 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp">
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp">
 
-            <TextView
-                android:id="@+id/station_sheet_title"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/station_sheet_title"
-                android:textAppearance="?attr/textAppearanceTitleMedium" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/station_sheet_condition"
+                <TextView
+                    android:id="@+id/station_sheet_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/station_sheet_title"
+                    android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+                <TextView
+                    android:id="@+id/station_sheet_condition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="휘발유 · 3km · 가격순" />
+
+                <!-- 2단계: 계산 기준 문구 (예: 연비 12km/L · 40L 기준 (기본값)), 누르면 내 차 정보 화면 -->
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_sort"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="휘발유 · 3km · 가격순" />
+                android:layout_height="40dp"
+                android:minWidth="0dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="4dp"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                app:icon="@drawable/ic_arrow_drop_down"
+                app:iconGravity="end"
+                app:iconPadding="0dp"
+                tools:text="가격순" />
         </LinearLayout>
 
         <FrameLayout

@@ -13,8 +13,10 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -31,13 +33,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.findcheapgas.FindCheapGasApp;
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.data.repository.LocationRepository;
+import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
+import com.example.findcheapgas.model.SearchRadius;
+import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
@@ -57,8 +63,9 @@ import com.kakao.vectormap.label.LabelStyles;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class MapFragment extends Fragment {
 
@@ -97,6 +104,11 @@ public class MapFragment extends Fragment {
     private MaterialButton bannerButton;
     private FloatingActionButton myLocationButton;
 
+    private Chip fuelTypeChip;
+    private Chip radiusChip;
+    private MaterialButton sortButton;
+    private TextView conditionText;
+
     private BottomSheetBehavior<View> sheetBehavior;
     private TextView sheetTitle;
     private RecyclerView stationList;
@@ -130,6 +142,7 @@ public class MapFragment extends Fragment {
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
 
         setUpStationSheet(view);
+        setUpFilters(view);
 
         if (FindCheapGasApp.isMapAvailable()) {
             startMap(view.findViewById(R.id.map_container));
@@ -141,6 +154,10 @@ public class MapFragment extends Fragment {
         viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
         viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBanner());
         viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBanner());
+
+        viewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType -> renderFilters());
+        viewModel.getRadius().observe(getViewLifecycleOwner(), radius -> renderFilters());
+        viewModel.getSortOrder().observe(getViewLifecycleOwner(), sortOrder -> renderFilters());
 
         viewModel.getStations().observe(getViewLifecycleOwner(), this::showStations);
         viewModel.getStationsLoading().observe(getViewLifecycleOwner(), loading -> {
@@ -460,12 +477,6 @@ public class MapFragment extends Fragment {
         stationStatusText = view.findViewById(R.id.station_status_text);
         stationRetryButton = view.findViewById(R.id.station_retry_button);
 
-        TextView condition = view.findViewById(R.id.station_sheet_condition);
-        condition.setText(getString(R.string.station_sheet_condition,
-                viewModel.getFuelType().getLabel(),
-                radiusKm(),
-                viewModel.getSortOrder().getLabel()));
-
         stationAdapter = new StationAdapter(this::onStationItemClick);
         stationLayoutManager = new LinearLayoutManager(requireContext());
         stationList.setLayoutManager(stationLayoutManager);
@@ -558,7 +569,7 @@ public class MapFragment extends Fragment {
             message = getString(R.string.station_locating);
             showProgress = true;
         } else if (stations.isEmpty()) {
-            message = getString(R.string.station_empty, radiusKm());
+            message = getString(R.string.station_empty, viewModel.getRadius().getValue().getLabel());
         }
 
         if (message == null) {
@@ -604,11 +615,69 @@ public class MapFragment extends Fragment {
         return cheapest;
     }
 
-    /** 3000 → "3", 1500 → "1.5" */
-    private String radiusKm() {
-        int meters = viewModel.getRadiusMeters();
-        return meters % 1000 == 0
-                ? String.valueOf(meters / 1000)
-                : String.format(Locale.KOREA, "%.1f", meters / 1000.0);
+    // ---------- 유종, 반경, 정렬 선택 ----------
+
+    private void setUpFilters(View view) {
+        fuelTypeChip = view.findViewById(R.id.chip_fuel_type);
+        radiusChip = view.findViewById(R.id.chip_radius);
+        sortButton = view.findViewById(R.id.btn_sort);
+        conditionText = view.findViewById(R.id.station_sheet_condition);
+
+        // 칩의 ▼ 아이콘을 눌러도 칩을 누른 것과 같게 한다.
+        fuelTypeChip.setOnClickListener(this::showFuelTypeMenu);
+        fuelTypeChip.setOnCloseIconClickListener(v -> showFuelTypeMenu(fuelTypeChip));
+        radiusChip.setOnClickListener(this::showRadiusMenu);
+        radiusChip.setOnCloseIconClickListener(v -> showRadiusMenu(radiusChip));
+        sortButton.setOnClickListener(this::showSortMenu);
+    }
+
+    private void showFuelTypeMenu(View anchor) {
+        showChoiceMenu(anchor, FuelType.values(), viewModel.getFuelType().getValue(),
+                FuelType::getLabel, viewModel::setFuelType);
+    }
+
+    private void showRadiusMenu(View anchor) {
+        showChoiceMenu(anchor, SearchRadius.values(), viewModel.getRadius().getValue(),
+                SearchRadius::getLabel, viewModel::setRadius);
+    }
+
+    /** 정렬 메뉴는 SortOrder 상수 순서대로 만든다. 2단계에서 예상 이득순을 추가하면 메뉴에도 바로 나온다. */
+    private void showSortMenu(View anchor) {
+        showChoiceMenu(anchor, SortOrder.values(), viewModel.getSortOrder().getValue(),
+                SortOrder::getLabel, viewModel::setSortOrder);
+    }
+
+    /** 하나만 고를 수 있는 팝업 메뉴. 지금 선택한 항목에 체크 표시를 한다. */
+    private <T> void showChoiceMenu(View anchor, T[] options, T current,
+                                    Function<T, String> label, Consumer<T> onChoice) {
+        PopupMenu popup = new PopupMenu(requireContext(), anchor);
+        Menu menu = popup.getMenu();
+        for (int i = 0; i < options.length; i++) {
+            menu.add(Menu.NONE, i, i, label.apply(options[i])).setChecked(options[i] == current);
+        }
+        menu.setGroupCheckable(Menu.NONE, true, true);
+        popup.setOnMenuItemClickListener(item -> {
+            onChoice.accept(options[item.getItemId()]);
+            return true;
+        });
+        popup.show();
+    }
+
+    /** 필터 칩, 정렬 버튼, 시트의 조건 문구를 지금 선택에 맞춘다. */
+    private void renderFilters() {
+        FuelType fuelType = viewModel.getFuelType().getValue();
+        SearchRadius radius = viewModel.getRadius().getValue();
+        SortOrder sortOrder = viewModel.getSortOrder().getValue();
+        if (fuelType == null || radius == null || sortOrder == null) {
+            return;
+        }
+        fuelTypeChip.setText(fuelType.getLabel());
+        fuelTypeChip.setContentDescription(getString(R.string.filter_fuel_type_description, fuelType.getLabel()));
+        radiusChip.setText(getString(R.string.filter_radius, radius.getLabel()));
+        radiusChip.setContentDescription(getString(R.string.filter_radius_description, radius.getLabel()));
+        sortButton.setText(sortOrder.getLabel());
+        sortButton.setContentDescription(getString(R.string.station_sort_description, sortOrder.getLabel()));
+        conditionText.setText(getString(R.string.station_sheet_condition,
+                fuelType.getLabel(), radius.getLabel(), sortOrder.getLabel()));
     }
 }

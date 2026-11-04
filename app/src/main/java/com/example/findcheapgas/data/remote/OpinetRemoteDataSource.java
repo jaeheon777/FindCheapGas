@@ -22,6 +22,8 @@ public class OpinetRemoteDataSource {
 
     private static final String BASE_URL = "https://www.opinet.co.kr/api/";
     private static final long TIMEOUT_SECONDS = 10;
+    // 정렬은 앱에서 다시 하므로 오피넷 정렬은 아무 값이나 상관없다. 1 가격순, 2 거리순
+    private static final int OPINET_SORT_BY_PRICE = 1;
 
     private final OpinetApi api;
 
@@ -51,9 +53,9 @@ public class OpinetRemoteDataSource {
                 BuildConfig.OPINET_API_KEY,
                 String.format(Locale.US, "%.2f", katec.x),
                 String.format(Locale.US, "%.2f", katec.y),
-                query.getRadiusMeters(),
+                StationQuery.FETCH_RADIUS_METERS,
                 query.getFuelType().getCode(),
-                query.getSortOrder().getCode(),
+                OPINET_SORT_BY_PRICE,
                 "json").execute();
 
         try (ResponseBody body = response.isSuccessful() ? response.body() : response.errorBody()) {
