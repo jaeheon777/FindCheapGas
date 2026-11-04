@@ -36,6 +36,7 @@
     <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
     <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
     <string name="station_retry">다시 시도</string>
+    <string name="station_basis_description">계산 기준 %1$s, 눌러서 내 차 정보 수정</string>
 
     <!-- 주유소 상세 화면 -->
     <string name="detail_title">주유소 정보</string>
@@ -68,4 +69,50 @@
     <string name="detail_trend_title">7일 가격 추이</string>
     <string name="detail_favorite">즐겨찾기</string>
     <string name="detail_route">길찾기</string>
+
+    <!-- 내 차 정보 입력 (처음 실행, 수정) -->
+    <string name="onboarding_heading">내 차 정보를 알려 주세요</string>
+    <string name="onboarding_description">연비와 평소 주유량을 알면 주유소까지 가는 연료비까지 더해서, 예상 총비용이 가장 낮은 주유소를 찾아 드립니다.</string>
+    <string name="car_info_edit_title">내 차 정보 수정</string>
+    <string name="car_info_edit_description">입력한 값으로 주유소까지 가는 연료비와 예상 총비용을 계산합니다.</string>
+    <string name="car_info_back">취소</string>
+    <string name="car_info_fuel_efficiency">연비</string>
+    <string name="car_info_fuel_efficiency_placeholder">12.0</string>
+    <string name="car_info_fuel_efficiency_unit">km/L</string>
+    <string name="car_info_fuel_efficiency_helper">3~40km/L, 소수점 한 자리까지. 모르면 계기판의 평균 연비나 차량 제원표의 복합 연비를 참고하세요.</string>
+    <string name="car_info_fuel_amount">평소 주유량</string>
+    <string name="car_info_fuel_amount_placeholder">40</string>
+    <string name="car_info_fuel_amount_unit">L</string>
+    <string name="car_info_fuel_amount_helper">한 번에 보통 넣는 양, 5~150L</string>
+    <string name="car_info_fuel_type">주로 넣는 유종</string>
+    <string name="car_info_fuel_type_helper">지도에서 처음 보여줄 유종입니다. 지도 위에서 언제든 바꿀 수 있습니다.</string>
+    <string name="onboarding_skip_note">건너뛰면 연비 12km/L, 주유량 40L 기본값으로 계산합니다. 설정 탭에서 언제든 바꿀 수 있습니다.</string>
+    <string name="onboarding_save">저장하고 시작</string>
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="car_info_save">저장</string>
+    <string name="car_info_cancel">취소</string>
+    <string name="car_info_error_fuel_efficiency_empty">연비를 입력해 주세요</string>
+    <string name="car_info_error_fuel_efficiency_range">3~40km/L 사이로 입력해 주세요</string>
+    <string name="car_info_error_fuel_efficiency_decimals">소수점 한 자리까지만 입력해 주세요</string>
+    <string name="car_info_error_fuel_amount_empty">주유량을 입력해 주세요</string>
+    <string name="car_info_error_fuel_amount_range">5~150L 사이로 입력해 주세요</string>
+    <string name="car_info_error_fuel_amount_integer">정수로 입력해 주세요</string>
+    <string name="car_info_error_not_number">숫자로 입력해 주세요</string>
+
+    <!-- 설정 탭 -->
+    <string name="settings_title">설정</string>
+    <string name="settings_car_info">내 차 정보</string>
+    <string name="settings_car_info_default">기본값 사용 중</string>
+    <string name="settings_car_info_user_entered">직접 입력한 값으로 계산 중</string>
+    <string name="settings_car_info_edit">수정</string>
+    <string name="settings_car_info_description">내 차 정보: 연비 %1$s, 평소 주유량 %2$s, %3$s. 눌러서 수정</string>
+    <string name="settings_car_info_reset">기본값으로 되돌리기</string>
+    <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸습니다</string>
+    <string name="settings_other">다른 설정</string>
+    <string name="settings_brand">내 브랜드</string>
+    <string name="settings_places">집·회사 위치</string>
+    <string name="settings_default_filter">기본 유종·반경</string>
+    <string name="settings_dark_mode">다크 모드</string>
+    <string name="settings_api_usage">오늘 API 사용량</string>
+    <string name="settings_coming_soon">준비 중</string>
 </resources>

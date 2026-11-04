@@ -34,6 +34,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.findcheapgas.FindCheapGasApp;
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.data.repository.LocationRepository;
+import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
@@ -42,6 +43,8 @@ import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
+import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
+import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
@@ -116,6 +119,7 @@ public class MapFragment extends Fragment {
     private Chip radiusChip;
     private MaterialButton sortButton;
     private TextView conditionText;
+    private TextView basisText;
 
     private BottomSheetBehavior<View> sheetBehavior;
     private TextView sheetTitle;
@@ -166,6 +170,8 @@ public class MapFragment extends Fragment {
         viewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType -> renderFilters());
         viewModel.getRadius().observe(getViewLifecycleOwner(), radius -> renderFilters());
         viewModel.getSortOrder().observe(getViewLifecycleOwner(), sortOrder -> renderFilters());
+        // 내 차 정보 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
+        viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::renderCalculationBasis);
 
         viewModel.getStations().observe(getViewLifecycleOwner(), this::showStations);
         viewModel.getStationsLoading().observe(getViewLifecycleOwner(), loading -> {
@@ -679,6 +685,7 @@ public class MapFragment extends Fragment {
         radiusChip = view.findViewById(R.id.chip_radius);
         sortButton = view.findViewById(R.id.btn_sort);
         conditionText = view.findViewById(R.id.station_sheet_condition);
+        basisText = view.findViewById(R.id.station_sheet_basis);
 
         // 칩의 ▼ 아이콘을 눌러도 칩을 누른 것과 같게 한다.
         fuelTypeChip.setOnClickListener(this::showFuelTypeMenu);
@@ -686,6 +693,8 @@ public class MapFragment extends Fragment {
         radiusChip.setOnClickListener(this::showRadiusMenu);
         radiusChip.setOnCloseIconClickListener(v -> showRadiusMenu(radiusChip));
         sortButton.setOnClickListener(this::showSortMenu);
+        basisText.setOnClickListener(v ->
+                startActivity(OnboardingActivity.createEditIntent(requireContext())));
     }
 
     private void showFuelTypeMenu(View anchor) {
@@ -736,5 +745,12 @@ public class MapFragment extends Fragment {
         sortButton.setContentDescription(getString(R.string.station_sort_description, sortOrder.getLabel()));
         conditionText.setText(getString(R.string.station_sheet_condition,
                 fuelType.getLabel(), radius.getLabel(), sortOrder.getLabel()));
+    }
+
+    /** 시트 제목 아래 계산 기준 문구. 기본값이면 "(기본값)"이 붙는다. */
+    private void renderCalculationBasis(CarInfo carInfo) {
+        String basis = FormatUtil.formatCalculationBasis(carInfo);
+        basisText.setText(basis);
+        basisText.setContentDescription(getString(R.string.station_basis_description, basis));
     }
 }

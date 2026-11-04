@@ -262,21 +262,25 @@ flowchart TD
 ```
 app/src/main/java/com/example/findcheapgas/
 ├── FindCheapGasApp.java          Application 클래스 (카카오맵 SDK 초기화, 지도 사용 가능 여부, 디버그 키 해시 출력)
-├── MainActivity.java             메인 화면 (로딩 화면, 하단 탭 3개 전환)
+├── MainActivity.java             메인 화면 (로딩 화면, 처음 실행이면 내 차 정보 입력 화면으로 이동, 하단 탭 3개 전환)
 ├── ui/                           화면 (Fragment)
 │   ├── map/
-│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 주유소 목록 시트와 정렬 메뉴, 목록 항목이나 선택된 마커를 누르면 상세 화면 열기)
+│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 상세 화면 열기)
 │   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (최저가 강조, 선택 표시)
 │   │   └── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 브랜드, 가격, 거리)
 │   ├── detail/
 │   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
+│   ├── onboarding/
+│   │   └── OnboardingActivity.java 내 차 정보 입력 (처음 실행: 연비, 주유량, 주로 넣는 유종, 저장하고 시작 / 건너뛰기, 수정: 저장 / 취소)
 │   ├── favorite/
 │   │   └── FavoriteFragment.java 즐겨찾기 탭 (준비 중)
 │   └── settings/
-│       └── SettingsFragment.java 설정 탭 (준비 중)
+│       └── SettingsFragment.java 설정 탭 (내 차 정보와 기본값 사용 여부, 기본값으로 되돌리기, 나머지 항목은 준비 중)
 ├── viewmodel/
-│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 주유소 목록, 로딩, 오류, 선택한 주유소)
-│   └── DetailViewModel.java      상세 화면 상태 (상세 조회 결과, 로딩, 오류). 화면을 처음 열 때 한 번만 조회
+│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 내 차 정보, 주유소 목록, 로딩, 오류, 선택한 주유소)
+│   ├── DetailViewModel.java      상세 화면 상태 (상세 조회 결과, 로딩, 오류). 화면을 처음 열 때 한 번만 조회
+│   ├── OnboardingViewModel.java  내 차 정보 입력 화면 상태 (입력칸별 오류, 고른 유종), 저장과 처음 실행 완료 처리
+│   └── SettingsViewModel.java    설정 탭 상태 (내 차 정보, 기본값으로 되돌리기)
 ├── data/
 │   ├── remote/                   오피넷 API 통신 (Retrofit)
 │   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do, 항상 반경 5km), 주유소 상세정보(detailById.do) 요청 정의
@@ -291,15 +295,18 @@ app/src/main/java/com/example/findcheapgas/
 │   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
 │   │   ├── StationDetailCacheDao.java 상세 캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences)
-│   │   └── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences)
+│   │   ├── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences)
+│   │   └── CarInfoPreferences.java 내 차 정보, 직접 입력 여부, 처음 실행 화면 완료 여부 (SharedPreferences)
 │   ├── mock/
 │   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (주변 주유소는 5km 밖 제외, 상세정보는 주유소 ID별 파일)
 │   └── repository/
 │       ├── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
 │       ├── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환
-│       └── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 앱 전체에서 하나
+│       ├── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 앱 전체에서 하나
+│       └── CarInfoRepository.java 지금 계산에 쓰는 내 차 정보를 LiveData로 제공, 앱 전체에서 하나
 ├── model/
 │   ├── UserLocation.java         위치 좌표와 출처
+│   ├── CarInfo.java              내 차 정보 (연비, 평소 주유량, 기본값 여부, 입력 범위)
 │   ├── LocationPermissionState.java 위치 권한 상태
 │   ├── GasStation.java           주유소 (이름, 브랜드, 가격, 거리, KATEC·WGS84 좌표)
 │   ├── StationDetail.java        주유소 상세정보 (주소, 전화, 부가시설, 셀프 여부와 추정 여부, 유종별 가격)
@@ -312,7 +319,8 @@ app/src/main/java/com/example/findcheapgas/
 │   └── Brand.java                브랜드 코드 → 한글 이름
 └── util/
     ├── CoordinateConverter.java  WGS84 ↔ KATEC 좌표 변환 (Proj4J)
-    ├── FormatUtil.java           가격(1,659원), 거리(1.2km), 가격 기준 일시(11월 4일 15:30) 표시 형식
+    ├── FormatUtil.java           가격(1,659원), 거리(1.2km), 연비(12km/L, 12.5km/L), 계산 기준 문구, 가격 기준 일시(11월 4일 15:30) 표시 형식
+    ├── CarInfoValidator.java     연비(3~40km/L, 소수점 한 자리), 주유량(5~150L, 정수) 입력 검사
     ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 정렬 → 화면 목록
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 
@@ -323,8 +331,6 @@ app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모�
 아래 패키지는 해당 기능을 만들 때 추가합니다.
 
 ```
-├── ui/
-│   └── onboarding/     처음 실행 시 내 차 정보 입력
 ├── widget/             홈 화면 위젯, 주기적 갱신
 ├── data/
 │   └── remote/         카카오 로컬 API 통신
@@ -373,7 +379,7 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 - [x] 1단계 - 주변 주유소 조회, 지도 마커 및 목록 표시
 - [x] 1단계 - 유종, 반경, 정렬 선택
 - [x] 1단계 - 주유소 상세 화면
-- [ ] 2단계 - 내 차 정보 입력 (처음 실행, 설정)
+- [x] 2단계 - 내 차 정보 입력 (처음 실행, 설정)
 - [ ] 2단계 - 예상 이득 계산, 예상 이득순 정렬, 이득 색깔 마커
 - [ ] 2단계 - 내 브랜드 설정 (할인, 1회 할인 한도, 선호, 숨기기), 브랜드 빠른 필터
 - [ ] 2단계 - 도로 거리 계수 검증 (표본 주유소 실제 도로 거리와 비교)

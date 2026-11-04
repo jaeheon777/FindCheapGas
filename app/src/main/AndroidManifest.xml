@@ -27,6 +27,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- 내 차 정보 입력 (처음 실행, 수정). 키보드가 올라오면 화면을 줄여서 입력칸과 버튼이 가리지 않게 한다. -->
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <!-- 주유소 상세 화면 (지도 탭에서만 연다) -->
         <activity
             android:name=".ui.detail.StationDetailActivity"

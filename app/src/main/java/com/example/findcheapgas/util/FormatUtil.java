@@ -1,9 +1,11 @@
 package com.example.findcheapgas.util;
 
+import com.example.findcheapgas.model.CarInfo;
+
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/** 가격, 거리, 가격 기준 일시 표시 형식 */
+/** 가격, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -17,6 +19,37 @@ public final class FormatUtil {
     /** 1234.5(m) → "1.2km" */
     public static String formatDistance(double meters) {
         return String.format(Locale.KOREA, "%.1fkm", meters / 1000.0);
+    }
+
+    /** 0.1km/L 단위 연비 → 정수면 소수점 없이, 아니면 한 자리까지. 120 → "12", 125 → "12.5" */
+    public static String formatFuelEfficiencyNumber(int tenths) {
+        if (tenths % 10 == 0) {
+            return String.valueOf(tenths / 10);
+        }
+        return (tenths / 10) + "." + (tenths % 10);
+    }
+
+    /** 120 → "12km/L", 125 → "12.5km/L" */
+    public static String formatFuelEfficiency(int tenths) {
+        return formatFuelEfficiencyNumber(tenths) + "km/L";
+    }
+
+    /** 40 → "40L" */
+    public static String formatFuelAmount(int liters) {
+        return liters + "L";
+    }
+
+    /**
+     * 계산 기준 문구. 목록 위쪽, 상세 계산 내역에 쓴다.
+     * 기본값: "연비 12km/L · 40L 기준 (기본값)", 직접 입력: "내 차 기준 · 연비 15km/L · 50L"
+     */
+    public static String formatCalculationBasis(CarInfo carInfo) {
+        String efficiency = formatFuelEfficiency(carInfo.getFuelEfficiencyTenths());
+        String amount = formatFuelAmount(carInfo.getFuelAmount());
+        if (carInfo.isDefault()) {
+            return "연비 " + efficiency + " · " + amount + " 기준 (기본값)";
+        }
+        return "내 차 기준 · 연비 " + efficiency + " · " + amount;
     }
 
     /**

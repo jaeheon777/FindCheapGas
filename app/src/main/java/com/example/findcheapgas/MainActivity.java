@@ -13,8 +13,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.ui.favorite.FavoriteFragment;
 import com.example.findcheapgas.ui.map.MapFragment;
+import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.ui.settings.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -34,6 +36,15 @@ public class MainActivity extends AppCompatActivity {
         // super.onCreate보다 먼저 호출해야 로딩 화면이 보인다.
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // 처음 실행이면 로딩 화면 다음에 내 차 정보 입력 화면을 먼저 보여준다.
+        // 탭(지도 탭의 위치 권한 요청 포함)은 만들지 않고 넘어가고, 입력 화면을 마치면 이 화면이 새로 열린다.
+        if (!CarInfoRepository.getInstance(this).isOnboardingCompleted()) {
+            startActivity(OnboardingActivity.createFirstRunIntent(this));
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         // 아래쪽 시스템 바 여백은 BottomNavigationView가 직접 처리한다.

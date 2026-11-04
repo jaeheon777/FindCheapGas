@@ -166,7 +166,21 @@
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="휘발유 · 3km · 가격순" />
 
-                <!-- 2단계: 계산 기준 문구 (예: 연비 12km/L · 40L 기준 (기본값)), 누르면 내 차 정보 화면 -->
+                <!-- 계산 기준 문구 (예: 연비 12km/L · 40L 기준 (기본값)), 누르면 내 차 정보 수정 화면 -->
+                <TextView
+                    android:id="@+id/station_sheet_basis"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="2dp"
+                    android:gravity="center_vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="?attr/colorPrimary"
+                    app:drawableEndCompat="@drawable/ic_chevron_right"
+                    app:drawableTint="?attr/colorPrimary"
+                    tools:text="연비 12km/L · 40L 기준 (기본값)" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton

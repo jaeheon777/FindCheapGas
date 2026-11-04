@@ -6,10 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.example.findcheapgas.data.local.StationFilterPreferences;
+import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.data.repository.LocationRepository;
 import com.example.findcheapgas.data.repository.StationRepository;
+import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
@@ -28,15 +31,19 @@ import java.util.List;
  * - 위치: 현재 좌표, 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
  * - 주유소: 주변 주유소 목록, 조회 중 여부, 오류, 선택한 주유소
  * - 선택: 유종, 반경, 정렬 (마지막 선택을 StationFilterPreferences에 저장)
+ * - 내 차 정보: CarInfoRepository의 LiveData를 그대로 내보낸다 (계산 기준 문구)
  *
  * API 호출은 유종이 바뀌거나 위치를 새로 받았을 때만 한다. 오피넷에서 받은 5km 안 전체 목록(fetchedStations)을
- * 들고 있다가, 반경이나 정렬이 바뀌면 StationListBuilder로 화면 목록(stations)만 다시 만든다.
+ * 들고 있다가, 반경, 정렬, 내 차 정보가 바뀌면 StationListBuilder로 화면 목록(stations)만 다시 만든다.
  */
 public class MapViewModel extends AndroidViewModel {
 
     private final LocationRepository repository;
     private final StationRepository stationRepository;
     private final StationFilterPreferences filterPreferences;
+    private final CarInfoRepository carInfoRepository;
+    // 내 차 정보가 바뀌면 받아 둔 목록으로 다시 계산한다. ViewModel이 없어질 때 해제한다.
+    private final Observer<CarInfo> carInfoObserver = carInfo -> updateDisplayedStations();
 
     private final MutableLiveData<UserLocation> location = new MutableLiveData<>();
     private final MutableLiveData<LocationPermissionState> permissionState =
@@ -74,6 +81,8 @@ public class MapViewModel extends AndroidViewModel {
         fuelType.setValue(filterPreferences.getFuelType());
         radius.setValue(filterPreferences.getRadius());
         sortOrder.setValue(filterPreferences.getSortOrder());
+        carInfoRepository = CarInfoRepository.getInstance(application);
+        carInfoRepository.getCarInfo().observeForever(carInfoObserver);
     }
 
     public LiveData<UserLocation> getLocation() {
@@ -118,6 +127,11 @@ public class MapViewModel extends AndroidViewModel {
 
     public LiveData<SortOrder> getSortOrder() {
         return sortOrder;
+    }
+
+    /** 항상 값이 있다 (입력하지 않았으면 CarInfo.DEFAULT). */
+    public LiveData<CarInfo> getCarInfo() {
+        return carInfoRepository.getCarInfo();
     }
 
     public boolean hasPermission() {
@@ -269,6 +283,7 @@ public class MapViewModel extends AndroidViewModel {
 
     /**
      * 받아 둔 전체 목록 → 반경 필터 → 정렬 → 화면. 목록이 바뀌는 곳은 모두 여기를 거친다.
+     * 다음 작업(예상 이득 계산)에서 carInfoRepository.getCurrent()를 StationListBuilder에 넘긴다.
      * 선택한 주유소가 새 목록에 없으면 선택을 먼저 해제해서, 화면이 지워진 주유소를 선택한 채로 그리지 않게 한다.
      */
     private void updateDisplayedStations() {
@@ -295,6 +310,7 @@ public class MapViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
+        carInfoRepository.getCarInfo().removeObserver(carInfoObserver);
         stationRepository.shutdown();
     }
 }

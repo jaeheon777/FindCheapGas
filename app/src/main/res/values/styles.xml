@@ -15,4 +15,12 @@
         <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
         <item name="android:textColor">?attr/colorPrimary</item>
     </style>
+
+    <!-- 설정 탭의 구역 제목 (내 차 정보, 다른 설정) -->
+    <style name="Widget.FindCheapGas.SettingsSectionTitle" parent="">
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
 </resources>
