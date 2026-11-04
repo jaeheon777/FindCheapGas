@@ -63,6 +63,22 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
+    // 도로 거리 계수 측정(RoadDistanceCheckTest)은 -ProadDistanceCheck=true를 줄 때만 실행한다.
+    // 켰을 때는 외부 API 결과를 다시 받아야 하므로 이전 테스트 결과를 재사용하지 않는다.
+    val roadDistanceCheck = providers.gradleProperty("roadDistanceCheck").getOrElse("false")
+    testOptions {
+        unitTests.all {
+            it.systemProperty("roadDistanceCheck", roadDistanceCheck)
+            it.systemProperty(
+                "roadDistanceCheckOutput",
+                rootProject.file("docs/road-distance-check.csv").absolutePath
+            )
+            if (roadDistanceCheck == "true") {
+                it.outputs.upToDateWhen { false }
+            }
+        }
+    }
 }
 
 dependencies {
