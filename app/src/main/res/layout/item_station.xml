@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 주유소 목록 한 줄: 순위, 상호, 브랜드 · 거리, 가격 (가장 싼 곳은 "최저가") -->
+<!--
+    주유소 목록 한 줄: 순위, 상호, 브랜드 · 거리, 배지("이득 1위", "최저가"), 가격, 예상 이득
+    배지는 상호 아래 한 줄에 나란히 놓아서 두 개가 한 곳에 붙어도 가격 쪽이 좁아지지 않게 한다.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -47,6 +50,42 @@
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="SK에너지 · 0.4km" />
+
+        <!-- 배지 줄: 해당하는 배지가 없으면 줄 전체를 숨긴다. -->
+        <LinearLayout
+            android:id="@+id/station_badges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/station_best"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_best_badge"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1dp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/badge_best_text"
+                tools:text="@string/station_best" />
+
+            <TextView
+                android:id="@+id/station_cheapest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_cheapest_badge"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1dp"
+                android:text="@string/station_cheapest"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/badge_cheapest" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -57,25 +96,20 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/station_cheapest"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_cheapest_badge"
-            android:paddingStart="6dp"
-            android:paddingTop="1dp"
-            android:paddingEnd="6dp"
-            android:paddingBottom="1dp"
-            android:text="@string/station_cheapest"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
-            android:textColor="@color/marker_cheapest_text" />
-
-        <TextView
             android:id="@+id/station_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
             tools:text="1,659원" />
+
+        <TextView
+            android:id="@+id/station_saving"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            tools:text="약 1,925원 이득" />
     </LinearLayout>
 
 </LinearLayout>

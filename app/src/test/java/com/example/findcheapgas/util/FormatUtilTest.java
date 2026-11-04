@@ -4,10 +4,35 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.DiscountRule;
+import com.example.findcheapgas.model.GasStation;
+import com.example.findcheapgas.model.StationSaving;
 
 import org.junit.Test;
 
 public class FormatUtilTest {
+
+    private static StationSaving saving(String id, double totalCost, double baselineTotalCost) {
+        GasStation baseline = new GasStation("base", "SKE", "base", 1700, 500, 0, 0, 0, 0);
+        GasStation station = id.equals("base") ? baseline : new GasStation(id, "SKE", id, 1650, 2000, 0, 0, 0, 0);
+        return new StationSaving(station, baseline, CarInfo.DEFAULT, DiscountRule.NONE,
+                0, 0, 0, 0, totalCost, baselineTotalCost, false);
+    }
+
+    @Test
+    public void won_roundsToWon() {
+        assertEquals("99원", FormatUtil.formatWon(99.1667));
+        assertEquals("68,099원", FormatUtil.formatWon(68_099.1667));
+        assertEquals("1,926원", FormatUtil.formatWon(1_925.5));
+    }
+
+    @Test
+    public void saving_texts() {
+        assertEquals("기준 (가장 가까운 곳)", FormatUtil.formatSaving(saving("base", 68_099, 68_099)));
+        assertEquals("약 1,925원 이득", FormatUtil.formatSaving(saving("x", 66_174, 68_099.17)));
+        assertEquals("약 300원 손해", FormatUtil.formatSaving(saving("x", 68_399.2, 68_099.17)));
+        assertEquals("기준과 거의 같음", FormatUtil.formatSaving(saving("x", 68_099.3, 68_099.17)));
+    }
 
     @Test
     public void tradeTime_dateAndTime() {

@@ -13,6 +13,7 @@ import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.data.repository.LocationRepository;
 import com.example.findcheapgas.data.repository.StationRepository;
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.DiscountPolicy;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.LocationPermissionState;
@@ -20,6 +21,7 @@ import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationQuery;
+import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.util.StationListBuilder;
 
@@ -35,6 +37,7 @@ import java.util.List;
  *
  * API 호출은 유종이 바뀌거나 위치를 새로 받았을 때만 한다. 오피넷에서 받은 5km 안 전체 목록(fetchedStations)을
  * 들고 있다가, 반경, 정렬, 내 차 정보가 바뀌면 StationListBuilder로 화면 목록(stations)만 다시 만든다.
+ * 화면 목록의 각 항목에는 예상 이득 계산 결과(StationSaving)가 들어 있다.
  */
 public class MapViewModel extends AndroidViewModel {
 
@@ -55,8 +58,8 @@ public class MapViewModel extends AndroidViewModel {
     private final MutableLiveData<SearchRadius> radius = new MutableLiveData<>();
     private final MutableLiveData<SortOrder> sortOrder = new MutableLiveData<>();
 
-    // 화면에 보여줄 목록 (반경 필터, 정렬 적용). 아직 조회하지 않았으면 null
-    private final MutableLiveData<List<GasStation>> stations = new MutableLiveData<>();
+    // 화면에 보여줄 목록 (반경 필터, 예상 이득 계산, 정렬 적용). 아직 조회하지 않았으면 null
+    private final MutableLiveData<List<StationSaving>> stations = new MutableLiveData<>();
     private final MutableLiveData<Boolean> stationsLoading = new MutableLiveData<>(false);
     // 오류가 없으면 null
     private final MutableLiveData<StationError> stationsError = new MutableLiveData<>();
@@ -101,7 +104,7 @@ public class MapViewModel extends AndroidViewModel {
         return locationEnabled;
     }
 
-    public LiveData<List<GasStation>> getStations() {
+    public LiveData<List<StationSaving>> getStations() {
         return stations;
     }
 
@@ -235,15 +238,15 @@ public class MapViewModel extends AndroidViewModel {
         selectedStationId.setValue(stationId);
     }
 
-    /** 지금 화면 목록에 있는 주유소. 없으면 null */
-    public GasStation findStation(String stationId) {
-        List<GasStation> list = stations.getValue();
+    /** 지금 화면 목록에 있는 주유소와 그 계산 결과. 없으면 null */
+    public StationSaving findStation(String stationId) {
+        List<StationSaving> list = stations.getValue();
         if (list == null || stationId == null) {
             return null;
         }
-        for (GasStation station : list) {
-            if (station.getId().equals(stationId)) {
-                return station;
+        for (StationSaving saving : list) {
+            if (saving.getStation().getId().equals(stationId)) {
+                return saving;
             }
         }
         return null;
@@ -282,15 +285,16 @@ public class MapViewModel extends AndroidViewModel {
     }
 
     /**
-     * 받아 둔 전체 목록 → 반경 필터 → 정렬 → 화면. 목록이 바뀌는 곳은 모두 여기를 거친다.
-     * 다음 작업(예상 이득 계산)에서 carInfoRepository.getCurrent()를 StationListBuilder에 넘긴다.
+     * 받아 둔 전체 목록 → 반경 필터 → 예상 이득 계산 → 정렬 → 화면. 목록이 바뀌는 곳은 모두 여기를 거친다.
+     * 내 차 정보는 CarInfoRepository의 지금 값을 쓴다. 할인은 내 브랜드 설정을 만들 때까지 모두 0이다.
      * 선택한 주유소가 새 목록에 없으면 선택을 먼저 해제해서, 화면이 지워진 주유소를 선택한 채로 그리지 않게 한다.
      */
     private void updateDisplayedStations() {
         if (fetchedStations == null) {
             return;
         }
-        List<GasStation> result = StationListBuilder.build(fetchedStations, radius.getValue(), sortOrder.getValue());
+        List<StationSaving> result = StationListBuilder.build(fetchedStations, radius.getValue(),
+                sortOrder.getValue(), carInfoRepository.getCurrent(), DiscountPolicy.NONE);
         String selectedId = selectedStationId.getValue();
         if (selectedId != null && !containsStation(result, selectedId)) {
             selectedStationId.setValue(null);
@@ -298,9 +302,9 @@ public class MapViewModel extends AndroidViewModel {
         stations.setValue(result);
     }
 
-    private static boolean containsStation(List<GasStation> list, String stationId) {
-        for (GasStation station : list) {
-            if (station.getId().equals(stationId)) {
+    private static boolean containsStation(List<StationSaving> list, String stationId) {
+        for (StationSaving saving : list) {
+            if (saving.getStation().getId().equals(stationId)) {
                 return true;
             }
         }

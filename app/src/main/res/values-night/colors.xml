@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="splash_background">#FF121212</color>
+    <color name="saving_gain_text">#FF81C995</color>
+    <color name="saving_loss_text">#FFF28B82</color>
+    <color name="badge_best_background">#FF81C995</color>
+    <color name="badge_best_text">#FF0D3B1E</color>
+    <color name="badge_cheapest">#FF8AB4F8</color>
 </resources>

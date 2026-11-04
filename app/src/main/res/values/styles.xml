@@ -9,6 +9,15 @@
         <item name="android:checkable">false</item>
     </style>
 
+    <!-- 지도 색 범례 한 칸: 색 점 + 글자 (점 색은 각 TextView의 drawableTint) -->
+    <style name="Widget.FindCheapGas.MapLegendItem" parent="">
+        <item name="android:drawablePadding">4dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="drawableStartCompat">@drawable/bg_legend_dot</item>
+    </style>
+
     <!-- 상세 화면의 구역 제목 (주소, 전화, 유종별 가격, 부가시설) -->
     <style name="Widget.FindCheapGas.DetailSectionTitle" parent="">
         <item name="android:layout_marginTop">24dp</item>

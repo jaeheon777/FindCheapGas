@@ -10,12 +10,13 @@ import com.example.findcheapgas.model.SortOrder;
 /**
  * 지도 탭에서 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences).
  * 앱을 다시 켜도 이 값으로 시작한다. 설정 탭의 기본값 기능은 나중에 만든다.
+ * 정렬을 저장한 적이 없으면(새로 설치) 예상 이득순으로 시작하고, 이미 고른 정렬이 있으면 그 값을 쓴다.
  */
 public class StationFilterPreferences {
 
     public static final FuelType DEFAULT_FUEL_TYPE = FuelType.GASOLINE;
     public static final SearchRadius DEFAULT_RADIUS = SearchRadius.KM_3;
-    public static final SortOrder DEFAULT_SORT_ORDER = SortOrder.PRICE;
+    public static final SortOrder DEFAULT_SORT_ORDER = SortOrder.SAVING;
 
     private static final String PREFS_NAME = "station_filter";
     private static final String KEY_FUEL_TYPE = "fuel_type";      // 유종 코드 (B027 등)

@@ -1,5 +1,6 @@
 package com.example.findcheapgas.ui.map;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,24 +8,31 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
+import com.example.findcheapgas.model.SavingLevel;
+import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** 아래 시트의 주유소 목록. 순위는 목록 순서(1부터)이고, 가장 싼 곳에는 "최저가"를 붙인다. */
+/**
+ * 아래 시트의 주유소 목록. 순위는 지금 정렬 기준의 순서(1부터)다.
+ * 가격 아래에 예상 이득을 쓰고, 예상 이득 1위에는 "이득 1위"(기준 주유소가 1위면 "가까운 곳이 가장 유리"),
+ * 표시 가격이 가장 싼 곳에는 "최저가" 배지를 붙인다. 두 배지는 한 곳에 함께 붙을 수 있다.
+ */
 public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHolder> {
 
     public interface OnStationClickListener {
-        void onStationClick(GasStation station);
+        void onStationClick(StationSaving saving);
     }
 
     private final OnStationClickListener clickListener;
-    private final List<GasStation> stations = new ArrayList<>();
+    private final List<StationSaving> stations = new ArrayList<>();
     private int cheapestPrice = Integer.MAX_VALUE;
     @Nullable
     private String selectedId;
@@ -33,7 +41,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         this.clickListener = clickListener;
     }
 
-    public void submit(List<GasStation> newStations, int newCheapestPrice) {
+    public void submit(List<StationSaving> newStations, int newCheapestPrice) {
         stations.clear();
         stations.addAll(newStations);
         cheapestPrice = newCheapestPrice;
@@ -58,7 +66,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
             return RecyclerView.NO_POSITION;
         }
         for (int i = 0; i < stations.size(); i++) {
-            if (stations.get(i).getId().equals(id)) {
+            if (stations.get(i).getStation().getId().equals(id)) {
                 return i;
             }
         }
@@ -74,15 +82,42 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GasStation station = stations.get(position);
+        StationSaving saving = stations.get(position);
+        GasStation station = saving.getStation();
+        Context context = holder.itemView.getContext();
         holder.rank.setText(String.valueOf(position + 1));
         holder.name.setText(station.getName());
-        holder.info.setText(holder.itemView.getContext().getString(R.string.station_info,
+        holder.info.setText(context.getString(R.string.station_info,
                 station.getBrandName(), FormatUtil.formatDistance(station.getDistance())));
         holder.price.setText(FormatUtil.formatPrice(station.getPrice()));
-        holder.cheapest.setVisibility(station.getPrice() == cheapestPrice ? View.VISIBLE : View.GONE);
+        holder.saving.setText(FormatUtil.formatSaving(saving));
+        holder.saving.setTextColor(savingTextColor(context, saving, holder.defaultSavingColor));
+
+        boolean cheapest = station.getPrice() == cheapestPrice;
+        if (saving.isBest()) {
+            holder.best.setText(saving.isBaseline() ? R.string.station_best_baseline : R.string.station_best);
+        }
+        holder.best.setVisibility(saving.isBest() ? View.VISIBLE : View.GONE);
+        holder.cheapest.setVisibility(cheapest ? View.VISIBLE : View.GONE);
+        holder.badges.setVisibility(saving.isBest() || cheapest ? View.VISIBLE : View.GONE);
+
         holder.itemView.setActivated(station.getId().equals(selectedId));
-        holder.itemView.setOnClickListener(v -> clickListener.onStationClick(station));
+        holder.itemView.setOnClickListener(v -> clickListener.onStationClick(saving));
+    }
+
+    /** 이득은 초록, 손해는 빨강, 비슷하거나 기준이면 보조 글자색 */
+    private static int savingTextColor(Context context, StationSaving saving, int defaultColor) {
+        if (saving.isBaseline()) {
+            return defaultColor;
+        }
+        SavingLevel level = saving.getLevel();
+        if (level == SavingLevel.GAIN) {
+            return ContextCompat.getColor(context, R.color.saving_gain_text);
+        }
+        if (level == SavingLevel.LOSS) {
+            return ContextCompat.getColor(context, R.color.saving_loss_text);
+        }
+        return defaultColor;
     }
 
     @Override
@@ -94,16 +129,25 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         final TextView rank;
         final TextView name;
         final TextView info;
-        final TextView price;
+        final View badges;
+        final TextView best;
         final TextView cheapest;
+        final TextView price;
+        final TextView saving;
+        // 보조 글자색 (station_info와 같은 색)
+        final int defaultSavingColor;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             rank = itemView.findViewById(R.id.station_rank);
             name = itemView.findViewById(R.id.station_name);
             info = itemView.findViewById(R.id.station_info);
-            price = itemView.findViewById(R.id.station_price);
+            badges = itemView.findViewById(R.id.station_badges);
+            best = itemView.findViewById(R.id.station_best);
             cheapest = itemView.findViewById(R.id.station_cheapest);
+            price = itemView.findViewById(R.id.station_price);
+            saving = itemView.findViewById(R.id.station_saving);
+            defaultSavingColor = info.getCurrentTextColor();
         }
     }
 }

@@ -1,11 +1,15 @@
 package com.example.findcheapgas.model;
 
+import java.io.Serializable;
+
 /**
  * 내 차 정보: 연비와 평소 주유량, 사용자가 직접 입력했는지 여부.
  * 입력하지 않았으면 DEFAULT(연비 12km/L, 40L)를 쓴다. 직접 12km/L, 40L를 입력해도 "직접 입력"으로 본다.
  * 연비는 소수점 한 자리까지만 받으므로 0.1km/L 단위 정수(12.5km/L → 125)로 들고 있다.
  */
-public final class CarInfo {
+public final class CarInfo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     public static final int DEFAULT_FUEL_EFFICIENCY_TENTHS = 120;
     public static final int DEFAULT_FUEL_AMOUNT = 40;

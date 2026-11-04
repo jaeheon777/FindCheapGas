@@ -8,17 +8,22 @@ import java.util.Comparator;
  * 저장할 때는 name()을 쓰므로 상수 이름은 바꾸지 않는다.
  */
 public enum SortOrder {
+    // 예상 이득이 큰 곳 먼저. 화면에 보이는 원 단위 이득이 같으면 싼 곳, 그다음 가까운 곳
+    // 내 브랜드 설정을 만들면 이득이 비슷할 때 선호 브랜드를 위로 올린다.
+    SAVING("예상 이득순", Comparator.comparingLong((StationSaving s) -> -s.getSavingWon())
+            .thenComparingInt(s -> s.getStation().getPrice())
+            .thenComparingDouble(s -> s.getStation().getDistance())),
     // 같은 가격이면 가까운 곳 먼저
-    PRICE("가격순", Comparator.comparingInt(GasStation::getPrice)
-            .thenComparingDouble(GasStation::getDistance)),
+    PRICE("가격순", Comparator.comparingInt((StationSaving s) -> s.getStation().getPrice())
+            .thenComparingDouble(s -> s.getStation().getDistance())),
     // 같은 거리면 싼 곳 먼저
-    DISTANCE("거리순", Comparator.comparingDouble(GasStation::getDistance)
-            .thenComparingInt(GasStation::getPrice));
+    DISTANCE("거리순", Comparator.comparingDouble((StationSaving s) -> s.getStation().getDistance())
+            .thenComparingInt(s -> s.getStation().getPrice()));
 
     private final String label;
-    private final Comparator<GasStation> comparator;
+    private final Comparator<StationSaving> comparator;
 
-    SortOrder(String label, Comparator<GasStation> comparator) {
+    SortOrder(String label, Comparator<StationSaving> comparator) {
         this.label = label;
         this.comparator = comparator;
     }
@@ -27,7 +32,7 @@ public enum SortOrder {
         return label;
     }
 
-    public Comparator<GasStation> getComparator() {
+    public Comparator<StationSaving> getComparator() {
         return comparator;
     }
 

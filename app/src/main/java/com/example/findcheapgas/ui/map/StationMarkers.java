@@ -12,6 +12,8 @@ import androidx.core.content.ContextCompat;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
+import com.example.findcheapgas.model.SavingLevel;
+import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.LatLng;
@@ -31,15 +33,18 @@ import java.util.Map;
 
 /**
  * 지도 위 주유소 가격 마커 (예: "1,659원" 말풍선).
- * 가장 싼 주유소는 초록색, 선택한 주유소는 파란 테두리로 그린다.
+ * 말풍선 색은 예상 이득 구간(SavingLevel)으로 칠한다: 1,000원 이상 이득 초록, 차이 1,000원 미만 노랑,
+ * 1,000원 이상 손해 빨강. 기준 주유소는 이득 0원이라 노랑이다. 선택한 주유소는 파란 테두리로 그린다.
  * Label의 tag에 주유소 ID를 넣어 두고, 눌렀을 때 그 ID로 목록과 연결한다.
  */
 class StationMarkers {
 
     private static final String LAYER_ID = "stations";
-    // 겹치는 마커는 싼 곳, 선택한 곳이 위에 오도록 한다.
-    private static final long RANK_NORMAL = 1_000;
-    private static final long RANK_CHEAPEST = 2_000;
+    // 겹치는 마커는 이득이 큰 구간, 이득 1위, 선택한 곳 순서로 위에 오도록 한다.
+    private static final long RANK_LOSS = 1_000;
+    private static final long RANK_SIMILAR = 1_100;
+    private static final long RANK_GAIN = 1_200;
+    private static final long RANK_BEST = 2_000;
     private static final long RANK_SELECTED = 3_000;
 
     private final Context context;
@@ -49,8 +54,7 @@ class StationMarkers {
     // 같은 가격·모양의 스타일은 다시 만들지 않는다.
     private final Map<String, LabelStyles> styleCache = new HashMap<>();
     private final Map<String, Label> labelsById = new HashMap<>();
-    private final Map<String, GasStation> stationsById = new HashMap<>();
-    private int cheapestPrice = Integer.MAX_VALUE;
+    private final Map<String, StationSaving> stationsById = new HashMap<>();
     @Nullable
     private String selectedId;
 
@@ -80,23 +84,23 @@ class StationMarkers {
     }
 
     /** 이전 마커를 모두 지우고 새로 그린다. */
-    void show(List<GasStation> stations, int cheapest, @Nullable String selected) {
+    void show(List<StationSaving> stations, @Nullable String selected) {
         layer.removeAll();
         labelsById.clear();
         stationsById.clear();
-        cheapestPrice = cheapest;
         selectedId = selected;
 
-        for (GasStation station : stations) {
+        for (StationSaving saving : stations) {
+            GasStation station = saving.getStation();
             boolean isSelected = station.getId().equals(selectedId);
             Label label = layer.addLabel(LabelOptions.from(LatLng.from(station.getLatitude(), station.getLongitude()))
-                    .setStyles(stylesFor(station, isSelected))
-                    .setRank(rankFor(station, isSelected))
+                    .setStyles(stylesFor(saving, isSelected))
+                    .setRank(rankFor(saving, isSelected))
                     .setClickable(true)
                     .setTag(station.getId()));
             if (label != null) {
                 labelsById.put(station.getId(), label);
-                stationsById.put(station.getId(), station);
+                stationsById.put(station.getId(), saving);
             }
         }
     }
@@ -125,30 +129,40 @@ class StationMarkers {
             return;
         }
         Label label = labelsById.get(id);
-        GasStation station = stationsById.get(id);
-        if (label == null || station == null) {
+        StationSaving saving = stationsById.get(id);
+        if (label == null || saving == null) {
             return;
         }
         boolean isSelected = id.equals(selectedId);
-        label.changeStyles(stylesFor(station, isSelected));
-        label.changeRank(rankFor(station, isSelected));
+        label.changeStyles(stylesFor(saving, isSelected));
+        label.changeRank(rankFor(saving, isSelected));
     }
 
-    private long rankFor(GasStation station, boolean selected) {
+    private long rankFor(StationSaving saving, boolean selected) {
         if (selected) {
             return RANK_SELECTED;
         }
-        return station.getPrice() == cheapestPrice ? RANK_CHEAPEST : RANK_NORMAL;
+        if (saving.isBest()) {
+            return RANK_BEST;
+        }
+        switch (saving.getLevel()) {
+            case GAIN:
+                return RANK_GAIN;
+            case LOSS:
+                return RANK_LOSS;
+            default:
+                return RANK_SIMILAR;
+        }
     }
 
-    private LabelStyles stylesFor(GasStation station, boolean selected) {
-        String text = FormatUtil.formatPrice(station.getPrice());
-        boolean cheapest = station.getPrice() == cheapestPrice;
-        String key = text + "|" + cheapest + "|" + selected;
+    private LabelStyles stylesFor(StationSaving saving, boolean selected) {
+        String text = FormatUtil.formatPrice(saving.getStation().getPrice());
+        SavingLevel level = saving.getLevel();
+        String key = text + "|" + level + "|" + selected;
         LabelStyles styles = styleCache.get(key);
         if (styles == null) {
             styles = labelManager.addLabelStyles(LabelStyles.from(
-                    LabelStyle.from(createBitmap(text, cheapest, selected))
+                    LabelStyle.from(createBitmap(text, level, selected))
                             .setAnchorPoint(0.5f, 1f)     // 말풍선 꼬리 끝이 주유소 위치에 오도록
                             .setApplyDpScale(false)));    // 비트맵을 이미 dp 기준 크기로 그렸다.
             styleCache.put(key, styles);
@@ -157,7 +171,7 @@ class StationMarkers {
     }
 
     /** 아래쪽에 꼬리가 달린 둥근 말풍선에 가격을 쓴다. */
-    private Bitmap createBitmap(String text, boolean cheapest, boolean selected) {
+    private Bitmap createBitmap(String text, SavingLevel level, boolean selected) {
         float density = context.getResources().getDisplayMetrics().density;
         float paddingH = 9 * density;
         float paddingV = 5 * density;
@@ -168,7 +182,7 @@ class StationMarkers {
         Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(13 * density);
         textPaint.setFakeBoldText(true);
-        textPaint.setColor(color(cheapest ? R.color.marker_cheapest_text : R.color.marker_text));
+        textPaint.setColor(color(textColorOf(level)));
         Paint.FontMetrics metrics = textPaint.getFontMetrics();
         float textHeight = metrics.descent - metrics.ascent;
 
@@ -195,19 +209,40 @@ class StationMarkers {
         Canvas canvas = new Canvas(bitmap);
 
         Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fill.setColor(color(cheapest ? R.color.marker_cheapest_background : R.color.marker_background));
+        fill.setColor(color(backgroundColorOf(level)));
         canvas.drawPath(shape, fill);
 
         Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         stroke.setStyle(Paint.Style.STROKE);
         stroke.setStrokeWidth(border);
-        stroke.setColor(color(selected ? R.color.marker_selected_border
-                : cheapest ? R.color.marker_cheapest_background : R.color.marker_border));
+        stroke.setColor(color(selected ? R.color.marker_selected_border : backgroundColorOf(level)));
         canvas.drawPath(shape, stroke);
 
         float baseline = body.top + border / 2 + paddingV - metrics.ascent;
         canvas.drawText(text, centerX - textPaint.measureText(text) / 2, baseline, textPaint);
         return bitmap;
+    }
+
+    private static int backgroundColorOf(SavingLevel level) {
+        switch (level) {
+            case GAIN:
+                return R.color.marker_gain_background;
+            case LOSS:
+                return R.color.marker_loss_background;
+            default:
+                return R.color.marker_similar_background;
+        }
+    }
+
+    private static int textColorOf(SavingLevel level) {
+        switch (level) {
+            case GAIN:
+                return R.color.marker_gain_text;
+            case LOSS:
+                return R.color.marker_loss_text;
+            default:
+                return R.color.marker_similar_text;
+        }
     }
 
     private int color(int resId) {

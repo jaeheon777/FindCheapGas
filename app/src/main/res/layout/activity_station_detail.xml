@@ -2,6 +2,7 @@
 <!--
     주유소 상세 화면. 위에서부터
     - 기본 정보: 상호, 브랜드 · 거리, 선택한 유종 가격 (목록에서 넘겨받아 바로 표시)
+    - 예상 이득 계산 내역 (지도 탭에서 넘겨받아 바로 표시)
     - 상세 조회 상태: 불러오는 중, 오류와 다시 시도
     - 상세 정보: 주소, 전화, 유종별 가격, 부가시설 (상세 조회 결과가 오면 표시)
     - 나중에 들어갈 자리 (지금은 숨김)
@@ -75,6 +76,71 @@
                     android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textStyle="bold"
                     tools:text="1,659원" />
+            </LinearLayout>
+
+            <!--
+                예상 이득 계산 내역: 지도 탭에서 계산한 결과를 넘겨받아 보여준다 (다시 조회하거나 계산하지 않는다).
+                계산 기준 문구, 기준 주유소, 기름값, 할인액, 추정 도로 거리, 이동 비용, 예상 총비용, 기준과의 차이.
+                상세 조회 결과와 상관없이 보이므로 상세 조회 상태보다 먼저 둔다.
+                계산 기준은 여기서 바꿀 수 없다 (지도 탭의 계산 기준 문구나 설정 탭에서 바꾼다).
+            -->
+            <LinearLayout
+                android:id="@+id/detail_saving_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    style="@style/Widget.FindCheapGas.DetailSectionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/detail_saving_title" />
+
+                <TextView
+                    android:id="@+id/detail_saving_basis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    tools:text="연비 12km/L · 40L 기준 (기본값)" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/detail_saving_basis_hint"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!-- 기준 주유소를 열었을 때만 보인다. -->
+                <TextView
+                    android:id="@+id/detail_saving_is_baseline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_saving_notice"
+                    android:padding="12dp"
+                    android:text="@string/detail_saving_is_baseline"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:visibility="gone" />
+
+                <!-- 계산 항목: 코드에서 한 줄씩 넣는다 (item_saving_row). -->
+                <LinearLayout
+                    android:id="@+id/detail_saving_rows"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/detail_saving_note"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
             <!-- 상세 조회 상태: 불러오는 중이거나 오류일 때만 보인다. -->
@@ -219,25 +285,6 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:visibility="gone" />
-            </LinearLayout>
-
-            <!--
-                2단계: 예상 이득 계산 내역 (지금은 숨김)
-                계산 기준(연비 · 주유량), 가장 가까운 주유소 대비 기름값 차이, 할인액과 한도 적용 여부
-                ("한도 미적용" 표시), 이동 비용, 예상 이득
-            -->
-            <LinearLayout
-                android:id="@+id/detail_saving_section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/Widget.FindCheapGas.DetailSectionTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/detail_saving_title" />
             </LinearLayout>
 
             <!--

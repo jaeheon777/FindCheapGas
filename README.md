@@ -265,11 +265,11 @@ app/src/main/java/com/example/findcheapgas/
 ├── MainActivity.java             메인 화면 (로딩 화면, 처음 실행이면 내 차 정보 입력 화면으로 이동, 하단 탭 3개 전환)
 ├── ui/                           화면 (Fragment)
 │   ├── map/
-│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 상세 화면 열기)
-│   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (최저가 강조, 선택 표시)
-│   │   └── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 브랜드, 가격, 거리)
+│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 마커 색 범례, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 계산 결과와 함께 상세 화면 열기)
+│   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (예상 이득 색: 초록 이득, 노랑 비슷, 빨강 손해, 선택 표시)
+│   │   └── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 브랜드, 거리, 가격, 예상 이득, 이득 1위·최저가 배지)
 │   ├── detail/
-│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
+│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보, 예상 이득 계산 내역, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
 │   ├── onboarding/
 │   │   └── OnboardingActivity.java 내 차 정보 입력 (처음 실행: 연비, 주유량, 주로 넣는 유종, 저장하고 시작 / 건너뛰기, 수정: 저장 / 취소)
 │   ├── favorite/
@@ -277,7 +277,7 @@ app/src/main/java/com/example/findcheapgas/
 │   └── settings/
 │       └── SettingsFragment.java 설정 탭 (내 차 정보와 기본값 사용 여부, 기본값으로 되돌리기, 나머지 항목은 준비 중)
 ├── viewmodel/
-│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 내 차 정보, 주유소 목록, 로딩, 오류, 선택한 주유소)
+│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 내 차 정보, 예상 이득을 계산한 주유소 목록, 로딩, 오류, 선택한 주유소)
 │   ├── DetailViewModel.java      상세 화면 상태 (상세 조회 결과, 로딩, 오류). 화면을 처음 열 때 한 번만 조회
 │   ├── OnboardingViewModel.java  내 차 정보 입력 화면 상태 (입력칸별 오류, 고른 유종), 저장과 처음 실행 완료 처리
 │   └── SettingsViewModel.java    설정 탭 상태 (내 차 정보, 기본값으로 되돌리기)
@@ -295,7 +295,7 @@ app/src/main/java/com/example/findcheapgas/
 │   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
 │   │   ├── StationDetailCacheDao.java 상세 캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences)
-│   │   ├── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences)
+│   │   ├── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences, 정렬 기본값은 예상 이득순)
 │   │   └── CarInfoPreferences.java 내 차 정보, 직접 입력 여부, 처음 실행 화면 완료 여부 (SharedPreferences)
 │   ├── mock/
 │   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (주변 주유소는 5km 밖 제외, 상세정보는 주유소 ID별 파일)
@@ -309,19 +309,24 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── CarInfo.java              내 차 정보 (연비, 평소 주유량, 기본값 여부, 입력 범위)
 │   ├── LocationPermissionState.java 위치 권한 상태
 │   ├── GasStation.java           주유소 (이름, 브랜드, 가격, 거리, KATEC·WGS84 좌표)
+│   ├── StationSaving.java        주유소 한 곳의 예상 이득 계산 결과 (기준 주유소, 할인액과 한도 적용 여부, 기름값, 추정 도로 거리, 이동 비용, 예상 총비용, 예상 이득, 이득 1위 여부)
+│   ├── SavingLevel.java          예상 이득 구간 (이득, 비슷, 손해, 기준 ±1,000원)
+│   ├── DiscountRule.java         할인 조건 (리터당 할인, 1회 할인 한도, 한도 적용 계산)
+│   ├── DiscountPolicy.java       주유소마다 적용할 할인 조건 (지금은 모두 할인 없음)
 │   ├── StationDetail.java        주유소 상세정보 (주소, 전화, 부가시설, 셀프 여부와 추정 여부, 유종별 가격)
 │   ├── FuelPrice.java            유종별 가격 한 줄 (유종, 가격, 가격 기준 일시)
 │   ├── StationQuery.java         주변 주유소 조회 조건 (위치, 유종). 반경은 항상 5km
 │   ├── StationError.java         조회 실패 원인 (네트워크, 오피넷)
 │   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)
 │   ├── SearchRadius.java         화면에 보여줄 반경 (1km, 3km, 5km)
-│   ├── SortOrder.java            정렬 기준과 비교 방법 (가격순, 거리순)
+│   ├── SortOrder.java            정렬 기준과 비교 방법 (예상 이득순, 가격순, 거리순)
 │   └── Brand.java                브랜드 코드 → 한글 이름
 └── util/
     ├── CoordinateConverter.java  WGS84 ↔ KATEC 좌표 변환 (Proj4J)
-    ├── FormatUtil.java           가격(1,659원), 거리(1.2km), 연비(12km/L, 12.5km/L), 계산 기준 문구, 가격 기준 일시(11월 4일 15:30) 표시 형식
+    ├── FormatUtil.java           가격(1,659원), 계산 금액(원 단위 반올림), 예상 이득(약 1,925원 이득), 거리(1.2km), 연비(12km/L, 12.5km/L), 계산 기준 문구, 가격 기준 일시(11월 4일 15:30) 표시 형식
     ├── CarInfoValidator.java     연비(3~40km/L, 소수점 한 자리), 주유량(5~150L, 정수) 입력 검사
-    ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 정렬 → 화면 목록
+    ├── SavingCalculator.java     예상 이득 계산 (기준 주유소 정하기, 할인액, 기름값, 이동 비용, 예상 총비용, 이득 1위)
+    ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 예상 이득 계산 → 정렬 → 화면 목록
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 
 app/src/main/assets/mock/         가짜 데이터 (강남역 주변 5km, 유종별 around_B027.json 등)
@@ -332,9 +337,8 @@ app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모�
 
 ```
 ├── widget/             홈 화면 위젯, 주기적 갱신
-├── data/
-│   └── remote/         카카오 로컬 API 통신
-└── util/               예상 이득 계산
+└── data/
+    └── remote/         카카오 로컬 API 통신
 ```
 
 ## 실행 방법
@@ -380,7 +384,7 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 - [x] 1단계 - 유종, 반경, 정렬 선택
 - [x] 1단계 - 주유소 상세 화면
 - [x] 2단계 - 내 차 정보 입력 (처음 실행, 설정)
-- [ ] 2단계 - 예상 이득 계산, 예상 이득순 정렬, 이득 색깔 마커
+- [x] 2단계 - 예상 이득 계산, 예상 이득순 정렬, 이득 색깔 마커
 - [ ] 2단계 - 내 브랜드 설정 (할인, 1회 할인 한도, 선호, 숨기기), 브랜드 빠른 필터
 - [ ] 2단계 - 도로 거리 계수 검증 (표본 주유소 실제 도로 거리와 비교)
 - [ ] 3단계 - 장소 검색, 주유소 이름 검색

@@ -41,6 +41,7 @@ import com.example.findcheapgas.model.LocationPermissionState;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
+import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
@@ -114,6 +115,7 @@ public class MapFragment extends Fragment {
     private TextView bannerText;
     private MaterialButton bannerButton;
     private FloatingActionButton myLocationButton;
+    private View mapLegend;
 
     private Chip fuelTypeChip;
     private Chip radiusChip;
@@ -149,6 +151,7 @@ public class MapFragment extends Fragment {
         bannerText = view.findViewById(R.id.location_banner_text);
         bannerButton = view.findViewById(R.id.location_banner_button);
         myLocationButton = view.findViewById(R.id.btn_my_location);
+        mapLegend = view.findViewById(R.id.map_legend);
 
         bannerButton.setOnClickListener(v -> onBannerButtonClick());
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
@@ -348,7 +351,7 @@ public class MapFragment extends Fragment {
                     if (location != null) {
                         showLocationOnMap(location, false);
                     }
-                    List<GasStation> stations = viewModel.getStations().getValue();
+                    List<StationSaving> stations = viewModel.getStations().getValue();
                     if (stations != null) {
                         showStationMarkers(stations);
                     }
@@ -390,6 +393,7 @@ public class MapFragment extends Fragment {
         mapMessage.setText(message);
         mapMessage.setVisibility(View.VISIBLE);
         myLocationButton.setVisibility(View.GONE);
+        mapLegend.setVisibility(View.GONE);
     }
 
     /** 탭이 보이고 화면이 켜져 있을 때만 지도를 그린다. */
@@ -508,15 +512,37 @@ public class MapFragment extends Fragment {
                         && newState != BottomSheetBehavior.STATE_SETTLING) {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
                 }
+                updateLegendVisibility();
             }
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                updateLegendVisibility();
             }
         });
         // 처음 배치, 화면 회전 등으로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 여백을 바꾸지 않도록 post한다.
         sheet.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
-                v.post(() -> fitListToVisibleSheet(sheet, baseBottomPadding)));
+                v.post(() -> {
+                    fitListToVisibleSheet(sheet, baseBottomPadding);
+                    updateLegendVisibility();
+                }));
+    }
+
+    /**
+     * 범례는 시트 위쪽에 붙어 움직이므로, 시트를 절반보다 높이 올리면 필터 줄과 겹치지 않게 숨긴다.
+     * 그때는 지도가 거의 가려져서 범례가 필요 없다.
+     */
+    private void updateLegendVisibility() {
+        if (sheetBehavior == null || mapLegend == null || mapMessage.getVisibility() == View.VISIBLE) {
+            return;
+        }
+        View sheet = getView() != null ? getView().findViewById(R.id.station_sheet) : null;
+        if (sheet == null || !(sheet.getParent() instanceof View)) {
+            return;
+        }
+        int parentHeight = ((View) sheet.getParent()).getHeight();
+        boolean aboveHalf = parentHeight > 0 && sheet.getTop() < parentHeight / 2;
+        mapLegend.setVisibility(aboveHalf ? View.INVISIBLE : View.VISIBLE);
     }
 
     /** 시트에서 부모 아래로 잘려 나간 높이만큼 목록 아래 여백을 준다. */
@@ -533,8 +559,8 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void showStations(List<GasStation> stations) {
-        List<GasStation> list = stations != null ? stations : Collections.emptyList();
+    private void showStations(List<StationSaving> stations) {
+        List<StationSaving> list = stations != null ? stations : Collections.emptyList();
         stationAdapter.submit(list, cheapestPrice(list));
         stationAdapter.setSelectedId(viewModel.getSelectedStationId().getValue());
         stationLayoutManager.scrollToPosition(0);
@@ -547,11 +573,11 @@ public class MapFragment extends Fragment {
         renderStationStatus();
     }
 
-    private void showStationMarkers(List<GasStation> stations) {
+    private void showStationMarkers(List<StationSaving> stations) {
         if (stationMarkers == null) {
             return; // 지도가 준비되면 onMapReady에서 다시 호출된다.
         }
-        stationMarkers.show(stations, cheapestPrice(stations), viewModel.getSelectedStationId().getValue());
+        stationMarkers.show(stations, viewModel.getSelectedStationId().getValue());
     }
 
     /** 위치 조회 중이거나 주유소 조회 중이면 위쪽 진행 막대를 보여준다. */
@@ -563,7 +589,7 @@ public class MapFragment extends Fragment {
 
     /** 목록 대신 보여줄 안내: 불러오는 중 → 오류 → 주유소 없음 순서로 확인한다. */
     private void renderStationStatus() {
-        List<GasStation> stations = viewModel.getStations().getValue();
+        List<StationSaving> stations = viewModel.getStations().getValue();
         StationError error = viewModel.getStationsError().getValue();
         boolean loading = Boolean.TRUE.equals(viewModel.getStationsLoading().getValue());
 
@@ -607,9 +633,9 @@ public class MapFragment extends Fragment {
             return;
         }
         if (stationId.equals(viewModel.getSelectedStationId().getValue())) {
-            GasStation station = viewModel.findStation(stationId);
-            if (station != null) {
-                openDetail(station);
+            StationSaving saving = viewModel.findStation(stationId);
+            if (saving != null) {
+                openDetail(saving);
                 return;
             }
         }
@@ -621,31 +647,32 @@ public class MapFragment extends Fragment {
      * 목록 항목을 누르면 그 주유소를 선택하고 상세 화면을 연다.
      * 돌아왔을 때 지도에 그 주유소가 보이도록 시트를 접고 지도를 미리 옮겨 둔다.
      */
-    private void onStationItemClick(GasStation station) {
-        viewModel.selectStation(station.getId());
-        focusStationOnMap(station);
-        openDetail(station);
+    private void onStationItemClick(StationSaving saving) {
+        viewModel.selectStation(saving.getStation().getId());
+        focusStationOnMap(saving.getStation());
+        openDetail(saving);
     }
 
-    private void openDetail(GasStation station) {
+    /** 지도 탭에서 계산한 예상 이득 결과를 그대로 넘긴다. 상세 화면은 이 값을 다시 계산하지 않는다. */
+    private void openDetail(StationSaving saving) {
         if (detailOpening) {
             return;
         }
         detailOpening = true;
         detailLauncher.launch(StationDetailActivity.createIntent(
-                requireContext(), station, viewModel.getFuelType().getValue()));
+                requireContext(), saving, viewModel.getFuelType().getValue()));
     }
 
     /** 상세 화면에서 돌아오면 그 주유소를 선택한 채로 지도를 그 위치로 옮긴다. */
     private void onDetailResult(ActivityResult result) {
         detailOpening = false;
         String stationId = StationDetailActivity.stationIdFrom(result.getData());
-        GasStation station = viewModel.findStation(stationId);
-        if (station == null || getView() == null) {
+        StationSaving saving = viewModel.findStation(stationId);
+        if (saving == null || getView() == null) {
             return; // 그사이 목록이 바뀌어 주유소가 없으면 그대로 둔다.
         }
         viewModel.selectStation(stationId);
-        focusStationOnMap(station);
+        focusStationOnMap(saving.getStation());
         scrollListTo(stationId);
     }
 
@@ -670,10 +697,10 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private static int cheapestPrice(List<GasStation> stations) {
+    private static int cheapestPrice(List<StationSaving> stations) {
         int cheapest = Integer.MAX_VALUE;
-        for (GasStation station : stations) {
-            cheapest = Math.min(cheapest, station.getPrice());
+        for (StationSaving saving : stations) {
+            cheapest = Math.min(cheapest, saving.getStation().getPrice());
         }
         return cheapest;
     }
@@ -707,7 +734,7 @@ public class MapFragment extends Fragment {
                 SearchRadius::getLabel, viewModel::setRadius);
     }
 
-    /** 정렬 메뉴는 SortOrder 상수 순서대로 만든다. 2단계에서 예상 이득순을 추가하면 메뉴에도 바로 나온다. */
+    /** 정렬 메뉴는 SortOrder 상수 순서대로 만든다 (예상 이득순, 가격순, 거리순). */
     private void showSortMenu(View anchor) {
         showChoiceMenu(anchor, SortOrder.values(), viewModel.getSortOrder().getValue(),
                 SortOrder::getLabel, viewModel::setSortOrder);

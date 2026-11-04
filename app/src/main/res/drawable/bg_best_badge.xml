@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 목록의 "이득 1위" / "가까운 곳이 가장 유리" 배지: 채운 초록 상자 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/badge_best_background" />
+    <corners android:radius="4dp" />
+</shape>

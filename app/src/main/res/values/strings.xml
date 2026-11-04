@@ -18,6 +18,13 @@
     <string name="map_auth_failed">카카오맵 인증에 실패했습니다.\n앱 키와 키 해시 등록을 확인해 주세요.</string>
     <string name="map_error">지도를 불러오지 못했습니다.\n잠시 후 다시 시도해 주세요.</string>
 
+    <!-- 마커 색 범례 -->
+    <string name="map_legend_gain">이득</string>
+    <string name="map_legend_similar">비슷</string>
+    <string name="map_legend_loss">손해</string>
+    <string name="map_legend_threshold">기준 ±1,000원</string>
+    <string name="map_legend_description">마커 색: 초록은 가장 가까운 곳보다 1,000원 이상 이득, 노랑은 차이 1,000원 미만, 빨강은 1,000원 이상 손해</string>
+
     <!-- 지도 위 필터 줄 -->
     <string name="filter_radius">반경 %1$s</string>
     <string name="filter_fuel_type_description">유종 %1$s, 눌러서 변경</string>
@@ -29,6 +36,8 @@
     <string name="station_sheet_condition">%1$s · %2$s · %3$s</string>
     <string name="station_sort_description">정렬 %1$s, 눌러서 변경</string>
     <string name="station_cheapest">최저가</string>
+    <string name="station_best">이득 1위</string>
+    <string name="station_best_baseline">가까운 곳이 가장 유리</string>
     <string name="station_info">%1$s · %2$s</string>
     <string name="station_locating">현재 위치를 확인하는 중입니다</string>
     <string name="station_loading">주변 주유소를 불러오는 중입니다</string>
@@ -63,8 +72,34 @@
     <string name="facility_maintenance">경정비</string>
     <string name="facility_quality_certified">품질인증</string>
     <string name="detail_self_estimated_note">셀프 여부는 오피넷 정보에 없어서 상호에 \"셀프\"가 들어 있는지로 추정했습니다.</string>
-    <!-- 나중에 만들 기능 자리 (지금은 숨김) -->
+    <!-- 예상 이득 계산 내역 -->
     <string name="detail_saving_title">예상 이득 계산 내역</string>
+    <string name="detail_saving_basis_hint">계산 기준은 지도 탭의 계산 기준 문구나 설정 탭에서 바꿀 수 있습니다.</string>
+    <string name="detail_saving_is_baseline">이 주유소가 비교 기준입니다. 화면 목록에서 가장 가까운 주유소를 기준으로 다른 주유소의 예상 이득을 계산합니다.</string>
+    <string name="detail_saving_baseline">기준 주유소</string>
+    <string name="detail_saving_baseline_note">%1$s · %2$s · 예상 총비용 약 %3$s</string>
+    <string name="detail_saving_fuel_cost">기름값</string>
+    <string name="detail_saving_fuel_cost_note">%1$s × %2$s</string>
+    <string name="detail_saving_fuel_cost_note_discount">%1$s × %2$s − 할인 %3$s</string>
+    <string name="detail_saving_discount">할인액</string>
+    <string name="detail_saving_discount_none">할인 설정 없음</string>
+    <string name="detail_saving_discount_value">−%1$s</string>
+    <string name="detail_saving_discount_cap_applied">리터당 %1$s, 1회 한도 %2$s 적용</string>
+    <string name="detail_saving_discount_cap_not_reached">리터당 %1$s, 1회 한도 %2$s 이내</string>
+    <string name="detail_saving_discount_no_cap">리터당 %1$s, 한도 미적용</string>
+    <string name="detail_saving_discount_no_cap_warning">한도가 있다면 실제 할인은 이보다 적을 수 있습니다</string>
+    <string name="detail_saving_road_distance">추정 도로 거리</string>
+    <string name="detail_saving_road_distance_note">직선 %1$s × 1.4 (추정, 편도)</string>
+    <string name="detail_saving_travel_cost">이동 비용</string>
+    <string name="detail_saving_travel_cost_note">%1$s ÷ %2$s × %3$s</string>
+    <string name="detail_saving_total">예상 총비용</string>
+    <string name="detail_saving_total_note">기름값 + 이동 비용</string>
+    <string name="detail_saving_difference">기준과의 차이</string>
+    <string name="detail_saving_difference_baseline">비교 기준</string>
+    <string name="detail_saving_difference_note">기준 약 %1$s − 이 주유소 약 %2$s</string>
+    <string name="detail_saving_approx">약 %1$s</string>
+    <string name="detail_saving_note">도로 거리는 직선거리에 1.4를 곱해 추정한 편도 거리입니다. 실제 도로 사정과 가격 변동에 따라 예상 이득과 차이가 있을 수 있습니다.</string>
+    <!-- 나중에 만들 기능 자리 (지금은 숨김) -->
     <string name="detail_average_title">평균가 대비</string>
     <string name="detail_trend_title">7일 가격 추이</string>
     <string name="detail_favorite">즐겨찾기</string>

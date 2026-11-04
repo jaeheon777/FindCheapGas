@@ -1,11 +1,12 @@
 package com.example.findcheapgas.util;
 
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.StationSaving;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
-/** 가격, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
+/** 가격, 계산 금액, 예상 이득, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -14,6 +15,28 @@ public final class FormatUtil {
     /** 1659 → "1,659원" */
     public static String formatPrice(int price) {
         return NumberFormat.getNumberInstance(Locale.KOREA).format(price) + "원";
+    }
+
+    /** 계산한 금액(실수)을 원 단위로 반올림해서 표시한다. 68099.17 → "68,099원" */
+    public static String formatWon(double amount) {
+        return NumberFormat.getNumberInstance(Locale.KOREA).format(Math.round(amount)) + "원";
+    }
+
+    /**
+     * 목록과 상세 화면의 예상 이득 문구. 추정치이므로 "약"을 붙인다.
+     * 기준 주유소: "기준 (가장 가까운 곳)", 이득: "약 1,925원 이득", 손해: "약 300원 손해",
+     * 원 단위로 차이가 없으면 "기준과 거의 같음"
+     */
+    public static String formatSaving(StationSaving saving) {
+        if (saving.isBaseline()) {
+            return "기준 (가장 가까운 곳)";
+        }
+        long won = saving.getSavingWon();
+        if (won == 0) {
+            return "기준과 거의 같음";
+        }
+        String amount = formatWon(Math.abs(won));
+        return won > 0 ? "약 " + amount + " 이득" : "약 " + amount + " 손해";
     }
 
     /** 1234.5(m) → "1.2km" */

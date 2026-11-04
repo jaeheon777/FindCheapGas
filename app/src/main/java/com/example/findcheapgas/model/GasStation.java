@@ -1,10 +1,14 @@
 package com.example.findcheapgas.model;
 
+import java.io.Serializable;
+
 /**
  * 주변 주유소 한 곳. 오피넷 좌표(KATEC)와 지도에 쓸 좌표(WGS84)를 함께 가진다.
- * 응답 캐시에 Gson으로 그대로 저장된다.
+ * 응답 캐시에 Gson으로 그대로 저장되고, 상세 화면에 계산 내역을 넘길 때 Intent에 담긴다.
  */
-public class GasStation {
+public class GasStation implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String id;          // 오피넷 주유소 ID (UNI_ID)
     private final String brandCode;   // POLL_DIV_CD

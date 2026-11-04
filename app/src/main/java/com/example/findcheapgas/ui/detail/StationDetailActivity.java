@@ -14,17 +14,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.Brand;
+import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationDetail;
+import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.StationError;
+import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.viewmodel.DetailViewModel;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -39,6 +44,8 @@ import java.util.List;
  * 목록에서 이미 아는 정보(상호, 브랜드, 선택한 유종 가격, 거리)는 Intent로 받아 바로 보여주고,
  * 상세 조회(DetailViewModel)가 끝나면 주소, 전화, 유종별 가격, 부가시설을 채운다.
  * 상세 조회가 실패해도 기본 정보는 그대로 둔다.
+ * 예상 이득 계산 내역은 지도 탭이 계산한 결과(StationSaving)를 Intent로 받아 그대로 보여준다.
+ * 여기서는 다시 조회하거나 계산하지 않고, 계산 기준(내 차 정보)도 바꿀 수 없다.
  * 닫힐 때 주유소 ID를 결과로 돌려줘서 지도 탭이 그 주유소를 선택한 채로 보여주게 한다.
  */
 public class StationDetailActivity extends AppCompatActivity {
@@ -51,6 +58,10 @@ public class StationDetailActivity extends AppCompatActivity {
     private static final String EXTRA_PRICE = "price";
     private static final String EXTRA_DISTANCE = "distance";
     private static final String EXTRA_FUEL_TYPE = "fuel_type";
+    private static final String EXTRA_SAVING = "saving";
+
+    // 1회 할인 한도를 비워 둔 채 할인액이 이 금액 이상이면 "한도가 있다면..." 주의 문구를 보여준다.
+    private static final int NO_CAP_WARNING_DISCOUNT = 5_000;
 
     private DetailViewModel viewModel;
     private FuelType selectedFuelType;
@@ -69,9 +80,11 @@ public class StationDetailActivity extends AppCompatActivity {
     private View facilitiesEmpty;
     private View selfNote;
 
-    /** 목록의 주유소 정보와 지금 고른 유종으로 상세 화면을 여는 Intent */
-    public static Intent createIntent(Context context, GasStation station, FuelType fuelType) {
+    /** 목록의 주유소 정보, 예상 이득 계산 결과, 지금 고른 유종으로 상세 화면을 여는 Intent */
+    public static Intent createIntent(Context context, StationSaving saving, FuelType fuelType) {
+        GasStation station = saving.getStation();
         return new Intent(context, StationDetailActivity.class)
+                .putExtra(EXTRA_SAVING, saving)
                 .putExtra(EXTRA_STATION_ID, station.getId())
                 .putExtra(EXTRA_NAME, station.getName())
                 .putExtra(EXTRA_BRAND_CODE, station.getBrandCode())
@@ -103,6 +116,7 @@ public class StationDetailActivity extends AppCompatActivity {
         selectedFuelType = FuelType.fromCode(intent.getStringExtra(EXTRA_FUEL_TYPE), FuelType.GASOLINE);
         bindViews();
         showSummary(intent);
+        showSaving(savingFrom(intent));
 
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         viewModel.getDetail().observe(this, detail -> {
@@ -147,6 +161,133 @@ public class StationDetailActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.detail_selected_fuel)).setText(selectedFuelType.getLabel());
         ((TextView) findViewById(R.id.detail_selected_price)).setText(
                 FormatUtil.formatPrice(intent.getIntExtra(EXTRA_PRICE, 0)));
+    }
+
+    @Nullable
+    @SuppressWarnings("deprecation") // getSerializableExtra(String, Class)는 API 33부터라 minSdk 24에서는 이 방법을 쓴다.
+    private static StationSaving savingFrom(Intent intent) {
+        Object extra = intent.getSerializableExtra(EXTRA_SAVING);
+        return extra instanceof StationSaving ? (StationSaving) extra : null;
+    }
+
+    /**
+     * 예상 이득 계산 내역. 계산 결과가 없으면 구역을 숨긴다.
+     * 금액은 계산할 때 실수로 들고 있고, 여기서 보여줄 때만 원 단위로 반올림한다.
+     */
+    private void showSaving(@Nullable StationSaving saving) {
+        View section = findViewById(R.id.detail_saving_section);
+        if (saving == null) {
+            section.setVisibility(View.GONE);
+            return;
+        }
+        GasStation station = saving.getStation();
+        CarInfo carInfo = saving.getCarInfo();
+        String price = FormatUtil.formatPrice(station.getPrice());
+
+        ((TextView) findViewById(R.id.detail_saving_basis)).setText(FormatUtil.formatCalculationBasis(carInfo));
+        findViewById(R.id.detail_saving_is_baseline).setVisibility(saving.isBaseline() ? View.VISIBLE : View.GONE);
+
+        LinearLayout rows = findViewById(R.id.detail_saving_rows);
+        rows.removeAllViews();
+
+        if (!saving.isBaseline()) {
+            GasStation baseline = saving.getBaseline();
+            addSavingRow(rows, R.string.detail_saving_baseline, baseline.getName(),
+                    getString(R.string.detail_saving_baseline_note,
+                            FormatUtil.formatDistance(baseline.getDistance()),
+                            FormatUtil.formatPrice(baseline.getPrice()),
+                            FormatUtil.formatWon(saving.getBaselineTotalCost())), null);
+        }
+
+        String amount = FormatUtil.formatFuelAmount(carInfo.getFuelAmount());
+        String fuelNote = saving.getDiscountAmount() > 0
+                ? getString(R.string.detail_saving_fuel_cost_note_discount, price, amount,
+                        FormatUtil.formatWon(saving.getDiscountAmount()))
+                : getString(R.string.detail_saving_fuel_cost_note, price, amount);
+        addSavingRow(rows, R.string.detail_saving_fuel_cost, FormatUtil.formatWon(saving.getFuelCost()),
+                fuelNote, null);
+
+        showDiscountRow(rows, saving);
+
+        String roadDistance = FormatUtil.formatDistance(saving.getRoadDistance());
+        addSavingRow(rows, R.string.detail_saving_road_distance,
+                getString(R.string.detail_saving_approx, roadDistance),
+                getString(R.string.detail_saving_road_distance_note,
+                        FormatUtil.formatDistance(saving.getStraightDistance())), null);
+        addSavingRow(rows, R.string.detail_saving_travel_cost,
+                getString(R.string.detail_saving_approx, FormatUtil.formatWon(saving.getTravelCost())),
+                getString(R.string.detail_saving_travel_cost_note, roadDistance,
+                        FormatUtil.formatFuelEfficiency(carInfo.getFuelEfficiencyTenths()), price), null);
+        TextView total = addSavingRow(rows, R.string.detail_saving_total,
+                getString(R.string.detail_saving_approx, FormatUtil.formatWon(saving.getTotalCost())),
+                getString(R.string.detail_saving_total_note), null);
+        total.setTypeface(null, Typeface.BOLD);
+
+        if (saving.isBaseline()) {
+            addSavingRow(rows, R.string.detail_saving_difference,
+                    getString(R.string.detail_saving_difference_baseline), null, null);
+        } else {
+            TextView difference = addSavingRow(rows, R.string.detail_saving_difference,
+                    FormatUtil.formatSaving(saving),
+                    getString(R.string.detail_saving_difference_note,
+                            FormatUtil.formatWon(saving.getBaselineTotalCost()),
+                            FormatUtil.formatWon(saving.getTotalCost())), null);
+            difference.setTypeface(null, Typeface.BOLD);
+            if (saving.getLevel() == SavingLevel.GAIN) {
+                difference.setTextColor(ContextCompat.getColor(this, R.color.saving_gain_text));
+            } else if (saving.getLevel() == SavingLevel.LOSS) {
+                difference.setTextColor(ContextCompat.getColor(this, R.color.saving_loss_text));
+            }
+        }
+        section.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 할인액 줄. 할인 설정이 없으면 "할인 설정 없음".
+     * 1회 할인 한도를 비워 뒀으면 "한도 미적용"을 쓰고, 그 상태에서 할인액이 5,000원 이상이면 주의 문구를 붙인다.
+     */
+    private void showDiscountRow(LinearLayout rows, StationSaving saving) {
+        DiscountRule rule = saving.getDiscountRule();
+        if (!rule.hasDiscount()) {
+            addSavingRow(rows, R.string.detail_saving_discount,
+                    getString(R.string.detail_saving_discount_none), null, null);
+            return;
+        }
+        String perLiter = FormatUtil.formatPrice(rule.getPerLiter());
+        String note;
+        String warning = null;
+        Integer cap = rule.getCap();
+        if (cap == null) {
+            note = getString(R.string.detail_saving_discount_no_cap, perLiter);
+            if (saving.getDiscountAmount() >= NO_CAP_WARNING_DISCOUNT) {
+                warning = getString(R.string.detail_saving_discount_no_cap_warning);
+            }
+        } else if (saving.isDiscountCapApplied()) {
+            note = getString(R.string.detail_saving_discount_cap_applied, perLiter, FormatUtil.formatPrice(cap));
+        } else {
+            note = getString(R.string.detail_saving_discount_cap_not_reached, perLiter, FormatUtil.formatPrice(cap));
+        }
+        addSavingRow(rows, R.string.detail_saving_discount,
+                getString(R.string.detail_saving_discount_value, FormatUtil.formatWon(saving.getDiscountAmount())),
+                note, warning);
+    }
+
+    /** 계산 내역 한 줄을 넣고 금액 TextView를 돌려준다. note, warning이 없으면 그 줄을 숨긴다. */
+    private TextView addSavingRow(LinearLayout rows, @StringRes int label, String value,
+                                  @Nullable String note, @Nullable String warning) {
+        View row = getLayoutInflater().inflate(R.layout.item_saving_row, rows, false);
+        ((TextView) row.findViewById(R.id.saving_row_label)).setText(label);
+        TextView valueText = row.findViewById(R.id.saving_row_value);
+        valueText.setText(value);
+        setOptionalText(row.findViewById(R.id.saving_row_note), note);
+        setOptionalText(row.findViewById(R.id.saving_row_warning), warning);
+        rows.addView(row);
+        return valueText;
+    }
+
+    private static void setOptionalText(TextView view, @Nullable String text) {
+        view.setText(text);
+        view.setVisibility(text != null ? View.VISIBLE : View.GONE);
     }
 
     /** 불러오는 중 → 오류 순서로 확인한다. 상세 정보가 있으면 안내를 숨긴다. */

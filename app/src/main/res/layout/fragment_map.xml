@@ -247,6 +247,68 @@
         </FrameLayout>
     </LinearLayout>
 
+    <!--
+        마커 색 범례. 내 위치 버튼의 반대쪽(시트 위쪽 왼쪽 끝)에 붙어서 시트와 함께 움직인다.
+        시트를 끝까지 올리면 필터 줄과 겹치지 않게 코드에서 숨긴다. 색만으로 구분하지 않도록 글자를 함께 쓴다.
+    -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/map_legend"
+        style="?attr/materialCardViewElevatedStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="@string/map_legend_description"
+        android:importantForAccessibility="yes"
+        app:cardCornerRadius="12dp"
+        app:layout_anchor="@id/station_sheet"
+        app:layout_anchorGravity="top|start">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:importantForAccessibility="noHideDescendants"
+            android:orientation="horizontal"
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp">
+
+            <TextView
+                style="@style/Widget.FindCheapGas.MapLegendItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/map_legend_gain"
+                app:drawableTint="@color/marker_gain_background" />
+
+            <TextView
+                style="@style/Widget.FindCheapGas.MapLegendItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/map_legend_similar"
+                app:drawableTint="@color/marker_similar_background" />
+
+            <TextView
+                style="@style/Widget.FindCheapGas.MapLegendItem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/map_legend_loss"
+                app:drawableTint="@color/marker_loss_background" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/map_legend_threshold"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- 목록 시트 위쪽 끝에 붙어서 시트와 함께 움직인다. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_my_location"
