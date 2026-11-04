@@ -27,6 +27,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- 주유소 상세 화면 (지도 탭에서만 연다) -->
+        <activity
+            android:name=".ui.detail.StationDetailActivity"
+            android:exported="false" />
     </application>
 
-</manifest>
+</manifest>

@@ -19,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -40,6 +41,7 @@ import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.UserLocation;
+import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
@@ -85,6 +87,10 @@ public class MapFragment extends Fragment {
     private final ActivityResultLauncher<String[]> permissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(), this::onPermissionResult);
 
+    // 상세 화면은 닫힐 때 주유소 ID를 돌려준다. 그 주유소를 선택한 채로 지도를 그 위치로 옮긴다.
+    private final ActivityResultLauncher<Intent> detailLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(), this::onDetailResult);
+
     // 카카오맵 콜백이 다른 스레드에서 올 수 있어서 화면 작업은 메인 스레드로 넘긴다.
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -96,6 +102,8 @@ public class MapFragment extends Fragment {
     private Label myLocationLabel;
     private StationMarkers stationMarkers;
     private boolean mapRunning = false;
+    // 두 번 빨리 눌러서 상세 화면이 두 개 열리지 않게 한다. 상세 화면이 닫히면 풀린다.
+    private boolean detailOpening = false;
 
     private TextView mapMessage;
     private View progress;
@@ -584,26 +592,75 @@ public class MapFragment extends Fragment {
         stationList.setVisibility(View.GONE);
     }
 
-    /** 지도에서 마커를 누르면 목록에서 그 주유소를 강조하고 맨 위로 스크롤한다. */
+    /**
+     * 마커를 처음 누르면 목록에서 그 주유소를 강조하고 맨 위로 스크롤한다.
+     * 이미 선택된 마커를 한 번 더 누르면 상세 화면을 연다.
+     */
     private void onMarkerClick(String stationId) {
         if (getView() == null) {
             return;
         }
+        if (stationId.equals(viewModel.getSelectedStationId().getValue())) {
+            GasStation station = viewModel.findStation(stationId);
+            if (station != null) {
+                openDetail(station);
+                return;
+            }
+        }
         viewModel.selectStation(stationId);
-        int position = stationAdapter.positionOf(stationId);
-        if (position != RecyclerView.NO_POSITION) {
-            stationLayoutManager.scrollToPositionWithOffset(position, 0);
+        scrollListTo(stationId);
+    }
+
+    /**
+     * 목록 항목을 누르면 그 주유소를 선택하고 상세 화면을 연다.
+     * 돌아왔을 때 지도에 그 주유소가 보이도록 시트를 접고 지도를 미리 옮겨 둔다.
+     */
+    private void onStationItemClick(GasStation station) {
+        viewModel.selectStation(station.getId());
+        focusStationOnMap(station);
+        openDetail(station);
+    }
+
+    private void openDetail(GasStation station) {
+        if (detailOpening) {
+            return;
+        }
+        detailOpening = true;
+        detailLauncher.launch(StationDetailActivity.createIntent(
+                requireContext(), station, viewModel.getFuelType().getValue()));
+    }
+
+    /** 상세 화면에서 돌아오면 그 주유소를 선택한 채로 지도를 그 위치로 옮긴다. */
+    private void onDetailResult(ActivityResult result) {
+        detailOpening = false;
+        String stationId = StationDetailActivity.stationIdFrom(result.getData());
+        GasStation station = viewModel.findStation(stationId);
+        if (station == null || getView() == null) {
+            return; // 그사이 목록이 바뀌어 주유소가 없으면 그대로 둔다.
+        }
+        viewModel.selectStation(stationId);
+        focusStationOnMap(station);
+        scrollListTo(stationId);
+    }
+
+    /**
+     * 지도가 보이도록 시트를 접고 지도 중심을 주유소로 옮긴다.
+     * 곧 상세 화면이 열리거나 막 닫힌 때라서 애니메이션 없이 바로 옮긴다.
+     */
+    private void focusStationOnMap(GasStation station) {
+        if (sheetBehavior != null) {
+            sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        }
+        if (kakaoMap != null) {
+            kakaoMap.moveCamera(CameraUpdateFactory.newCenterPosition(
+                    LatLng.from(station.getLatitude(), station.getLongitude())));
         }
     }
 
-    /** 목록 항목을 누르면 지도를 그 주유소로 옮긴다. 지도가 보이도록 시트는 접는다. */
-    private void onStationItemClick(GasStation station) {
-        viewModel.selectStation(station.getId());
-        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-        if (kakaoMap != null) {
-            kakaoMap.moveCamera(
-                    CameraUpdateFactory.newCenterPosition(LatLng.from(station.getLatitude(), station.getLongitude())),
-                    CameraAnimation.from(CAMERA_ANIMATION_MS));
+    private void scrollListTo(String stationId) {
+        int position = stationAdapter.positionOf(stationId);
+        if (position != RecyclerView.NO_POSITION) {
+            stationLayoutManager.scrollToPositionWithOffset(position, 0);
         }
     }
 

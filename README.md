@@ -248,7 +248,7 @@ flowchart TD
 | 방식 | 내용 |
 |---|---|
 | 가짜 데이터 모드 | 실제 API 응답과 같은 구조의 JSON 파일을 두고, 개발 중에는 이 파일을 읽습니다. `local.properties`의 `USE_MOCK_DATA` 값으로 전환합니다. |
-| 응답 캐싱 | 같은 위치와 유종으로 조회한 결과는 일정 시간(10~30분) 동안 저장해 두고 재사용합니다. 유가는 하루에 몇 번만 바뀌기 때문에 이 정도면 충분합니다. |
+| 응답 캐싱 | 같은 위치와 유종으로 조회한 결과는 일정 시간(10~30분) 동안 저장해 두고 재사용합니다. 주유소 상세정보는 주유소별로 30분 동안 재사용합니다. 유가는 하루에 몇 번만 바뀌기 때문에 이 정도면 충분합니다. |
 | 앱 안에서 다시 계산 | 정렬, 반경, 브랜드 필터, 내 차 정보, 할인 설정을 바꿀 때는 API를 다시 부르지 않고 이미 받은 목록으로 다시 계산합니다. 오피넷에는 항상 최대 반경 5km로 요청해 두고, 1km나 3km를 고르면 받아 둔 목록에서 그 안의 주유소만 보여줍니다. 유종을 바꿀 때만 새로 조회합니다. |
 | 수동 재검색 | 지도를 움직일 때마다 자동으로 조회하지 않고, "이 지역에서 다시 검색" 버튼을 눌렀을 때만 조회합니다. |
 | 상세 조회 최소화 | 주변 검색 결과에 이름, 가격, 거리, 좌표가 포함되어 있으므로 상세 정보는 주유소를 눌렀을 때만 조회합니다. |
@@ -265,36 +265,45 @@ app/src/main/java/com/example/findcheapgas/
 ├── MainActivity.java             메인 화면 (로딩 화면, 하단 탭 3개 전환)
 ├── ui/                           화면 (Fragment)
 │   ├── map/
-│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 주유소 목록 시트와 정렬 메뉴)
+│   │   ├── MapFragment.java      지도 탭 (위치 권한 요청, 카카오맵, 내 위치, 유종·반경 필터 줄, 주유소 목록 시트와 정렬 메뉴, 목록 항목이나 선택된 마커를 누르면 상세 화면 열기)
 │   │   ├── StationMarkers.java   지도 위 주유소 가격 마커 (최저가 강조, 선택 표시)
 │   │   └── StationAdapter.java   아래 시트의 주유소 목록 (순위, 상호, 브랜드, 가격, 거리)
+│   ├── detail/
+│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보, 주소, 전화, 유종별 가격, 부가시설, 나중에 들어갈 자리)
 │   ├── favorite/
 │   │   └── FavoriteFragment.java 즐겨찾기 탭 (준비 중)
 │   └── settings/
 │       └── SettingsFragment.java 설정 탭 (준비 중)
 ├── viewmodel/
-│   └── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 주유소 목록, 로딩, 오류, 선택한 주유소)
+│   ├── MapViewModel.java         지도 탭 화면 상태 (현재 좌표, 권한, 유종·반경·정렬, 주유소 목록, 로딩, 오류, 선택한 주유소)
+│   └── DetailViewModel.java      상세 화면 상태 (상세 조회 결과, 로딩, 오류). 화면을 처음 열 때 한 번만 조회
 ├── data/
 │   ├── remote/                   오피넷 API 통신 (Retrofit)
-│   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do) 요청 정의 (항상 반경 5km로 요청)
-│   │   ├── OpinetAroundResponse.java 응답 구조와 해석 (가짜 데이터도 같은 구조)
-│   │   ├── OpinetRemoteDataSource.java 실제 API 호출
+│   │   ├── OpinetApi.java        반경 내 주유소(aroundAll.do, 항상 반경 5km), 주유소 상세정보(detailById.do) 요청 정의
+│   │   ├── OpinetAroundResponse.java 반경 내 주유소 응답 구조와 해석 (가짜 데이터도 같은 구조)
+│   │   ├── OpinetDetailResponse.java 상세정보 응답 해석 (필드가 없거나 비어 있어도 읽음, 가짜 데이터도 같은 구조)
+│   │   ├── OpinetRemoteDataSource.java 실제 API 호출 (요청 URL은 로그에 남기지 않음, 디버그 빌드에서 상세 응답 본문만 로그)
 │   │   └── OpinetException.java  오피넷 오류 응답 (한도 초과, 형식 오류 등)
 │   ├── local/                    기기에 저장하는 데이터
 │   │   ├── AppDatabase.java      Room DB
 │   │   ├── StationCacheEntity.java 주변 주유소 조회 결과 캐시 (위치·유종별 5km 안 전체 목록, 20분)
 │   │   ├── StationCacheDao.java  캐시 조회, 저장, 오래된 캐시 삭제
+│   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
+│   │   ├── StationDetailCacheDao.java 상세 캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── ApiCallCounter.java   오늘 오피넷 API 호출 횟수 (SharedPreferences)
 │   │   └── StationFilterPreferences.java 마지막으로 고른 유종, 반경, 정렬 (SharedPreferences)
 │   ├── mock/
-│   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (5km 밖 주유소 제외)
+│   │   └── MockOpinetDataSource.java 가짜 데이터 읽기 (주변 주유소는 5km 밖 제외, 상세정보는 주유소 ID별 파일)
 │   └── repository/
 │       ├── LocationRepository.java 현재 위치 조회 (현재 위치 → 마지막 위치 → 기본 위치)
-│       └── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환
+│       ├── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환
+│       └── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 앱 전체에서 하나
 ├── model/
 │   ├── UserLocation.java         위치 좌표와 출처
 │   ├── LocationPermissionState.java 위치 권한 상태
 │   ├── GasStation.java           주유소 (이름, 브랜드, 가격, 거리, KATEC·WGS84 좌표)
+│   ├── StationDetail.java        주유소 상세정보 (주소, 전화, 부가시설, 셀프 여부와 추정 여부, 유종별 가격)
+│   ├── FuelPrice.java            유종별 가격 한 줄 (유종, 가격, 가격 기준 일시)
 │   ├── StationQuery.java         주변 주유소 조회 조건 (위치, 유종). 반경은 항상 5km
 │   ├── StationError.java         조회 실패 원인 (네트워크, 오피넷)
 │   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)
@@ -303,18 +312,18 @@ app/src/main/java/com/example/findcheapgas/
 │   └── Brand.java                브랜드 코드 → 한글 이름
 └── util/
     ├── CoordinateConverter.java  WGS84 ↔ KATEC 좌표 변환 (Proj4J)
-    ├── FormatUtil.java           가격(1,659원), 거리(1.2km) 표시 형식
+    ├── FormatUtil.java           가격(1,659원), 거리(1.2km), 가격 기준 일시(11월 4일 15:30) 표시 형식
     ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 정렬 → 화면 목록
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 
 app/src/main/assets/mock/         가짜 데이터 (강남역 주변 5km, 유종별 around_B027.json 등)
+app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모든 주유소, 주유소 ID별 A0900001.json 등)
 ```
 
 아래 패키지는 해당 기능을 만들 때 추가합니다.
 
 ```
 ├── ui/
-│   ├── detail/         주유소 상세 화면
 │   └── onboarding/     처음 실행 시 내 차 정보 입력
 ├── widget/             홈 화면 위젯, 주기적 갱신
 ├── data/
@@ -363,7 +372,7 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 - [x] 1단계 - 위치 권한 요청, 현재 위치 지도 표시
 - [x] 1단계 - 주변 주유소 조회, 지도 마커 및 목록 표시
 - [x] 1단계 - 유종, 반경, 정렬 선택
-- [ ] 1단계 - 주유소 상세 화면
+- [x] 1단계 - 주유소 상세 화면
 - [ ] 2단계 - 내 차 정보 입력 (처음 실행, 설정)
 - [ ] 2단계 - 예상 이득 계산, 예상 이득순 정렬, 이득 색깔 마커
 - [ ] 2단계 - 내 브랜드 설정 (할인, 1회 할인 한도, 선호, 숨기기), 브랜드 빠른 필터

@@ -75,7 +75,8 @@ dependencies {
     implementation(libs.kakao.map)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-    implementation(libs.okhttp.logging.interceptor)
+    // 요청 URL에 오피넷 API 키가 들어가므로 HTTP 로깅 인터셉터는 넣지 않는다.
+    implementation(libs.okhttp)
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
     implementation(libs.play.services.location)

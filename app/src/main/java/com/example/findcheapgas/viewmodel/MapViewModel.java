@@ -221,6 +221,20 @@ public class MapViewModel extends AndroidViewModel {
         selectedStationId.setValue(stationId);
     }
 
+    /** 지금 화면 목록에 있는 주유소. 없으면 null */
+    public GasStation findStation(String stationId) {
+        List<GasStation> list = stations.getValue();
+        if (list == null || stationId == null) {
+            return null;
+        }
+        for (GasStation station : list) {
+            if (station.getId().equals(stationId)) {
+                return station;
+            }
+        }
+        return null;
+    }
+
     private void loadStations(UserLocation center) {
         searchLocation = center;
         int requestId = ++stationRequestId;

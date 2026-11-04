@@ -8,4 +8,11 @@
         <item name="closeIconStartPadding">0dp</item>
         <item name="android:checkable">false</item>
     </style>
+
+    <!-- 상세 화면의 구역 제목 (주소, 전화, 유종별 가격, 부가시설) -->
+    <style name="Widget.FindCheapGas.DetailSectionTitle" parent="">
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
 </resources>

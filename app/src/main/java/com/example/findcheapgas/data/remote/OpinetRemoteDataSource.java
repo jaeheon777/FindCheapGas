@@ -1,6 +1,9 @@
 package com.example.findcheapgas.data.remote;
 
+import android.util.Log;
+
 import com.example.findcheapgas.BuildConfig;
+import com.example.findcheapgas.model.StationDetail;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.util.CoordinateConverter;
 
@@ -11,14 +14,22 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
  * 실제 오피넷 API를 호출한다. 백그라운드 스레드에서만 부른다.
- * 요청 URL에 API 키가 들어가므로 HTTP 로그는 남기지 않는다.
+ * 요청 URL에 API 키(code 파라미터)가 들어가므로 HTTP 로깅 인터셉터를 붙이지 않고, 요청 URL이나
+ * Request, Response 객체를 로그나 예외 메시지에 넣지 않는다. 디버그 빌드에서 상세 응답 본문만 로그로 남긴다.
  */
 public class OpinetRemoteDataSource {
+
+    private static final String TAG = "OpinetRemote";
+    // 디버그 빌드에서 상세정보 응답 본문을 남기는 태그. 실제 필드 이름을 확인할 때 Logcat에서 이 태그로 거른다.
+    private static final String BODY_LOG_TAG = "OpinetBody";
+    // Logcat 한 줄 길이 제한(약 4,000자)보다 짧게 나눠서 찍는다.
+    private static final int LOG_CHUNK = 3000;
 
     private static final String BASE_URL = "https://www.opinet.co.kr/api/";
     private static final long TIMEOUT_SECONDS = 10;
@@ -49,15 +60,32 @@ public class OpinetRemoteDataSource {
      */
     public List<OpinetAroundResponse.Oil> fetchAround(StationQuery query, CoordinateConverter.Katec katec)
             throws IOException, OpinetException {
-        Response<ResponseBody> response = api.getAroundStations(
+        String body = execute(api.getAroundStations(
                 BuildConfig.OPINET_API_KEY,
                 String.format(Locale.US, "%.2f", katec.x),
                 String.format(Locale.US, "%.2f", katec.y),
                 StationQuery.FETCH_RADIUS_METERS,
                 query.getFuelType().getCode(),
                 OPINET_SORT_BY_PRICE,
-                "json").execute();
+                "json"));
+        return OpinetAroundResponse.parse(body);
+    }
 
+    /**
+     * @throws IOException     네트워크 연결 실패, 시간 초과
+     * @throws OpinetException 오피넷 오류 응답, 해당 주유소 없음
+     */
+    public StationDetail fetchDetail(String stationId) throws IOException, OpinetException {
+        String body = execute(api.getStationDetail(BuildConfig.OPINET_API_KEY, stationId, "json"));
+        if (BuildConfig.DEBUG) {
+            logBody("detailById " + stationId, body);
+        }
+        return OpinetDetailResponse.parse(body);
+    }
+
+    /** 요청을 보내고 본문을 문자열로 돌려준다. 실패 메시지에는 HTTP 코드만 넣는다. */
+    private static String execute(Call<ResponseBody> call) throws IOException, OpinetException {
+        Response<ResponseBody> response = call.execute();
         try (ResponseBody body = response.isSuccessful() ? response.body() : response.errorBody()) {
             if (!response.isSuccessful()) {
                 throw new OpinetException("HTTP " + response.code());
@@ -65,7 +93,15 @@ public class OpinetRemoteDataSource {
             if (body == null) {
                 throw new OpinetException("빈 응답");
             }
-            return OpinetAroundResponse.parse(body.string());
+            return body.string();
+        }
+    }
+
+    /** 응답 본문만 찍는다. 본문에는 API 키가 들어 있지 않다. */
+    private static void logBody(String label, String body) {
+        Log.d(BODY_LOG_TAG, label + " 응답 " + body.length() + "자");
+        for (int start = 0; start < body.length(); start += LOG_CHUNK) {
+            Log.d(BODY_LOG_TAG, body.substring(start, Math.min(body.length(), start + LOG_CHUNK)));
         }
     }
 }

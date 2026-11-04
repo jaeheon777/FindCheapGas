@@ -36,4 +36,36 @@
     <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
     <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
     <string name="station_retry">다시 시도</string>
+
+    <!-- 주유소 상세 화면 -->
+    <string name="detail_title">주유소 정보</string>
+    <string name="detail_back">뒤로</string>
+    <string name="detail_info">%1$s · 조회 위치에서 %2$s</string>
+    <string name="detail_loading">상세 정보를 불러오는 중입니다</string>
+    <string name="detail_error_network">인터넷에 연결할 수 없어 상세 정보를 불러오지 못했습니다.\n연결 상태를 확인해 주세요.</string>
+    <string name="detail_error_opinet">상세 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
+    <string name="detail_address">주소</string>
+    <string name="detail_address_empty">등록된 주소가 없습니다</string>
+    <string name="detail_phone">전화</string>
+    <string name="detail_phone_description">%1$s, 눌러서 전화 걸기 화면 열기</string>
+    <string name="detail_dial_failed">전화 앱을 열 수 없습니다</string>
+    <string name="detail_prices">유종별 가격</string>
+    <string name="detail_prices_empty">등록된 가격 정보가 없습니다</string>
+    <string name="detail_selected_fuel">선택한 유종</string>
+    <string name="detail_trade_time">%1$s 기준</string>
+    <string name="detail_facilities">부가시설</string>
+    <string name="detail_facilities_empty">등록된 부가시설 정보가 없습니다</string>
+    <string name="facility_self">셀프</string>
+    <string name="facility_self_estimated">셀프 (추정)</string>
+    <string name="facility_car_wash">세차장</string>
+    <string name="facility_convenience_store">편의점</string>
+    <string name="facility_maintenance">경정비</string>
+    <string name="facility_quality_certified">품질인증</string>
+    <string name="detail_self_estimated_note">셀프 여부는 오피넷 정보에 없어서 상호에 \"셀프\"가 들어 있는지로 추정했습니다.</string>
+    <!-- 나중에 만들 기능 자리 (지금은 숨김) -->
+    <string name="detail_saving_title">예상 이득 계산 내역</string>
+    <string name="detail_average_title">평균가 대비</string>
+    <string name="detail_trend_title">7일 가격 추이</string>
+    <string name="detail_favorite">즐겨찾기</string>
+    <string name="detail_route">길찾기</string>
 </resources>

@@ -29,4 +29,15 @@ public interface OpinetApi {
             @Query("prodcd") String prodcd,
             @Query("sort") int sort,
             @Query("out") String out);
+
+    /**
+     * 주유소 상세정보. 주유소를 눌러 상세 화면을 열 때만 부른다.
+     *
+     * @param id 주유소 ID (UNI_ID)
+     */
+    @GET("detailById.do")
+    Call<ResponseBody> getStationDetail(
+            @Query("code") String apiKey,
+            @Query("id") String id,
+            @Query("out") String out);
 }
