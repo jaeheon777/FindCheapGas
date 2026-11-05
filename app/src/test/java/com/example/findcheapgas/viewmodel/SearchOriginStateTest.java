@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.example.findcheapgas.model.SearchOrigin;
+import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.UserLocation;
 
 import org.junit.Test;
@@ -156,17 +157,37 @@ public class SearchOriginStateTest {
     }
 
     @Test
-    public void shouldOfferResearch_fromOneKilometer() {
+    public void researchDistance_followsRadiusUpToThreeKilometers() {
+        assertEquals(1000, SearchOriginState.researchDistanceMeters(SearchRadius.KM_1));
+        assertEquals(3000, SearchOriginState.researchDistanceMeters(SearchRadius.KM_3));
+        assertEquals(3000, SearchOriginState.researchDistanceMeters(SearchRadius.KM_5));
+    }
+
+    @Test
+    public void shouldOfferResearch_radiusOneKilometer() {
         SearchOriginState state = new SearchOriginState();
         // 조회 위치가 없으면 보여주지 않는다.
-        assertFalse(state.shouldOfferResearch(37.4979, 127.0276));
+        assertFalse(state.shouldOfferResearch(37.4979, 127.0276, SearchRadius.KM_1));
 
         state.onMyLocation(HOME, false);
         // 위도 0.001도는 약 111m
-        assertFalse(state.shouldOfferResearch(37.4979, 127.0276));
-        assertFalse(state.shouldOfferResearch(37.4979 + 0.0085, 127.0276)); // 약 940m
-        assertTrue(state.shouldOfferResearch(37.4979 + 0.0095, 127.0276));  // 약 1,050m
-        assertTrue(state.shouldOfferResearch(37.4979, 127.0276 + 0.02));    // 경도 0.02도는 약 1.8km
+        assertFalse(state.shouldOfferResearch(37.4979, 127.0276, SearchRadius.KM_1));
+        assertFalse(state.shouldOfferResearch(37.4979 + 0.0085, 127.0276, SearchRadius.KM_1)); // 약 940m
+        assertTrue(state.shouldOfferResearch(37.4979 + 0.0095, 127.0276, SearchRadius.KM_1));  // 약 1,050m
+    }
+
+    @Test
+    public void shouldOfferResearch_radiusThreeAndFiveKilometers() {
+        SearchOriginState state = new SearchOriginState();
+        state.onMyLocation(HOME, false);
+        double nearLat = 37.4979 + 0.0095;  // 약 1,050m
+        double midLat = 37.4979 + 0.0260;   // 약 2,890m
+        double farLat = 37.4979 + 0.0280;   // 약 3,110m
+        for (SearchRadius radius : new SearchRadius[] {SearchRadius.KM_3, SearchRadius.KM_5}) {
+            assertFalse(state.shouldOfferResearch(nearLat, 127.0276, radius));
+            assertFalse(state.shouldOfferResearch(midLat, 127.0276, radius));
+            assertTrue(state.shouldOfferResearch(farLat, 127.0276, radius));
+        }
     }
 
     @Test
@@ -175,12 +196,12 @@ public class SearchOriginStateTest {
         state.onMyLocation(HOME, false);
         double lat = 37.5100;
         double lng = 127.0400;
-        assertTrue(state.shouldOfferResearch(lat, lng));
+        assertTrue(state.shouldOfferResearch(lat, lng, SearchRadius.KM_1));
 
         // 그 자리에서 다시 검색을 누르면 버튼이 사라진다.
         state.selectMapCenter(lat, lng);
-        assertFalse(state.shouldOfferResearch(lat, lng));
+        assertFalse(state.shouldOfferResearch(lat, lng, SearchRadius.KM_1));
         // 원래 내 위치 근처로 지도를 옮기면 이제 다시 보인다.
-        assertTrue(state.shouldOfferResearch(HOME.getLatitude(), HOME.getLongitude()));
+        assertTrue(state.shouldOfferResearch(HOME.getLatitude(), HOME.getLongitude(), SearchRadius.KM_1));
     }
 }

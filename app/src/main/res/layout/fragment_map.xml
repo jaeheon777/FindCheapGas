@@ -209,7 +209,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!--
-            이 지역에서 다시 검색. 지도 이동이 끝났을 때 지도 중심이 조회 위치에서 1km 이상 떨어져 있으면 코드에서 보이게 한다.
+            이 지역에서 다시 검색. 지도 이동이 끝났을 때 지도 중심이 조회 위치에서 고른 반경(최대 3km) 이상 떨어져 있으면 코드에서 보이게 한다.
             누르면 지도 중심을 조회 위치로 다시 조회하고 숨긴다.
         -->
         <com.google.android.material.button.MaterialButton

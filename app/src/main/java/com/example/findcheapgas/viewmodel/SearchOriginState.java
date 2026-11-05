@@ -3,6 +3,7 @@ package com.example.findcheapgas.viewmodel;
 import androidx.annotation.Nullable;
 
 import com.example.findcheapgas.model.SearchOrigin;
+import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.util.CoordinateConverter;
 
@@ -16,8 +17,11 @@ import com.example.findcheapgas.util.CoordinateConverter;
  */
 final class SearchOriginState {
 
-    /** 지도 중심이 조회 위치에서 이만큼 이상 떨어지면 "이 지역에서 다시 검색" 버튼을 보여준다. */
-    static final double RESEARCH_DISTANCE_METERS = 1000;
+    /**
+     * "이 지역에서 다시 검색" 버튼을 보여주는 최대 거리. 버튼은 지도 중심이 지금 고른 반경 밖으로 나가면 보여주되,
+     * 반경이 5km여도 3km를 넘으면 보여준다 (5km까지 기다리면 너무 늦다).
+     */
+    static final int MAX_RESEARCH_DISTANCE_METERS = 3000;
 
     private SearchOrigin origin;
     private UserLocation myLocation;
@@ -87,17 +91,24 @@ final class SearchOriginState {
         return origin;
     }
 
-    /** 지도 중심이 지금 조회 위치에서 1km 이상 떨어져 있어서 "이 지역에서 다시 검색" 버튼을 보여줄지 */
-    boolean shouldOfferResearch(double centerLatitude, double centerLongitude) {
-        return isFarFrom(origin, centerLatitude, centerLongitude);
+    /**
+     * 지도 중심이 지금 조회 위치에서 고른 반경(최대 3km) 이상 떨어져 있어서 "이 지역에서 다시 검색" 버튼을 보여줄지.
+     * 반경 1km → 1km, 3km → 3km, 5km → 3km
+     */
+    boolean shouldOfferResearch(double centerLatitude, double centerLongitude, SearchRadius radius) {
+        return isFarFrom(origin, centerLatitude, centerLongitude, researchDistanceMeters(radius));
     }
 
-    static boolean isFarFrom(@Nullable SearchOrigin origin, double latitude, double longitude) {
+    static int researchDistanceMeters(SearchRadius radius) {
+        return Math.min(radius.getMeters(), MAX_RESEARCH_DISTANCE_METERS);
+    }
+
+    static boolean isFarFrom(@Nullable SearchOrigin origin, double latitude, double longitude, double meters) {
         if (origin == null) {
             return false;
         }
         CoordinateConverter.Katec from = CoordinateConverter.toKatec(origin.getLatitude(), origin.getLongitude());
         CoordinateConverter.Katec to = CoordinateConverter.toKatec(latitude, longitude);
-        return CoordinateConverter.distanceMeters(from, to.x, to.y) >= RESEARCH_DISTANCE_METERS;
+        return CoordinateConverter.distanceMeters(from, to.x, to.y) >= meters;
     }
 }

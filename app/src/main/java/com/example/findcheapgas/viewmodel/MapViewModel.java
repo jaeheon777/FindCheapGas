@@ -43,7 +43,7 @@ import java.util.Set;
  * - 위치: 현재 좌표(지도 위 파란 점), 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
  * - 조회 위치: 현재 위치, 검색한 장소·주유소, 지도 중심 (SearchOriginState). 주변 조회, 거리, 이동 비용, 기준 주유소,
  *   예상 이득은 모두 조회 위치 기준이다. 장소·지도 중심 기준일 때 내 위치를 새로 받아도 조회 위치는 그대로다.
- * - 이 지역에서 다시 검색: 지도 이동이 끝날 때마다 지도 중심을 받아서, 조회 위치에서 1km 이상 떨어져 있으면 버튼을 보여준다.
+ * - 이 지역에서 다시 검색: 지도 이동이 끝날 때마다 지도 중심을 받아서, 조회 위치에서 고른 반경(최대 3km) 이상 떨어져 있으면 버튼을 보여준다.
  *   지도를 움직이는 것만으로는 조회하지 않고, 버튼을 눌렀을 때만 지도 중심을 조회 위치로 조회한다.
  * - 주유소: 주변 주유소 목록, 조회 중 여부, 오류, 선택한 주유소
  * - 선택: 유종, 반경, 정렬, 브랜드 빠른 필터 (마지막 선택을 StationFilterPreferences에 저장)
@@ -186,7 +186,7 @@ public class MapViewModel extends AndroidViewModel {
 
     /**
      * 지도 이동이 끝났을 때 (손으로 움직였거나 코드로 옮겼거나). 조회하지 않고 버튼을 보여줄지만 정한다.
-     * 지도 중심이 조회 위치에서 1km 이상이면 보여주고, 조회 위치 근처로 돌아오면 숨긴다.
+     * 지도 중심이 조회 위치에서 고른 반경(최대 3km) 이상이면 보여주고, 조회 위치 근처로 돌아오면 숨긴다.
      */
     public void onMapMoved(double latitude, double longitude) {
         hasMapCenter = true;
@@ -196,7 +196,9 @@ public class MapViewModel extends AndroidViewModel {
     }
 
     private void updateResearchAvailable() {
-        boolean show = hasMapCenter && originState.shouldOfferResearch(mapCenterLatitude, mapCenterLongitude);
+        SearchRadius currentRadius = radius.getValue();
+        boolean show = hasMapCenter && currentRadius != null
+                && originState.shouldOfferResearch(mapCenterLatitude, mapCenterLongitude, currentRadius);
         if (!Boolean.valueOf(show).equals(researchAvailable.getValue())) {
             researchAvailable.setValue(show);
         }
@@ -455,6 +457,8 @@ public class MapViewModel extends AndroidViewModel {
         radius.setValue(newRadius);
         filterPreferences.setRadius(newRadius);
         updateDisplayedStations();
+        // 다시 검색 버튼 기준도 반경을 따르므로 다시 정한다.
+        updateResearchAvailable();
     }
 
     /** 정렬을 바꾸면 API를 부르지 않고 받아 둔 목록을 다시 정렬한다. */
