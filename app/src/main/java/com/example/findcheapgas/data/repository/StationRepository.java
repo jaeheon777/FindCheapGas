@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.WorkerThread;
+
 import com.example.findcheapgas.BuildConfig;
 import com.example.findcheapgas.data.local.ApiCallCounter;
 import com.example.findcheapgas.data.local.AppDatabase;
@@ -69,9 +71,10 @@ public class StationRepository {
         void onError(StationError error);
     }
 
-    private static final class Loaded {
-        final List<GasStation> stations;
-        final long fetchedAt;
+    /** 5km 안 전체 목록과 가져온 시각(캐시면 저장한 시각) */
+    public static final class Loaded {
+        public final List<GasStation> stations;
+        public final long fetchedAt;
 
         Loaded(List<GasStation> stations, long fetchedAt) {
             this.stations = stations;
@@ -130,6 +133,21 @@ public class StationRepository {
                 mainHandler.post(() -> callback.onError(error));
             }
         });
+    }
+
+    /**
+     * 홈 화면 위젯 작업(WorkManager)용. 이미 백그라운드 스레드에서 돌고 있으므로 이 스레드에서 바로 가져온다.
+     * 캐시 규칙과 하루 한도(ApiCallCounter.acquire)는 fetchAroundStations와 같다. 메인 스레드에서 부르면 안 된다.
+     */
+    @WorkerThread
+    public Loaded loadNow(StationQuery query, long maxCacheAgeMs)
+            throws IOException, OpinetException, DailyLimitReachedException {
+        try {
+            return load(query, maxCacheAgeMs);
+        } catch (IOException | OpinetException | DailyLimitReachedException | RuntimeException e) {
+            Log.w(TAG, "주유소 조회 실패: " + e.getClass().getSimpleName());
+            throw e;
+        }
     }
 
     /** ViewModel이 사라질 때 호출한다. */

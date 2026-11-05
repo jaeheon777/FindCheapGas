@@ -12,6 +12,9 @@ import com.example.findcheapgas.model.StationSaving;
 
 import org.junit.Test;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 public class FormatUtilTest {
 
     private static StationSaving saving(String id, double totalCost, double baselineTotalCost) {
@@ -127,5 +130,32 @@ public class FormatUtilTest {
         assertEquals("약 3시간 전 가격", FormatUtil.formatPriceAge(now - 180 * minute, now));
         // 기기 시계가 거꾸로 가 있어도 음수로 보이지 않는다.
         assertEquals("방금 가져온 가격", FormatUtil.formatPriceAge(now + 5 * minute, now));
+    }
+
+    @Test
+    public void shortCalculationBasis_forWidget() {
+        assertEquals("12km/L · 40L (기본값)", FormatUtil.formatShortCalculationBasis(CarInfo.DEFAULT));
+        assertEquals("11km/L · 50L", FormatUtil.formatShortCalculationBasis(CarInfo.userEntered(110, 50)));
+        assertEquals("12.5km/L · 45L", FormatUtil.formatShortCalculationBasis(CarInfo.userEntered(125, 45)));
+    }
+
+    @Test
+    public void updatedTime_forWidget() {
+        TimeZone seoul = TimeZone.getTimeZone("Asia/Seoul");
+        Calendar calendar = Calendar.getInstance(seoul);
+        calendar.clear();
+        calendar.set(2026, Calendar.NOVEMBER, 6, 15, 20);
+        long afternoon = calendar.getTimeInMillis();
+        calendar.set(2026, Calendar.NOVEMBER, 6, 0, 5);
+        long midnight = calendar.getTimeInMillis();
+        calendar.set(2026, Calendar.NOVEMBER, 6, 12, 0);
+        long noon = calendar.getTimeInMillis();
+        long hour = 60 * 60 * 1000L;
+
+        assertEquals("오후 3:20 갱신", FormatUtil.formatUpdatedTime(afternoon, afternoon + 2 * hour, seoul));
+        assertEquals("오전 12:05 갱신", FormatUtil.formatUpdatedTime(midnight, afternoon, seoul));
+        assertEquals("오후 12:00 갱신", FormatUtil.formatUpdatedTime(noon, afternoon, seoul));
+        // 다른 날 가져온 가격이면 날짜도 붙인다.
+        assertEquals("11월 6일 오후 3:20 갱신", FormatUtil.formatUpdatedTime(afternoon, afternoon + 12 * hour, seoul));
     }
 }

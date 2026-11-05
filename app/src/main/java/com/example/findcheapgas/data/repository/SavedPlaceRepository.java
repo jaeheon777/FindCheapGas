@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Transformations;
 
@@ -59,6 +60,12 @@ public class SavedPlaceRepository {
     /** 등록한 집·회사 위치. DB를 읽기 전에는 null */
     public LiveData<SavedPlaces> getPlaces() {
         return places;
+    }
+
+    /** 홈 화면 위젯 작업(WorkManager)용. 지금 등록된 위치를 이 스레드에서 바로 읽는다. 메인 스레드에서 부르면 안 된다. */
+    @WorkerThread
+    public SavedPlaces loadNow() {
+        return toModels(dao.getAll());
     }
 
     /** 같은 종류가 이미 있으면 바꾼다. 실행 취소로 되돌릴 때도 쓴다. */

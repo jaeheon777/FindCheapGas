@@ -16,6 +16,10 @@ public interface SavedPlaceDao {
     @Query("SELECT * FROM saved_place")
     LiveData<List<SavedPlaceEntity>> observeAll();
 
+    /** 홈 화면 위젯 작업용. 메인 스레드가 아닌 곳에서 부른다. */
+    @Query("SELECT * FROM saved_place")
+    List<SavedPlaceEntity> getAll();
+
     @Query("SELECT * FROM saved_place WHERE kind = :kind LIMIT 1")
     SavedPlaceEntity find(String kind);
 

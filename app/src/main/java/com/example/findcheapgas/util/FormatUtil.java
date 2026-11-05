@@ -7,10 +7,12 @@ import com.example.findcheapgas.model.StationSaving;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
-/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 예상 총비용과 차이, 가격을 가져온 시각, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
+/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 예상 총비용과 차이, 가격을 가져온 시각, 거리, 연비·주유량, 계산 기준(위젯용 짧은 문구 포함), 위젯 갱신 시각, 가격 기준 일시 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -138,6 +140,38 @@ public final class FormatUtil {
             return "연비 " + efficiency + " · " + amount + " 기준 (기본값)";
         }
         return "내 차 기준 · 연비 " + efficiency + " · " + amount;
+    }
+
+    /**
+     * 홈 화면 위젯의 짧은 계산 기준 문구.
+     * 기본값: "12km/L · 40L (기본값)", 직접 입력: "11km/L · 50L"
+     */
+    public static String formatShortCalculationBasis(CarInfo carInfo) {
+        String basis = formatFuelEfficiency(carInfo.getFuelEfficiencyTenths()) + " · "
+                + formatFuelAmount(carInfo.getFuelAmount());
+        return carInfo.isDefault() ? basis + " (기본값)" : basis;
+    }
+
+    /**
+     * 홈 화면 위젯의 갱신 시각 (가격을 가져온 시각). 위젯은 몇 시간에 한 번만 다시 그려지므로
+     * "약 2시간 전"처럼 지나면 틀려지는 문구 대신 시각을 쓴다.
+     * 같은 날이면 "오후 3:20 갱신", 다른 날이면 "11월 5일 오후 3:20 갱신"
+     */
+    public static String formatUpdatedTime(long fetchedAt, long now, TimeZone timeZone) {
+        Calendar fetched = Calendar.getInstance(timeZone, Locale.KOREA);
+        fetched.setTimeInMillis(fetchedAt);
+        Calendar today = Calendar.getInstance(timeZone, Locale.KOREA);
+        today.setTimeInMillis(now);
+        int hour = fetched.get(Calendar.HOUR_OF_DAY);
+        int hour12 = hour % 12 == 0 ? 12 : hour % 12;
+        String time = (hour < 12 ? "오전 " : "오후 ") + hour12 + ":"
+                + String.format(Locale.US, "%02d", fetched.get(Calendar.MINUTE));
+        boolean sameDay = fetched.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                && fetched.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR);
+        if (!sameDay) {
+            time = (fetched.get(Calendar.MONTH) + 1) + "월 " + fetched.get(Calendar.DAY_OF_MONTH) + "일 " + time;
+        }
+        return time + " 갱신";
     }
 
     /**

@@ -4,4 +4,21 @@
     <dimen name="station_sheet_peek_height">238dp</dimen>
     <!-- 시트를 끝까지 올려도 검색창, 필터 줄과 지도 일부가 보인다. -->
     <dimen name="station_sheet_expanded_offset">152dp</dimen>
+    <!-- 홈 화면 위젯 -->
+    <dimen name="widget_corner_radius">16dp</dimen>
+    <dimen name="widget_padding">12dp</dimen>
+    <dimen name="widget_small_padding">8dp</dimen>
+    <dimen name="widget_refresh_size">32dp</dimen>
+    <dimen name="widget_refresh_padding">6dp</dimen>
+    <dimen name="widget_gap">2dp</dimen>
+    <dimen name="widget_text_title">13sp</dimen>
+    <dimen name="widget_text_status">11sp</dimen>
+    <dimen name="widget_text_name">16sp</dimen>
+    <dimen name="widget_text_price">18sp</dimen>
+    <dimen name="widget_text_saving">14sp</dimen>
+    <dimen name="widget_text_detail">12sp</dimen>
+    <dimen name="widget_text_footer">11sp</dimen>
+    <dimen name="widget_text_message">14sp</dimen>
+    <dimen name="widget_small_text_name">14sp</dimen>
+    <dimen name="widget_small_text_price">13sp</dimen>
 </resources>

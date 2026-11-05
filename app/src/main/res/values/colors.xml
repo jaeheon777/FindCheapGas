@@ -28,4 +28,13 @@
     <color name="favorite_bookmark">#FF1A73E8</color>
     <!-- 즐겨찾기 탭에서 왼쪽으로 밀 때 뒤 배경 -->
     <color name="swipe_delete_background">#FFD93025</color>
+    <!-- 홈 화면 위젯. 다크 모드 단계에서 values-night에 같은 이름으로 넣으면 바뀐다. -->
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_text_primary">#FF202124</color>
+    <color name="widget_text_secondary">#FF5F6368</color>
+    <color name="widget_icon">#FF5F6368</color>
+    <color name="widget_saving_gain">#FF188038</color>
+    <color name="widget_saving_similar">#FFB06000</color>
+    <color name="widget_saving_loss">#FFC5221F</color>
+    <color name="widget_update_failed">#FFC5221F</color>
 </resources>

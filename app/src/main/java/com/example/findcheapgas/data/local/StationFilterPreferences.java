@@ -15,6 +15,7 @@ import java.util.Set;
 /**
  * 지도 탭에서 마지막으로 고른 유종, 반경, 정렬, 브랜드 빠른 필터 (SharedPreferences).
  * 앱을 다시 켜도 이 값으로 시작한다. 설정 탭의 기본값 기능은 나중에 만든다.
+ * 홈 화면 위젯도 이 값(유종, 반경, 빠른 필터)으로 계산하고, 바뀌면 WidgetSettingsWatcher가 위젯을 다시 그리게 한다.
  * 정렬을 저장한 적이 없으면(새로 설치) 예상 이득순으로 시작하고, 이미 고른 정렬이 있으면 그 값을 쓴다.
  */
 public class StationFilterPreferences {
@@ -23,10 +24,10 @@ public class StationFilterPreferences {
     public static final SearchRadius DEFAULT_RADIUS = SearchRadius.KM_3;
     public static final SortOrder DEFAULT_SORT_ORDER = SortOrder.SAVING;
 
-    private static final String PREFS_NAME = "station_filter";
+    public static final String PREFS_NAME = "station_filter";
     private static final String KEY_FUEL_TYPE = "fuel_type";      // 유종 코드 (B027 등)
     private static final String KEY_RADIUS = "radius_meters";      // 1000, 3000, 5000
-    private static final String KEY_SORT_ORDER = "sort_order";     // SortOrder.name()
+    public static final String KEY_SORT_ORDER = "sort_order";     // SortOrder.name()
     // 브랜드 빠른 필터. 아무것도 저장하지 않았으면 전체
     private static final String KEY_BRAND_DISCOUNT_ONLY = "brand_discount_only";
     private static final String KEY_BRAND_PREFERRED_ONLY = "brand_preferred_only";
