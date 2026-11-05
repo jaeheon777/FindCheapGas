@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
@@ -117,14 +118,20 @@ public class OpinetDetailResponseTest {
         assertFalse(detail.isSelfServiceEstimated());
     }
 
-    @Test(expected = OpinetException.class)
-    public void parse_emptyOil_throws() throws OpinetException {
+    /** 주유소가 없는 응답(폐업 등)은 다른 오류와 구분한다. */
+    @Test(expected = StationNotFoundException.class)
+    public void parse_emptyOil_throwsNotFound() throws OpinetException {
         OpinetDetailResponse.parse("{\"RESULT\":{\"OIL\":[]}}");
     }
 
-    @Test(expected = OpinetException.class)
-    public void parse_noResult_throws() throws OpinetException {
-        OpinetDetailResponse.parse("{\"ERROR\":\"한도 초과\"}");
+    @Test
+    public void parse_noResult_throwsButNotNotFound() {
+        try {
+            OpinetDetailResponse.parse("{\"ERROR\":\"한도 초과\"}");
+            fail();
+        } catch (OpinetException e) {
+            assertFalse(e instanceof StationNotFoundException);
+        }
     }
 
     @Test(expected = OpinetException.class)

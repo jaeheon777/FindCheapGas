@@ -35,19 +35,44 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <!-- 선호 브랜드면 코드에서 앞에 ★(ic_star_small)를 붙인다. -->
-        <TextView
-            android:id="@+id/station_name"
+        <!--
+            선호 브랜드면 코드에서 상호 앞에 ★(ic_star_small)를 붙인다.
+            즐겨찾기한 주유소면 상호 뒤에 북마크를 보여준다 (★와 헷갈리지 않게 다른 모양, 다른 색).
+            ★와 북마크는 색이 달라서 compound drawable 하나로 합치지 않는다. 상호는 wrap_content + weight라서
+            짧으면 북마크가 바로 뒤에 붙고, 길면 상호만 줄어들어 말줄임된다.
+        -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawablePadding="4dp"
-            android:ellipsize="end"
             android:gravity="center_vertical"
-            android:maxLines="1"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            app:drawableTint="@color/preferred_star"
-            tools:drawableStart="@drawable/ic_star_small"
-            tools:text="역삼셀프주유소" />
+            android:orientation="horizontal"
+            tools:ignore="InefficientWeight,UseCompoundDrawables">
+
+            <TextView
+                android:id="@+id/station_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawablePadding="4dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                app:drawableTint="@color/preferred_star"
+                tools:drawableStart="@drawable/ic_star_small"
+                tools:text="역삼셀프주유소" />
+
+            <ImageView
+                android:id="@+id/station_favorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/station_favorite"
+                android:src="@drawable/ic_bookmark_small"
+                android:visibility="gone"
+                app:tint="@color/favorite_bookmark"
+                tools:visibility="visible" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/station_info"

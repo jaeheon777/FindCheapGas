@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_CURRENT_TAB = "current_tab";
 
     private String currentTab = TAG_MAP;
+    private BottomNavigationView bottomNav;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             currentTab = savedInstanceState.getString(KEY_CURRENT_TAB, TAG_MAP);
         }
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_favorite) {
@@ -84,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    /** 지도 탭으로 바꾼다 (즐겨찾기 탭의 "지도에서 보기"). 하단 탭 선택도 함께 바뀐다. */
+    public void showMapTab() {
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(R.id.nav_map);
+        }
     }
 
     @Override

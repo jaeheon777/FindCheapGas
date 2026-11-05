@@ -19,13 +19,16 @@ import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 아래 시트의 주유소 목록. 순위는 지금 정렬 기준의 순서(1부터)다.
  * 가격 아래에 예상 이득을 쓰고, 예상 이득 1위에는 "이득 1위"(기준 주유소가 1위면 "가까운 곳이 가장 유리"),
  * 표시 가격이 가장 싼 곳에는 "최저가" 배지를 붙인다. 두 배지는 한 곳에 함께 붙을 수 있다.
  * 선호 브랜드는 상호 앞에 ★를, 브랜드 할인이 적용된 곳은 "100원 할인 적용" 배지를 붙인다.
+ * 즐겨찾기한 주유소는 상호 뒤에 작은 북마크를 단다.
  */
 public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHolder> {
 
@@ -38,6 +41,8 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
     private int cheapestPrice = Integer.MAX_VALUE;
     @Nullable
     private String selectedId;
+    // 즐겨찾기한 주유소 ID. 상호 뒤에 북마크를 단다.
+    private Set<String> favoriteIds = Collections.emptySet();
 
     public StationAdapter(OnStationClickListener clickListener) {
         this.clickListener = clickListener;
@@ -47,6 +52,11 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         stations.clear();
         stations.addAll(newStations);
         cheapestPrice = newCheapestPrice;
+        notifyDataSetChanged();
+    }
+
+    public void setFavoriteIds(@Nullable Set<String> ids) {
+        favoriteIds = ids != null ? ids : Collections.emptySet();
         notifyDataSetChanged();
     }
 
@@ -95,6 +105,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         holder.name.setContentDescription(saving.isPreferred()
                 ? context.getString(R.string.station_preferred) + ", " + station.getName()
                 : null);
+        holder.favorite.setVisibility(favoriteIds.contains(station.getId()) ? View.VISIBLE : View.GONE);
         holder.info.setText(context.getString(R.string.station_info,
                 station.getBrandName(), FormatUtil.formatDistance(station.getDistance())));
         holder.price.setText(FormatUtil.formatPrice(station.getPrice()));
@@ -142,6 +153,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
     static class ViewHolder extends RecyclerView.ViewHolder {
         final TextView rank;
         final TextView name;
+        final View favorite;
         final TextView info;
         final View badges;
         final TextView best;
@@ -156,6 +168,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
             super(itemView);
             rank = itemView.findViewById(R.id.station_rank);
             name = itemView.findViewById(R.id.station_name);
+            favorite = itemView.findViewById(R.id.station_favorite);
             info = itemView.findViewById(R.id.station_info);
             badges = itemView.findViewById(R.id.station_badges);
             best = itemView.findViewById(R.id.station_best);

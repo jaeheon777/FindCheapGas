@@ -32,10 +32,16 @@ public final class OpinetDetailResponse {
     private OpinetDetailResponse() {
     }
 
-    /** 응답 본문을 상세정보로 바꾼다. 형식이 다르거나 주유소가 없으면 OpinetException을 던진다. */
+    /**
+     * 응답 본문을 상세정보로 바꾼다. 형식이 다르면 OpinetException을, 주유소가 없으면(OIL이 빈 배열)
+     * StationNotFoundException을 던진다.
+     */
     public static StationDetail parse(String body) throws OpinetException {
         JsonArray oils = oilArray(body);
-        if (oils.size() == 0 || !oils.get(0).isJsonObject()) {
+        if (oils.size() == 0) {
+            throw new StationNotFoundException("주유소가 없는 응답: " + preview(body));
+        }
+        if (!oils.get(0).isJsonObject()) {
             throw new OpinetException("주유소 정보가 없는 응답: " + preview(body));
         }
         JsonObject oil = oils.get(0).getAsJsonObject();

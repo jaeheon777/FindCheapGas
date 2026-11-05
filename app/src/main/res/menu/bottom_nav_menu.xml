@@ -6,7 +6,7 @@
         android:title="@string/tab_map" />
     <item
         android:id="@+id/nav_favorite"
-        android:icon="@drawable/ic_star"
+        android:icon="@drawable/ic_bookmark"
         android:title="@string/tab_favorite" />
     <item
         android:id="@+id/nav_settings"

@@ -61,6 +61,17 @@ public final class SavingCalculator {
         return results;
     }
 
+    /**
+     * 목록 밖의 주유소 한 곳을 이미 정해진 기준 주유소와 비교한다 (즐겨찾기 탭).
+     * calculate()와 같은 공식, 같은 할인 정책을 쓰므로 그 주유소가 목록 안에 있었을 때와 같은 값이 나온다.
+     * 이득 1위나 선호 브랜드 표시는 하지 않는다.
+     */
+    public static StationSaving estimateAgainst(GasStation station, GasStation baseline, CarInfo carInfo,
+                                                DiscountPolicy policy) {
+        double baselineTotal = totalCost(baseline, carInfo, policy.ruleFor(baseline));
+        return estimate(station, carInfo, policy.ruleFor(station), baseline, baselineTotal);
+    }
+
     /** 가장 가까운 주유소. 거리가 같으면 싼 곳. 목록이 비어 있으면 IllegalArgumentException */
     public static GasStation findBaseline(List<GasStation> stations) {
         if (stations.isEmpty()) {

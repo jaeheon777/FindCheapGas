@@ -24,4 +24,8 @@
     <color name="badge_discount">#FF8430CE</color>
     <!-- 목록의 선호 브랜드 ★ -->
     <color name="preferred_star">#FFE37400</color>
+    <!-- 즐겨찾기 북마크 표시 -->
+    <color name="favorite_bookmark">#FF1A73E8</color>
+    <!-- 즐겨찾기 탭에서 왼쪽으로 밀 때 뒤 배경 -->
+    <color name="swipe_delete_background">#FFD93025</color>
 </resources>

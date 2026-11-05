@@ -23,6 +23,9 @@ import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.Brand;
 import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.DiscountRule;
+import com.example.findcheapgas.model.FavoriteItem;
+import com.example.findcheapgas.model.FavoritePrice;
+import com.example.findcheapgas.model.FavoriteStation;
 import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
@@ -47,6 +50,9 @@ import java.util.List;
  * 예상 이득 계산 내역은 지도 탭이 계산한 결과(StationSaving)를 Intent로 받아 그대로 보여준다.
  * 여기서는 다시 조회하거나 계산하지 않고, 계산 기준(내 차 정보)도 바꿀 수 없다.
  * 닫힐 때 주유소 ID를 결과로 돌려줘서 지도 탭이 그 주유소를 선택한 채로 보여주게 한다.
+ * 즐겨찾기 탭에서도 열린다 (createFavoriteIntent). 이때는 "지도에서 보기" 버튼이 보이고, 누르면 결과로 알려서
+ * 지도 탭이 그 주유소 위치를 조회 위치로 주변을 조회하고 그 주유소를 선택한다.
+ * 아래 즐겨찾기 버튼(북마크)으로 즐겨찾기를 추가하거나 삭제한다.
  */
 public class StationDetailActivity extends AppCompatActivity {
 
@@ -60,12 +66,22 @@ public class StationDetailActivity extends AppCompatActivity {
     private static final String EXTRA_FUEL_TYPE = "fuel_type";
     private static final String EXTRA_ORIGIN_LABEL = "origin_label";
     private static final String EXTRA_SAVING = "saving";
+    private static final String EXTRA_KATEC_X = "katec_x";
+    private static final String EXTRA_KATEC_Y = "katec_y";
+    private static final String EXTRA_LATITUDE = "latitude";
+    private static final String EXTRA_LONGITUDE = "longitude";
+    private static final String EXTRA_ADDRESS = "address";
+    // 즐겨찾기 탭에서 열었으면 true. "지도에서 보기" 버튼을 보여준다.
+    private static final String EXTRA_FROM_FAVORITES = "from_favorites";
+    // 결과: "지도에서 보기"를 눌렀으면 true
+    private static final String EXTRA_SHOW_ON_MAP = "show_on_map";
 
     // 1회 할인 한도를 비워 둔 채 할인액이 이 금액 이상이면 "한도가 있다면..." 주의 문구를 보여준다.
     private static final int NO_CAP_WARNING_DISCOUNT = 5_000;
 
     private DetailViewModel viewModel;
     private FuelType selectedFuelType;
+    private MaterialButton favoriteButton;
 
     private View status;
     private View statusProgress;
@@ -96,7 +112,72 @@ public class StationDetailActivity extends AppCompatActivity {
                 .putExtra(EXTRA_PRICE, station.getPrice())
                 .putExtra(EXTRA_DISTANCE, station.getDistance())
                 .putExtra(EXTRA_FUEL_TYPE, fuelType.getCode())
-                .putExtra(EXTRA_ORIGIN_LABEL, originLabel);
+                .putExtra(EXTRA_ORIGIN_LABEL, originLabel)
+                .putExtra(EXTRA_KATEC_X, station.getKatecX())
+                .putExtra(EXTRA_KATEC_Y, station.getKatecY())
+                .putExtra(EXTRA_LATITUDE, station.getLatitude())
+                .putExtra(EXTRA_LONGITUDE, station.getLongitude());
+    }
+
+    /**
+     * 즐겨찾기 탭에서 여는 Intent. 가격, 거리, 예상 이득은 즐겨찾기 탭이 아는 만큼만 넘긴다.
+     *
+     * @param item        즐겨찾기 한 줄 (가격이 없거나 5km 밖이면 예상 이득 없음)
+     * @param originLabel 조회 위치 이름
+     */
+    public static Intent createFavoriteIntent(Context context, FavoriteItem item, FuelType fuelType,
+                                              String originLabel) {
+        FavoriteStation favorite = item.getFavorite();
+        FavoritePrice price = item.getPrice();
+        Double distance = item.getDistance();
+        Intent intent = new Intent(context, StationDetailActivity.class)
+                .putExtra(EXTRA_STATION_ID, favorite.getId())
+                .putExtra(EXTRA_NAME, favorite.getName())
+                .putExtra(EXTRA_BRAND_CODE, favorite.getBrandCode())
+                .putExtra(EXTRA_PRICE, price != null && price.isAvailable() ? price.getPrice() : 0)
+                .putExtra(EXTRA_DISTANCE, distance != null ? distance : Double.NaN)
+                .putExtra(EXTRA_FUEL_TYPE, fuelType.getCode())
+                .putExtra(EXTRA_ORIGIN_LABEL, originLabel)
+                .putExtra(EXTRA_KATEC_X, favorite.getKatecX())
+                .putExtra(EXTRA_KATEC_Y, favorite.getKatecY())
+                .putExtra(EXTRA_LATITUDE, favorite.getLatitude())
+                .putExtra(EXTRA_LONGITUDE, favorite.getLongitude())
+                .putExtra(EXTRA_ADDRESS, favorite.getAddress())
+                .putExtra(EXTRA_FROM_FAVORITES, true);
+        if (item.getSaving() != null) {
+            intent.putExtra(EXTRA_SAVING, item.getSaving());
+        }
+        return intent;
+    }
+
+    /** 상세 화면에서 "지도에서 보기"를 눌렀을 때 지도 탭에 넘길 주유소 */
+    public static final class ShowOnMapRequest {
+        public final String stationId;
+        public final String name;
+        public final double latitude;
+        public final double longitude;
+
+        ShowOnMapRequest(String stationId, String name, double latitude, double longitude) {
+            this.stationId = stationId;
+            this.name = name;
+            this.latitude = latitude;
+            this.longitude = longitude;
+        }
+    }
+
+    /** 결과가 "지도에서 보기"면 그 주유소, 아니면 null */
+    @Nullable
+    public static ShowOnMapRequest showOnMapFrom(@Nullable Intent result) {
+        if (result == null || !result.getBooleanExtra(EXTRA_SHOW_ON_MAP, false)) {
+            return null;
+        }
+        String id = result.getStringExtra(EXTRA_STATION_ID);
+        String name = result.getStringExtra(EXTRA_NAME);
+        if (id == null || name == null) {
+            return null;
+        }
+        return new ShowOnMapRequest(id, name, result.getDoubleExtra(EXTRA_LATITUDE, 0),
+                result.getDoubleExtra(EXTRA_LONGITUDE, 0));
     }
 
     /** 상세 화면이 돌려준 결과에서 주유소 ID를 꺼낸다. 없으면 null */
@@ -135,6 +216,69 @@ public class StationDetailActivity extends AppCompatActivity {
         viewModel.getError().observe(this, error -> renderStatus());
         // 화면을 회전해도 ViewModel이 남아 있으므로 다시 조회하지 않는다.
         viewModel.start(stationId);
+        setUpActions(intent, stationId);
+        viewModel.isFavorite().observe(this, this::renderFavoriteButton);
+        viewModel.getFavoriteMessage().observe(this, this::showFavoriteMessage);
+    }
+
+    /**
+     * 아래 버튼 줄: 즐겨찾기(북마크, 누를 때마다 추가 / 삭제), 즐겨찾기 탭에서 열었으면 "지도에서 보기".
+     * 길찾기는 아직 숨겨 둔다.
+     */
+    private void setUpActions(Intent intent, String stationId) {
+        favoriteButton = findViewById(R.id.detail_favorite_button);
+        favoriteButton.setOnClickListener(v -> viewModel.toggleFavorite(favoriteFrom(intent, stationId)));
+        View showOnMap = findViewById(R.id.detail_show_on_map_button);
+        boolean fromFavorites = intent.getBooleanExtra(EXTRA_FROM_FAVORITES, false);
+        showOnMap.setVisibility(fromFavorites ? View.VISIBLE : View.GONE);
+        showOnMap.setOnClickListener(v -> {
+            setResult(RESULT_OK, new Intent()
+                    .putExtra(EXTRA_STATION_ID, stationId)
+                    .putExtra(EXTRA_SHOW_ON_MAP, true)
+                    .putExtra(EXTRA_NAME, intent.getStringExtra(EXTRA_NAME))
+                    .putExtra(EXTRA_LATITUDE, intent.getDoubleExtra(EXTRA_LATITUDE, 0))
+                    .putExtra(EXTRA_LONGITUDE, intent.getDoubleExtra(EXTRA_LONGITUDE, 0)));
+            finish();
+        });
+        findViewById(R.id.detail_actions).setVisibility(View.VISIBLE);
+    }
+
+    /** 즐겨찾기로 저장할 값. 주소는 상세 조회가 끝났으면 그 주소, 아니면 넘겨받은 주소(없으면 null). */
+    private FavoriteStation favoriteFrom(Intent intent, String stationId) {
+        StationDetail detail = viewModel.getDetail().getValue();
+        String address = detail != null ? detail.getAddress() : intent.getStringExtra(EXTRA_ADDRESS);
+        String name = intent.getStringExtra(EXTRA_NAME);
+        return new FavoriteStation(stationId, name != null ? name : stationId,
+                intent.getStringExtra(EXTRA_BRAND_CODE), address,
+                intent.getDoubleExtra(EXTRA_KATEC_X, 0), intent.getDoubleExtra(EXTRA_KATEC_Y, 0),
+                intent.getDoubleExtra(EXTRA_LATITUDE, 0), intent.getDoubleExtra(EXTRA_LONGITUDE, 0),
+                System.currentTimeMillis());
+    }
+
+    /** 즐겨찾기면 채운 북마크와 "즐겨찾기됨", 아니면 빈 북마크와 "즐겨찾기" */
+    private void renderFavoriteButton(Boolean favorite) {
+        boolean saved = Boolean.TRUE.equals(favorite);
+        favoriteButton.setIconResource(saved ? R.drawable.ic_bookmark : R.drawable.ic_bookmark_border);
+        favoriteButton.setText(saved ? R.string.detail_favorite_saved : R.string.detail_favorite_add);
+        favoriteButton.setContentDescription(getString(saved
+                ? R.string.detail_favorite_remove_description : R.string.detail_favorite_add_description));
+    }
+
+    private void showFavoriteMessage(@Nullable DetailViewModel.FavoriteMessage message) {
+        if (message == null) {
+            return;
+        }
+        String text;
+        if (message == DetailViewModel.FavoriteMessage.ADDED) {
+            text = getString(R.string.detail_favorite_added);
+        } else if (message == DetailViewModel.FavoriteMessage.REMOVED) {
+            text = getString(R.string.detail_favorite_removed);
+        } else {
+            text = getString(R.string.detail_favorite_full, FavoriteStation.MAX_COUNT);
+        }
+        Toast.makeText(this, text, message == DetailViewModel.FavoriteMessage.FULL
+                ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+        viewModel.onFavoriteMessageShown();
     }
 
     private void bindViews() {
@@ -162,13 +306,18 @@ public class StationDetailActivity extends AppCompatActivity {
         String name = intent.getStringExtra(EXTRA_NAME);
         ((TextView) findViewById(R.id.detail_name)).setText(name);
         String originLabel = intent.getStringExtra(EXTRA_ORIGIN_LABEL);
-        ((TextView) findViewById(R.id.detail_info)).setText(getString(R.string.detail_info,
-                Brand.nameOf(intent.getStringExtra(EXTRA_BRAND_CODE)),
-                originLabel != null ? originLabel : getString(R.string.origin_my_location),
-                FormatUtil.formatDistance(intent.getDoubleExtra(EXTRA_DISTANCE, 0))));
+        String brand = Brand.nameOf(intent.getStringExtra(EXTRA_BRAND_CODE));
+        double distance = intent.getDoubleExtra(EXTRA_DISTANCE, 0);
+        // 즐겨찾기 탭에서 열 때 조회 위치를 아직 모르면 거리가 없다.
+        ((TextView) findViewById(R.id.detail_info)).setText(Double.isNaN(distance)
+                ? getString(R.string.detail_info_no_distance, brand)
+                : getString(R.string.detail_info, brand,
+                        originLabel != null ? originLabel : getString(R.string.origin_my_location),
+                        FormatUtil.formatDistance(distance)));
         ((TextView) findViewById(R.id.detail_selected_fuel)).setText(selectedFuelType.getLabel());
-        ((TextView) findViewById(R.id.detail_selected_price)).setText(
-                FormatUtil.formatPrice(intent.getIntExtra(EXTRA_PRICE, 0)));
+        int price = intent.getIntExtra(EXTRA_PRICE, 0);
+        ((TextView) findViewById(R.id.detail_selected_price)).setText(price > 0
+                ? FormatUtil.formatPrice(price) : getString(R.string.detail_price_unknown));
     }
 
     @Nullable
@@ -316,6 +465,8 @@ public class StationDetailActivity extends AppCompatActivity {
                 message = R.string.detail_error_network;
             } else if (error == StationError.DAILY_LIMIT) {
                 message = R.string.detail_error_daily_limit;
+            } else if (error == StationError.NOT_FOUND) {
+                message = R.string.detail_error_not_found;
             } else {
                 message = R.string.detail_error_opinet;
             }

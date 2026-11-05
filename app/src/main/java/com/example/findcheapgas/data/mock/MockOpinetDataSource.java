@@ -6,6 +6,7 @@ import com.example.findcheapgas.data.remote.OpinetAroundResponse;
 import com.example.findcheapgas.data.remote.OpinetDetailResponse;
 import com.example.findcheapgas.data.remote.OpinetException;
 import com.example.findcheapgas.data.remote.OpinetSearchResponse;
+import com.example.findcheapgas.data.remote.StationNotFoundException;
 import com.example.findcheapgas.model.StationDetail;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.model.StationSearchResult;
@@ -80,7 +81,7 @@ public class MockOpinetDataSource {
             body = readAsset(DETAIL_DIR + "/" + stationId + ".json");
         } catch (FileNotFoundException e) {
             // 실제 API에서 없는 주유소를 조회한 것과 같게 오피넷 오류로 처리한다.
-            throw new OpinetException("가짜 상세 데이터 없음: " + stationId, e);
+            throw new StationNotFoundException("가짜 상세 데이터 없음: " + stationId, e);
         }
         return OpinetDetailResponse.parse(body);
     }

@@ -50,6 +50,7 @@ import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.model.UserLocation;
+import com.example.findcheapgas.ui.OriginLabels;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.util.FormatUtil;
@@ -162,7 +163,8 @@ public class MapFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(MapViewModel.class);
+        // 즐겨찾기 탭과 함께 쓰므로 Activity 범위로 만든다.
+        viewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
         searchViewModel = new ViewModelProvider(this).get(SearchViewModel.class);
 
         mapMessage = view.findViewById(R.id.map_message);
@@ -224,6 +226,8 @@ public class MapFragment extends Fragment {
             renderStationStatus();
         });
         viewModel.getStationsError().observe(getViewLifecycleOwner(), error -> renderStationStatus());
+        // 즐겨찾기한 주유소는 목록 상호 뒤에 북마크를 단다.
+        viewModel.getFavoriteIds().observe(getViewLifecycleOwner(), stationAdapter::setFavoriteIds);
         viewModel.getSelectedStationId().observe(getViewLifecycleOwner(), id -> {
             stationAdapter.setSelectedId(id);
             if (stationMarkers != null) {
@@ -864,13 +868,7 @@ public class MapFragment extends Fragment {
 
     /** 조회 위치 이름: 검색한 장소 이름, 내 위치, 기본 위치(서울시청) */
     private String originLabel(SearchOrigin origin) {
-        if (origin != null && origin.isPlace()) {
-            return origin.getName();
-        }
-        if (origin != null && origin.isDefaultLocation()) {
-            return getString(R.string.origin_default_location);
-        }
-        return getString(R.string.origin_my_location);
+        return OriginLabels.of(requireContext(), origin);
     }
 
     // ---------- 유종, 반경, 브랜드, 정렬 선택 ----------
