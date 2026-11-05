@@ -19,6 +19,7 @@ import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.util.CoordinateConverter;
+import com.example.findcheapgas.util.PlaceCompareCachePolicy;
 import com.example.findcheapgas.util.StationDistances;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
@@ -35,18 +36,22 @@ import java.util.concurrent.Executors;
 
 /**
  * 주변 주유소를 어디서 가져올지 정한다.
- * 1. Room 캐시 (같은 위치·유종으로 20분 안에 조회한 결과)
+ * 1. Room 캐시 (같은 위치·유종으로 20분 안에 조회한 결과. 집·회사 기준 비교는 탭을 열 때 3시간 안의 결과)
  * 2. 캐시가 없으면 USE_MOCK_DATA에 따라 가짜 데이터(assets) 또는 실제 오피넷 API
  * 조회 위치는 현재 위치나 검색한 장소(StationQuery의 위치)이고, 거리는 이 위치 기준이다.
  * 오피넷에는 항상 최대 반경 5km로 요청한다. 반경을 줄이거나 정렬을 바꾸는 것은 API를 다시 부르지 않고
  * StationListBuilder가 이 결과로 처리하므로, 여기서 돌려주는 목록은 정렬하지 않은 5km 안 전체 목록이다.
  * 결과는 메인 스레드에서 Callback으로 돌려준다.
+ * 조회 위치에는 집·회사 위치도 들어오므로 좌표가 들어 있는 캐시 키나 조회 위치는 로그에 남기지 않는다.
  */
 public class StationRepository {
 
     private static final String TAG = "StationRepository";
 
+    // 지도 탭이 그대로 쓰는 캐시의 최대 나이
     private static final long CACHE_TTL_MS = 20 * 60 * 1000;
+    // 캐시를 지우지 않고 남겨 두는 시간. 집·회사 기준 비교가 탭을 열 때 3시간 안의 캐시를 쓴다.
+    private static final long CACHE_KEEP_MS = PlaceCompareCachePolicy.OPEN_MAX_AGE_MS;
 
     private static final Type STATION_LIST_TYPE = new TypeToken<List<GasStation>>() {
     }.getType();
@@ -55,6 +60,23 @@ public class StationRepository {
         void onSuccess(List<GasStation> stations);
 
         void onError(StationError error);
+    }
+
+    /** 집·회사 기준 비교용. 가격을 가져온 시각(캐시면 저장한 시각)도 같이 돌려준다. */
+    public interface TimedCallback {
+        void onSuccess(List<GasStation> stations, long fetchedAt);
+
+        void onError(StationError error);
+    }
+
+    private static final class Loaded {
+        final List<GasStation> stations;
+        final long fetchedAt;
+
+        Loaded(List<GasStation> stations, long fetchedAt) {
+            this.stations = stations;
+            this.fetchedAt = fetchedAt;
+        }
     }
 
     private final StationCacheDao cacheDao;
@@ -73,14 +95,37 @@ public class StationRepository {
         remoteDataSource = new OpinetRemoteDataSource();
     }
 
+    /** 지도 탭: 20분 안의 캐시를 쓴다. */
     public void fetchAroundStations(StationQuery query, Callback callback) {
+        fetch(query, CACHE_TTL_MS, new TimedCallback() {
+            @Override
+            public void onSuccess(List<GasStation> stations, long fetchedAt) {
+                callback.onSuccess(stations);
+            }
+
+            @Override
+            public void onError(StationError error) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    /**
+     * 집·회사 기준 비교: maxCacheAgeMs 안의 캐시가 있으면 쓰고 (PlaceCompareCachePolicy), 없으면 가져온다.
+     * 실제 API 호출은 다른 조회와 똑같이 하루 한도(ApiCallCounter.acquire)를 거친다.
+     */
+    public void fetchAroundStations(StationQuery query, long maxCacheAgeMs, TimedCallback callback) {
+        fetch(query, maxCacheAgeMs, callback);
+    }
+
+    private void fetch(StationQuery query, long maxCacheAgeMs, TimedCallback callback) {
         executor.execute(() -> {
             try {
-                List<GasStation> stations = load(query);
-                mainHandler.post(() -> callback.onSuccess(stations));
+                Loaded loaded = load(query, maxCacheAgeMs);
+                mainHandler.post(() -> callback.onSuccess(loaded.stations, loaded.fetchedAt));
             } catch (IOException | OpinetException | DailyLimitReachedException | RuntimeException e) {
-                // 하루 한도 도달, 네트워크, 오피넷 오류를 구분해서 화면에 알려준다.
-                Log.w(TAG, "주유소 조회 실패: " + e.getMessage(), e);
+                // 하루 한도 도달, 네트워크, 오피넷 오류를 구분해서 화면에 알려준다. 조회 위치는 남기지 않는다.
+                Log.w(TAG, "주유소 조회 실패: " + e.getClass().getSimpleName());
                 StationError error = StationErrors.from(e);
                 mainHandler.post(() -> callback.onError(error));
             }
@@ -92,26 +137,29 @@ public class StationRepository {
         executor.shutdownNow();
     }
 
-    private List<GasStation> load(StationQuery query) throws IOException, OpinetException, DailyLimitReachedException {
+    private Loaded load(StationQuery query, long maxCacheAgeMs)
+            throws IOException, OpinetException, DailyLimitReachedException {
         long now = System.currentTimeMillis();
-        long minSavedAt = now - CACHE_TTL_MS;
-        cacheDao.deleteOlderThan(minSavedAt);
+        long minSavedAt = now - Math.min(maxCacheAgeMs, CACHE_KEEP_MS);
+        cacheDao.deleteOlderThan(now - CACHE_KEEP_MS);
 
         CoordinateConverter.Katec katec = CoordinateConverter.toKatec(query.getLatitude(), query.getLongitude());
         String key = cacheKey(query);
 
-        List<GasStation> cached = readCache(key, minSavedAt);
+        StationCacheEntity entity = cacheDao.find(key, minSavedAt);
+        List<GasStation> cached = entity != null ? readCache(entity) : null;
         if (cached != null) {
-            Log.d(TAG, "캐시 사용: " + key + " (" + cached.size() + "곳)");
+            Log.d(TAG, "캐시 사용 (" + cached.size() + "곳)");
             // 캐시는 약 100m 단위로 묶여 있으므로 거리는 이번 조회 위치 기준으로 다시 계산한다.
-            return Collections.unmodifiableList(
-                    StationDistances.fromOrigin(cached, query.getLatitude(), query.getLongitude()));
+            return new Loaded(Collections.unmodifiableList(
+                    StationDistances.fromOrigin(cached, query.getLatitude(), query.getLongitude())),
+                    entity.savedAt);
         }
 
         List<OpinetAroundResponse.Oil> oils;
         if (BuildConfig.USE_MOCK_DATA) {
             oils = mockDataSource.fetchAround(query, katec);
-            Log.d(TAG, "가짜 데이터 사용: " + key + " (" + oils.size() + "곳)");
+            Log.d(TAG, "가짜 데이터 사용 (" + oils.size() + "곳)");
         } else {
             if (!OpinetRemoteDataSource.hasApiKey()) {
                 throw new OpinetException("local.properties에 OPINET_API_KEY가 없습니다.");
@@ -120,19 +168,20 @@ public class StationRepository {
             int count = callCounter.acquire();
             Log.i(TAG, "오피넷 API 호출: 오늘 " + count + "회 / " + ApiCallCounter.DAILY_LIMIT + "회");
             oils = remoteDataSource.fetchAround(query, katec);
-            Log.d(TAG, "오피넷 응답: " + key + " (" + oils.size() + "곳)");
+            Log.d(TAG, "오피넷 응답 (" + oils.size() + "곳)");
         }
 
         List<GasStation> stations = toStations(oils);
         cacheDao.save(new StationCacheEntity(key, gson.toJson(stations, STATION_LIST_TYPE), now));
-        return Collections.unmodifiableList(stations);
+        return new Loaded(Collections.unmodifiableList(stations), now);
     }
 
     /**
      * 위도·경도를 소수점 셋째 자리(위도 약 111m, 경도 약 88m)로 반올림해서 가까운 위치끼리 같은 캐시를 쓴다.
      * 가짜 데이터와 실제 API 결과가 섞이지 않도록 출처도 넣는다. 반경과 정렬은 앱에서 처리하므로 키에 넣지 않는다.
      * 예: around5km|mock|37.498,127.028|B027
-     * 예전 키(mock|37.498,127.028|B027|3000|1)와 앞부분이 달라서 겹치지 않고, 남아 있는 예전 캐시는 20분이 지나면 지워진다.
+     * 예전 키(mock|37.498,127.028|B027|3000|1)와 앞부분이 달라서 겹치지 않고, 남아 있는 예전 캐시는 3시간이 지나면 지워진다.
+     * 키에 좌표가 들어 있으므로 로그에 남기지 않는다.
      */
     private static String cacheKey(StationQuery query) {
         return String.format(Locale.US, "around%dkm|%s|%.3f,%.3f|%s",
@@ -142,11 +191,7 @@ public class StationRepository {
                 query.getFuelType().getCode());
     }
 
-    private List<GasStation> readCache(String key, long minSavedAt) {
-        StationCacheEntity entity = cacheDao.find(key, minSavedAt);
-        if (entity == null) {
-            return null;
-        }
+    private List<GasStation> readCache(StationCacheEntity entity) {
         try {
             return gson.fromJson(entity.stationsJson, STATION_LIST_TYPE);
         } catch (JsonParseException e) {

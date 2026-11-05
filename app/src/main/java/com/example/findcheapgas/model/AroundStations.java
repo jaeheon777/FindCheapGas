@@ -34,6 +34,11 @@ public final class AroundStations {
         return fuelType;
     }
 
+    /** 조회에 실패해서 목록이 없는지 */
+    public boolean isFailed() {
+        return all == null;
+    }
+
     /** 5km 안 전체 목록. 조회에 실패했으면 빈 목록 */
     public List<GasStation> getAll() {
         return all != null ? all : Collections.emptyList();

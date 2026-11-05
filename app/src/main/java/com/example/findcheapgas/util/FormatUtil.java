@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
+/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 예상 총비용과 차이, 가격을 가져온 시각, 거리, 연비·주유량, 계산 기준, 가격 기준 일시 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -77,6 +77,31 @@ public final class FormatUtil {
             summary.append(" · ").append(parts.get(i));
         }
         return summary.toString();
+    }
+
+    /** 집·회사 기준 비교 카드의 예상 총비용. 66174.3 → "예상 총비용 약 66,174원" */
+    public static String formatTotalCost(double totalCost) {
+        return "예상 총비용 약 " + formatWon(totalCost);
+    }
+
+    /** 집·회사 기준 비교에서 가장 저렴한 위치보다 더 드는 금액. 1200 → "약 1,200원 더 듦" */
+    public static String formatExtraCost(long won) {
+        return "약 " + formatWon(won) + " 더 듦";
+    }
+
+    /**
+     * 가격을 가져온 지 얼마나 됐는지. 1분 안이면 "방금 가져온 가격", 1시간 안이면 "약 25분 전 가격",
+     * 그 뒤로는 시간 단위로 반올림해서 "약 1시간 전 가격". 시계가 거꾸로 가 있으면 "방금 가져온 가격"
+     */
+    public static String formatPriceAge(long fetchedAt, long now) {
+        long minutes = Math.max(0, now - fetchedAt) / 60_000L;
+        if (minutes < 1) {
+            return "방금 가져온 가격";
+        }
+        if (minutes < 60) {
+            return "약 " + minutes + "분 전 가격";
+        }
+        return "약 " + Math.round(minutes / 60.0) + "시간 전 가격";
     }
 
     /** 1234.5(m) → "1.2km" */

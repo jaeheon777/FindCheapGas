@@ -256,8 +256,55 @@
     <string name="detail_price_unknown">가격 정보 없음</string>
     <string name="detail_info_no_distance">%1$s</string>
     <string name="favorite_title">즐겨찾기</string>
-    <string name="favorite_compare_title">집·회사 기준 비교 (준비 중)</string>
-    <string name="favorite_compare_body">지금 위치, 집 근처, 회사 근처 중 어디서 넣는 게 가장 이득인지 비교하는 기능이 들어갈 자리입니다.</string>
+    <string name="favorite_list_title">저장한 주유소</string>
+
+    <!-- 즐겨찾기 탭: 집·회사 기준 비교 -->
+    <string name="compare_title">집·회사 기준 비교</string>
+    <string name="compare_condition">%1$s · 반경 %2$s · 이득 1위 주유소</string>
+    <string name="compare_note">각 위치에서 출발한다고 볼 때의 예상 총비용입니다.</string>
+    <string name="compare_slot_current">지금 조회 위치 · %1$s</string>
+    <string name="compare_slot_home">집 근처 · %1$s</string>
+    <string name="compare_slot_work">회사 근처 · %1$s</string>
+    <string name="compare_slot_home_empty">집 근처</string>
+    <string name="compare_slot_work_empty">회사 근처</string>
+    <string name="compare_cheapest">가장 저렴</string>
+    <string name="compare_station_line">%1$s · %2$s</string>
+    <string name="compare_price_line">%1$s · %2$s</string>
+    <string name="compare_not_registered">설정에서 %1$s 위치를 등록하세요</string>
+    <string name="compare_register">등록</string>
+    <string name="compare_register_description">%1$s 위치 등록</string>
+    <string name="compare_waiting">지도 탭에서 주변을 조회하면 보여줍니다</string>
+    <string name="compare_loading">가격을 가져오는 중입니다</string>
+    <string name="compare_outside_mock">가짜 데이터는 강남역 주변에만 있어서 이 위치는 비교할 수 없습니다</string>
+    <string name="compare_empty_radius">반경 %1$s 안에 주유소가 없습니다</string>
+    <string name="compare_empty_hidden">반경 안의 주유소가 모두 숨긴 브랜드입니다</string>
+    <string name="compare_empty_filter">브랜드 필터에 맞는 주유소가 없습니다</string>
+    <string name="compare_error_daily_limit">오늘 조회 한도(300회)에 도달해 가격을 가져오지 못했습니다</string>
+    <string name="compare_error_network">인터넷에 연결할 수 없습니다. 당겨서 새로고침하면 다시 가져옵니다</string>
+    <string name="compare_error_opinet">가격을 가져오지 못했습니다. 당겨서 새로고침하면 다시 가져옵니다</string>
+    <string name="compare_card_description">%1$s. %2$s. 눌러서 지도에서 보기</string>
+
+    <!-- 집·회사 위치 화면 -->
+    <string name="place_settings_title">집·회사 위치</string>
+    <string name="place_settings_back">뒤로</string>
+    <string name="place_settings_description">등록하면 즐겨찾기 탭에서 지금 조회 위치, 집 근처, 회사 근처 중 어디서 넣는 게 예상 총비용이 가장 낮은지 비교합니다.</string>
+    <string name="place_settings_privacy">집·회사 위치는 이 기기에만 저장되고 다른 곳으로 보내지 않습니다. 정확한 집 주소 대신 근처 역이나 건물을 등록해도 됩니다.</string>
+    <string name="place_kind_home">집</string>
+    <string name="place_kind_work">회사</string>
+    <string name="place_not_registered">등록 안 함</string>
+    <string name="place_register">등록</string>
+    <string name="place_change">바꾸기</string>
+    <string name="place_remove">지우기</string>
+    <string name="place_register_description">%1$s 위치 등록</string>
+    <string name="place_change_description">%1$s 위치 바꾸기</string>
+    <string name="place_remove_description">%1$s 위치 지우기</string>
+    <string name="place_saved">%1$s 위치를 저장했습니다</string>
+    <string name="place_removed">%1$s 위치를 지웠습니다</string>
+    <string name="place_search_title">%1$s 위치 검색</string>
+    <string name="place_search_hint">역, 건물, 주소로 검색</string>
+    <string name="place_search_result_description">%1$s, %2$s, %3$s. 눌러서 이 위치로 저장</string>
+    <string name="settings_place_line">%1$s · %2$s</string>
+    <string name="settings_places_description">집·회사 위치. %1$s, %2$s. 눌러서 수정</string>
     <string name="favorite_condition">%1$s 가격 · %2$s 기준 거리와 예상 이득</string>
     <string name="favorite_empty">주유소 상세 화면에서 북마크를 누르면 여기에 모입니다</string>
     <string name="favorite_count">%1$d / %2$d곳</string>

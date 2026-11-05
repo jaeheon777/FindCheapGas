@@ -32,6 +32,7 @@ import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.model.StationSearchResult;
 import com.example.findcheapgas.model.UserLocation;
+import com.example.findcheapgas.util.PlaceCompareBuilder;
 import com.example.findcheapgas.util.StationListBuilder;
 
 import java.util.Collections;
@@ -57,6 +58,7 @@ import java.util.Set;
  *
  * MainActivity 범위로 만들어서 즐겨찾기 탭도 같은 ViewModel을 본다. 즐겨찾기 탭은 aroundStations(조회 위치, 유종,
  * 받아 둔 목록, 기준 주유소)로 같은 기준의 예상 이득을 계산하고, "지도에서 보기"는 showStationOnMap을 부른다.
+ * 집·회사 기준 비교 카드를 누르면 showSavedPlaceOnMap(집·회사 위치) 또는 selectBestStation(지금 조회 위치)을 부른다.
  */
 public class MapViewModel extends AndroidViewModel {
 
@@ -117,6 +119,8 @@ public class MapViewModel extends AndroidViewModel {
     // 주유소 이름 검색이나 즐겨찾기 "지도에서 보기"로 고른 주유소. 그 위치로 조회가 끝나면 선택하고 비운다.
     private String pendingSelectId;
     private String pendingSelectName;
+    // 집·회사 기준 비교 카드를 눌렀을 때. 그 위치로 조회가 끝나면 이득 1위 주유소를 선택하고 false로 돌린다.
+    private boolean pendingSelectBest = false;
     // 마지막으로 받은 5km 안 전체 목록 (정렬 전). 조회 전이거나 실패했으면 null
     private List<GasStation> fetchedStations;
     // fetchedStations를 조회한 위치와 유종
@@ -214,6 +218,7 @@ public class MapViewModel extends AndroidViewModel {
         }
         pendingSelectId = null;
         pendingSelectName = null;
+        pendingSelectBest = false;
         SearchOrigin requested = originState.selectMapCenter(mapCenterLatitude, mapCenterLongitude);
         setOrigin(requested);
         regionNameRepository.find(requested.getLatitude(), requested.getLongitude(), regionName -> {
@@ -354,6 +359,7 @@ public class MapViewModel extends AndroidViewModel {
     public void selectPlace(String name, double latitude, double longitude) {
         pendingSelectId = null;
         pendingSelectName = null;
+        pendingSelectBest = false;
         setOrigin(originState.selectPlace(name, latitude, longitude));
     }
 
@@ -370,7 +376,28 @@ public class MapViewModel extends AndroidViewModel {
         SearchOrigin changed = originState.selectPlace(name, latitude, longitude);
         pendingSelectId = stationId;
         pendingSelectName = name;
+        pendingSelectBest = false;
         setOrigin(changed);
+    }
+
+    /**
+     * 즐겨찾기 탭의 집·회사 기준 비교 카드. 그 위치를 조회 위치("집 기준", "회사 기준")로 주변을 조회하고,
+     * 끝나면 이득 1위 주유소를 선택한다. label은 화면에 보이는 이름("집", "회사")이고 장소 이름이나 주소가 아니다.
+     */
+    public void showSavedPlaceOnMap(String label, double latitude, double longitude) {
+        SearchOrigin changed = originState.selectPlace(label, latitude, longitude);
+        pendingSelectId = null;
+        pendingSelectName = null;
+        pendingSelectBest = true;
+        setOrigin(changed);
+    }
+
+    /** 즐겨찾기 탭의 "지금 조회 위치" 카드. 다시 조회하지 않고 지금 목록의 이득 1위 주유소를 선택한다. */
+    public void selectBestStation() {
+        StationSaving best = PlaceCompareBuilder.findBest(stations.getValue());
+        if (best != null) {
+            selectedStationId.setValue(best.getStation().getId());
+        }
     }
 
     /**
@@ -519,11 +546,16 @@ public class MapViewModel extends AndroidViewModel {
                 stationsLoading.setValue(false);
                 String selectId = pendingSelectId;
                 String selectName = pendingSelectName;
+                boolean selectBest = pendingSelectBest;
                 pendingSelectId = null;
                 pendingSelectName = null;
+                pendingSelectBest = false;
                 updateDisplayedStations(selectId);
                 if (selectId != null && findStation(selectId) == null) {
                     searchedStationMissing.setValue(selectName);
+                }
+                if (selectBest) {
+                    selectBestStation();
                 }
             }
 
@@ -535,6 +567,7 @@ public class MapViewModel extends AndroidViewModel {
                 fetchedStations = null;
                 pendingSelectId = null;
                 pendingSelectName = null;
+                pendingSelectBest = false;
                 selectedStationId.setValue(null);
                 stationsLoading.setValue(false);
                 stationsError.setValue(error);

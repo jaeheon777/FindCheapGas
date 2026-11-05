@@ -15,22 +15,25 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.SavedPlace;
+import com.example.findcheapgas.model.SavedPlaces;
 import com.example.findcheapgas.ui.brand.BrandSettingsActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
+import com.example.findcheapgas.ui.place.PlaceSettingsActivity;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.viewmodel.SettingsViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
 /**
- * 설정 탭. 지금은 내 차 정보와 내 브랜드가 있고, 나머지 항목은 "준비 중"으로 보여준다.
- * 내 차 정보를 누르면 수정 화면(OnboardingActivity 수정 모드)이, 내 브랜드를 누르면 내 브랜드 화면이 열린다.
+ * 설정 탭. 지금은 내 차 정보, 내 브랜드, 집·회사 위치가 있고, 나머지 항목은 "준비 중"으로 보여준다.
+ * 내 차 정보를 누르면 수정 화면(OnboardingActivity 수정 모드)이, 내 브랜드를 누르면 내 브랜드 화면이,
+ * 집·회사 위치를 누르면 집·회사 위치 화면(PlaceSettingsActivity)이 열린다.
  * 값은 각 Repository의 LiveData를 보고 그리므로 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
  */
 public class SettingsFragment extends Fragment {
 
     // 아직 만들지 않은 설정 항목 (README 화면 구성 순서)
     private static final int[] COMING_SOON_ITEMS = {
-            R.string.settings_places,
             R.string.settings_default_filter,
             R.string.settings_dark_mode,
             R.string.settings_api_usage,
@@ -45,6 +48,9 @@ public class SettingsFragment extends Fragment {
     private View resetButton;
     private View brandCard;
     private TextView brandSummary;
+    private View placesCard;
+    private TextView placesHome;
+    private TextView placesWork;
 
     public SettingsFragment() {
         super(R.layout.fragment_settings);
@@ -75,10 +81,31 @@ public class SettingsFragment extends Fragment {
         brandCard.setOnClickListener(v ->
                 startActivity(BrandSettingsActivity.createIntent(requireContext())));
 
+        placesCard = view.findViewById(R.id.settings_places_card);
+        placesHome = view.findViewById(R.id.settings_places_home);
+        placesWork = view.findViewById(R.id.settings_places_work);
+        placesCard.setOnClickListener(v ->
+                startActivity(PlaceSettingsActivity.createIntent(requireContext())));
+
         addComingSoonItems(view.findViewById(R.id.settings_coming_soon_list));
 
         viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::showCarInfo);
         viewModel.getBrandSettings().observe(getViewLifecycleOwner(), this::showBrandSummary);
+        viewModel.getPlaces().observe(getViewLifecycleOwner(), this::showPlaces);
+    }
+
+    /** "집 · 선릉역", 등록하지 않았으면 "집 · 등록 안 함" */
+    private void showPlaces(@Nullable SavedPlaces places) {
+        String home = placeLine(R.string.place_kind_home, places != null ? places.get(SavedPlace.Kind.HOME) : null);
+        String work = placeLine(R.string.place_kind_work, places != null ? places.get(SavedPlace.Kind.WORK) : null);
+        placesHome.setText(home);
+        placesWork.setText(work);
+        placesCard.setContentDescription(getString(R.string.settings_places_description, home, work));
+    }
+
+    private String placeLine(@StringRes int kindLabel, @Nullable SavedPlace place) {
+        return getString(R.string.settings_place_line, getString(kindLabel),
+                place != null ? place.getName() : getString(R.string.place_not_registered));
     }
 
     /** "할인 2곳 · 선호 1곳 · 숨김 1곳", 아무것도 없으면 "설정한 브랜드 없음" */

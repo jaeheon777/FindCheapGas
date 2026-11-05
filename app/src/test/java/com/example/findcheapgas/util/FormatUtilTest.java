@@ -107,4 +107,25 @@ public class FormatUtilTest {
         assertEquals("선호 1곳", FormatUtil.formatBrandSummary(
                 BrandSettings.EMPTY.with("SKE", new BrandSetting(0, null, true, false))));
     }
+
+    @Test
+    public void compareTotalAndExtraCost() {
+        assertEquals("예상 총비용 약 66,174원", FormatUtil.formatTotalCost(66174.3));
+        assertEquals("약 1,200원 더 듦", FormatUtil.formatExtraCost(1200));
+    }
+
+    @Test
+    public void priceAge() {
+        long now = 1_800_000_000_000L;
+        long minute = 60_000L;
+        assertEquals("방금 가져온 가격", FormatUtil.formatPriceAge(now - 30_000L, now));
+        assertEquals("약 1분 전 가격", FormatUtil.formatPriceAge(now - minute, now));
+        assertEquals("약 25분 전 가격", FormatUtil.formatPriceAge(now - 25 * minute, now));
+        assertEquals("약 1시간 전 가격", FormatUtil.formatPriceAge(now - 60 * minute, now));
+        assertEquals("약 1시간 전 가격", FormatUtil.formatPriceAge(now - 89 * minute, now));
+        assertEquals("약 2시간 전 가격", FormatUtil.formatPriceAge(now - 90 * minute, now));
+        assertEquals("약 3시간 전 가격", FormatUtil.formatPriceAge(now - 180 * minute, now));
+        // 기기 시계가 거꾸로 가 있어도 음수로 보이지 않는다.
+        assertEquals("방금 가져온 가격", FormatUtil.formatPriceAge(now + 5 * minute, now));
+    }
 }

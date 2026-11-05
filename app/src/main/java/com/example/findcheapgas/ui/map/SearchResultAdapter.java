@@ -13,27 +13,37 @@ import com.example.findcheapgas.R;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 검색 결과 시트의 목록. 장소(이름, 분류, 주소)와 주유소(상호, 브랜드, 주소)를 같은 줄 모양으로 보여준다. */
-class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.Holder> {
+/**
+ * 검색 결과 목록. 장소(이름, 분류, 주소)와 주유소(상호, 브랜드, 주소)를 같은 줄 모양으로 보여준다.
+ * 지도 탭 검색 결과 시트와 집·회사 위치 검색 시트가 같이 쓴다.
+ */
+public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.Holder> {
 
     /** 한 줄에 보여줄 내용과 눌렀을 때 할 일 */
-    static final class Row {
+    public static final class Row {
         final String name;
         final String tag;
         final String address;
         final Runnable onClick;
+        // 화면 읽기 프로그램용 설명. null이면 지도 탭 검색 결과 설명("눌러서 이 위치 기준으로 보기")
+        final String description;
 
-        Row(String name, String tag, String address, Runnable onClick) {
+        public Row(String name, String tag, String address, Runnable onClick) {
+            this(name, tag, address, onClick, null);
+        }
+
+        public Row(String name, String tag, String address, Runnable onClick, String description) {
             this.name = name;
             this.tag = tag;
             this.address = address;
             this.onClick = onClick;
+            this.description = description;
         }
     }
 
     private final List<Row> rows = new ArrayList<>();
 
-    void submit(List<Row> newRows) {
+    public void submit(List<Row> newRows) {
         rows.clear();
         rows.addAll(newRows);
         notifyDataSetChanged();
@@ -54,7 +64,8 @@ class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapter.Holde
         holder.tag.setVisibility(row.tag.isEmpty() ? View.GONE : View.VISIBLE);
         holder.address.setText(row.address);
         holder.address.setVisibility(row.address.isEmpty() ? View.GONE : View.VISIBLE);
-        holder.itemView.setContentDescription(holder.itemView.getContext().getString(
+        holder.itemView.setContentDescription(row.description != null ? row.description
+                : holder.itemView.getContext().getString(
                 R.string.search_result_description, row.name, row.tag, row.address));
         holder.itemView.setOnClickListener(v -> row.onClick.run());
     }

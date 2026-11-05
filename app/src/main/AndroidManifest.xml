@@ -47,6 +47,11 @@
             android:name=".ui.brand.BrandSettingsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <!-- 집·회사 위치 (설정 탭, 즐겨찾기 탭 비교 카드에서 연다). 검색 시트에 입력할 때 키보드가 시트를 가리지 않게 한다. -->
+        <activity
+            android:name=".ui.place.PlaceSettingsActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

@@ -3,6 +3,7 @@
     설정 탭. 위에서부터
     - 내 차 정보: 연비, 평소 주유량, 기본값 사용 여부 (누르면 수정 화면), 기본값으로 되돌리기
     - 내 브랜드: 할인·선호·숨김 요약 (누르면 내 브랜드 화면)
+    - 집·회사 위치: 등록한 장소 이름 또는 "등록 안 함" (누르면 집·회사 위치 화면)
     - 다른 설정: 아직 준비 중인 항목 (코드에서 채운다)
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
@@ -151,6 +152,60 @@
                 app:drawableEndCompat="@drawable/ic_chevron_right"
                 app:drawableTint="?attr/colorOnSurfaceVariant"
                 tools:text="할인 2곳 · 선호 1곳 · 숨김 1곳" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            style="@style/Widget.FindCheapGas.SettingsSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_places" />
+
+        <!-- 집·회사 위치: 집 / 회사 장소 이름 (없으면 등록 안 함), 누르면 집·회사 위치 화면 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/settings_places_card"
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/settings_places_home"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        tools:text="집 · 선릉역" />
+
+                    <TextView
+                        android:id="@+id/settings_places_work"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        tools:text="회사 · 등록 안 함" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="12dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_chevron_right"
+                    app:tint="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <TextView

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    집·회사 기준 비교 카드 한 장 (즐겨찾기 탭 위쪽).
+    - 제목 (지금 조회 위치 · 강남역 / 집 근처 · 선릉역 / 회사 근처 · 양재역)과 오른쪽 표시 (가장 저렴 / 약 1,200원 더 듦)
+    - 이득 1위 주유소: 상호 · 브랜드, 가격 · 그 위치에서 거리, 예상 총비용, 가격을 가져온 시각
+    - 이득 1위가 없으면 이유 (등록 안 함, 가져오는 중, 주유소 없음, 한도 도달, 오류)와 등록 버튼
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="?attr/materialCardViewOutlinedStyle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/compare_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="집 근처 · 선릉역" />
+
+            <!-- 가장 저렴 -->
+            <TextView
+                android:id="@+id/compare_cheapest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_best_badge"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1dp"
+                android:text="@string/compare_cheapest"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="@color/badge_best_text"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- 약 1,200원 더 듦 -->
+            <TextView
+                android:id="@+id/compare_extra"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="@color/saving_loss_text"
+                android:visibility="gone"
+                tools:text="약 1,200원 더 듦" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/compare_station"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            tools:text="테헤란로주유소 · GS칼텍스" />
+
+        <TextView
+            android:id="@+id/compare_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            tools:text="1,639원 · 0.8km" />
+
+        <TextView
+            android:id="@+id/compare_total"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textStyle="bold"
+            tools:text="예상 총비용 약 66,174원" />
+
+        <TextView
+            android:id="@+id/compare_age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            tools:text="약 1시간 전 가격" />
+
+        <!-- 이득 1위가 없을 때 이유 -->
+        <TextView
+            android:id="@+id/compare_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:text="설정에서 집 위치를 등록하세요" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/compare_register"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/compare_register"
+            android:visibility="gone" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
