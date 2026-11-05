@@ -331,7 +331,9 @@ app/src/main/java/com/example/findcheapgas/
 │   │       ├── KakaoLocalResponse.java 응답 해석 (장소 이름, 주소, 마지막 분류, 좌표. 좌표 없는 항목 제외)
 │   │       └── KakaoException.java 카카오 오류 응답 (401·403 키 오류, 그 밖의 HTTP 오류, 형식 오류)
 │   ├── local/                    기기에 저장하는 데이터
-│   │   ├── AppDatabase.java      Room DB
+│   │   ├── AppDatabase.java      Room DB (버전 4, 버전별 Migration, 캐시만 있던 버전 1·2에서 올라올 때만 새로 만듦)
+│   │   ├── FavoriteStationEntity.java 즐겨찾기 한 곳 (주유소 ID, 상호, 브랜드, 주소, KATEC·WGS84 좌표, 저장한 시각. 가격은 저장하지 않음)
+│   │   ├── FavoriteStationDao.java 즐겨찾기 조회(최근 저장순), 개수, 추가, 삭제, 주소 채우기
 │   │   ├── StationCacheEntity.java 주변 주유소 조회 결과 캐시 (위치·유종별 5km 안 전체 목록, 20분)
 │   │   ├── StationCacheDao.java  캐시 조회, 저장, 오래된 캐시 삭제
 │   │   ├── StationDetailCacheEntity.java 주유소 상세정보 캐시 (주유소 ID별, 30분)
@@ -393,6 +395,9 @@ app/src/main/java/com/example/findcheapgas/
 
 app/src/main/assets/mock/         가짜 데이터 (강남역 주변 5km, 유종별 around_B027.json 등)
 app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모든 주유소, 주유소 ID별 A0900001.json 등)
+app/schemas/                      Room 스키마 JSON (버전별, 다음 마이그레이션을 검증하는 기준)
+app/src/androidTest/java/com/example/findcheapgas/data/local/
+└── AppDatabaseMigrationTest.java 마이그레이션 테스트 (버전 3 → 4에서 즐겨찾기 표 생성과 캐시 유지, 버전 2는 새로 만듦)
 app/src/test/java/com/example/findcheapgas/util/
 └── RoadDistanceCheckTest.java    도로 거리 계수 측정 (강남역 → 실제 주유소, 직선거리와 카카오 길찾기 도로 거리 비교, -ProadDistanceCheck=true일 때만 실행)
 docs/road-distance-check.csv      도로 거리 계수 측정 결과 (주유소, 직선거리, 도로 거리, 비율)

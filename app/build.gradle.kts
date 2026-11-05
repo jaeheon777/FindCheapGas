@@ -38,12 +38,24 @@ android {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
 
+        // Room 스키마를 app/schemas/{DB 클래스}/{버전}.json으로 내보낸다. 커밋해 두고 다음 마이그레이션 테스트의 기준으로 쓴다.
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+            }
+        }
+
         buildConfigField("String", "OPINET_API_KEY", quoted(localProperty("OPINET_API_KEY")))
         buildConfigField("String", "KAKAO_NATIVE_APP_KEY", quoted(localProperty("KAKAO_NATIVE_APP_KEY")))
         buildConfigField("String", "KAKAO_REST_API_KEY", quoted(localProperty("KAKAO_REST_API_KEY")))
         // "false"라고 적은 경우에만 실제 API를 사용한다.
         val useMockData = !localProperty("USE_MOCK_DATA", "true").equals("false", ignoreCase = true)
         buildConfigField("boolean", "USE_MOCK_DATA", useMockData.toString())
+    }
+
+    // 마이그레이션 테스트(MigrationTestHelper)가 내보낸 스키마 JSON을 읽을 수 있게 androidTest assets에 넣는다.
+    sourceSets {
+        getByName("androidTest").assets.srcDir("$projectDir/schemas")
     }
 
     buildFeatures {
@@ -100,8 +112,10 @@ dependencies {
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.livedata)
     implementation(libs.core.splashscreen)
+    implementation(libs.swiperefreshlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.room.testing)
 }
