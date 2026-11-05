@@ -49,7 +49,8 @@ public class BrandFilterSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(requireParentFragment()).get(MapViewModel.class);
+        // MapFragment와 같은 Activity 범위 ViewModel을 써야 고른 필터가 지도 목록에 바로 반영된다.
+        viewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
         options = view.findViewById(R.id.brand_filter_options);
         viewModel.getBrandFilter().observe(getViewLifecycleOwner(), filter -> render());
         viewModel.getBrandSettings().observe(getViewLifecycleOwner(), settings -> render());

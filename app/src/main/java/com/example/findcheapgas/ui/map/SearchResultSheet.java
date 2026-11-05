@@ -56,9 +56,9 @@ public class SearchResultSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ViewModelProvider provider = new ViewModelProvider(requireParentFragment());
-        searchViewModel = provider.get(SearchViewModel.class);
-        mapViewModel = provider.get(MapViewModel.class);
+        // 검색 상태는 지도 탭 범위, 조회 위치는 MapFragment와 같은 Activity 범위 ViewModel을 쓴다.
+        searchViewModel = new ViewModelProvider(requireParentFragment()).get(SearchViewModel.class);
+        mapViewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
 
         title = view.findViewById(R.id.search_results_title);
         note = view.findViewById(R.id.search_results_note);
