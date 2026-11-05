@@ -30,6 +30,18 @@
     </style>
 
     <!-- 상세 화면의 구역 제목 (주소, 전화, 유종별 가격, 부가시설) -->
+    <!-- 길찾기 앱 선택창의 한 줄 (앱 이름, 설치 여부) -->
+    <style name="Widget.FindCheapGas.RouteAppRow" parent="">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
     <style name="Widget.FindCheapGas.DetailSectionTitle" parent="">
         <item name="android:layout_marginTop">24dp</item>
         <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>

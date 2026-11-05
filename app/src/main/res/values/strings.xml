@@ -159,6 +159,15 @@
     <string name="detail_average_title">평균가 대비</string>
     <string name="detail_trend_title">7일 가격 추이</string>
     <string name="detail_route">길찾기</string>
+    <string name="detail_route_description">길찾기. 카카오맵이나 티맵을 열고 이 주유소를 목적지로 넣습니다</string>
+    <string name="route_app_title">길찾기 앱 선택</string>
+    <string name="route_app_kakao_map">카카오맵</string>
+    <string name="route_app_tmap">티맵</string>
+    <string name="route_app_installed">설치됨</string>
+    <string name="route_app_not_installed">설치 필요</string>
+    <string name="route_app_row_description">%1$s, %2$s</string>
+    <string name="route_app_note">길안내는 고른 앱에서 합니다. 설치되지 않은 앱을 고르면 설치 페이지로 이동합니다.</string>
+    <string name="route_app_open_failed">길찾기 앱이나 설치 페이지를 열 수 없습니다</string>
 
     <!-- 내 차 정보 입력 (처음 실행, 수정) -->
     <string name="onboarding_heading">내 차 정보를 알려 주세요</string>

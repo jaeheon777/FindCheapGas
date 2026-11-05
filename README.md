@@ -304,7 +304,8 @@ app/src/main/java/com/example/findcheapgas/
 │   │   ├── SearchResultAdapter.java 검색 결과 목록 (장소: 이름, 분류, 주소 / 주유소: 상호, 브랜드, 주소)
 │   │   └── BrandFilterSheet.java 브랜드 빠른 필터 시트 (전체 / 할인 브랜드만 / 선호 브랜드만 / 브랜드별 체크, 숨긴 브랜드 제외, 바로 적용)
 │   ├── detail/
-│   │   └── StationDetailActivity.java 주유소 상세 화면 (기본 정보와 조회 위치에서 거리, 예상 이득 계산 내역, 주소, 전화, 유종별 가격, 부가시설, 즐겨찾기 버튼(북마크, 누를 때마다 추가 / 삭제), 즐겨찾기 탭에서 열면 지도에서 보기, 나중에 들어갈 자리)
+│   │   ├── StationDetailActivity.java 주유소 상세 화면 (기본 정보와 조회 위치에서 거리, 예상 이득 계산 내역, 주소, 전화, 유종별 가격, 부가시설, 즐겨찾기 버튼(북마크, 누를 때마다 추가 / 삭제), 즐겨찾기 탭에서 열면 지도에서 보기, 길찾기 버튼, 나중에 들어갈 자리)
+│   │   └── RouteAppLauncher.java 길찾기 앱 선택창 (카카오맵 / 티맵, 설치됨 / 설치 필요 표시, 설치됐으면 URL 스킴으로 열고 아니면 플레이스토어 → 웹 설치 페이지, ActivityNotFoundException이면 다음 방법)
 │   ├── onboarding/
 │   │   └── OnboardingActivity.java 내 차 정보 입력 (처음 실행: 연비, 주유량, 주로 넣는 유종, 저장하고 시작 / 건너뛰기, 수정: 저장 / 취소)
 │   ├── brand/
@@ -408,6 +409,7 @@ app/src/main/java/com/example/findcheapgas/
     ├── FavoriteListBuilder.java  즐겨찾기 탭 목록 (조회 위치에서 거리, 5km 안이면 지도 탭과 같은 기준 주유소로 예상 이득)
     ├── StationDistances.java     주유소 거리를 조회 위치 기준으로 다시 계산
     ├── StationSearchResults.java 주유소 이름 검색 결과 중 보여줄 것 (숨긴 브랜드 제외, 최대 30곳)
+    ├── RouteLinks.java           길찾기 외부 앱 주소 (카카오맵 ep=위도,경도 / 티맵 goalx=경도, goaly=위도와 URL 인코딩한 주유소명, 플레이스토어·웹 설치 페이지, 설치 여부에 따른 시도 순서)
     ├── StationListBuilder.java   받아 둔 전체 목록 → 반경 필터 → 숨긴 브랜드 제외 → 브랜드 빠른 필터 → 예상 이득 계산(브랜드 할인) → 정렬 → 화면 목록, 목록이 빈 이유
     └── KeyHashUtil.java          앱 서명 키 해시 계산 (카카오 디벨로퍼스 등록용)
 
@@ -478,7 +480,8 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 - [x] 2단계 - 도로 거리 계수 검증 (표본 주유소 실제 도로 거리와 비교)
 - [x] 3단계 - 장소 검색, 주유소 이름 검색
 - [x] 3단계 - 즐겨찾기
-- [ ] 3단계 - 길찾기 연동, 이 지역에서 다시 검색
+- [x] 3단계 - 이 지역에서 다시 검색, 길찾기 연동(에뮬레이터 확인)
+- [ ] 3단계 - 길찾기 실제 기기 확인(카카오맵, 티맵)
 - [ ] 4단계 - 집·회사 기준 비교
 - [ ] 4단계 - 홈 화면 위젯
 - [ ] 4단계 - 7일 가격 추이, 평균가 비교

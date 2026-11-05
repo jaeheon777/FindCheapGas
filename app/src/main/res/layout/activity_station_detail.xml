@@ -6,7 +6,7 @@
     - 상세 조회 상태: 불러오는 중, 오류와 다시 시도
     - 상세 정보: 주소, 전화, 유종별 가격, 부가시설 (상세 조회 결과가 오면 표시)
     - 나중에 들어갈 자리 (지금은 숨김)
-    - 아래 버튼 줄: 즐겨찾기, 지도에서 보기 (즐겨찾기 탭에서 열었을 때)
+    - 아래 버튼 줄: 즐겨찾기, 지도에서 보기 (즐겨찾기 탭에서 열었을 때), 길찾기
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -326,7 +326,7 @@
         아래 버튼 줄 (코드에서 보이게 한다)
         - 즐겨찾기: 북마크 아이콘 (채움 = 즐겨찾기됨, 비움 = 아님), 누를 때마다 추가 / 삭제
         - 지도에서 보기: 즐겨찾기 탭에서 열었을 때만 보인다.
-        - 길찾기: 3단계 길찾기 연동 때 보이게 한다 (카카오맵 / 티맵 중 선택해서 외부 앱을 연다).
+        - 길찾기: 카카오맵 / 티맵 중 고르면 외부 앱을 열고 목적지를 넣는다 (좌표가 없으면 숨김).
     -->
     <LinearLayout
         android:id="@+id/detail_actions"
@@ -362,8 +362,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
+            android:contentDescription="@string/detail_route_description"
             android:text="@string/detail_route"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:icon="@drawable/ic_directions" />
     </LinearLayout>
 
 </LinearLayout>

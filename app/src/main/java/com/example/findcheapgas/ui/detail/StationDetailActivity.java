@@ -222,8 +222,8 @@ public class StationDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * 아래 버튼 줄: 즐겨찾기(북마크, 누를 때마다 추가 / 삭제), 즐겨찾기 탭에서 열었으면 "지도에서 보기".
-     * 길찾기는 아직 숨겨 둔다.
+     * 아래 버튼 줄: 즐겨찾기(북마크, 누를 때마다 추가 / 삭제), 즐겨찾기 탭에서 열었으면 "지도에서 보기",
+     * 길찾기(카카오맵 / 티맵 선택창, 좌표가 없으면 숨김).
      */
     private void setUpActions(Intent intent, String stationId) {
         favoriteButton = findViewById(R.id.detail_favorite_button);
@@ -240,7 +240,26 @@ public class StationDetailActivity extends AppCompatActivity {
                     .putExtra(EXTRA_LONGITUDE, intent.getDoubleExtra(EXTRA_LONGITUDE, 0)));
             finish();
         });
+        setUpRouteButton(intent);
         findViewById(R.id.detail_actions).setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 길찾기: 카카오맵 / 티맵 중 고르면 그 앱을 열고 이 주유소를 목적지로 넣는다 (설치 안 됐으면 설치 페이지).
+     * 좌표는 오피넷 KATEC이 아니라 변환해 둔 WGS84 위도·경도를 넘긴다. 출발지는 넘기지 않는다.
+     */
+    private void setUpRouteButton(Intent intent) {
+        View routeButton = findViewById(R.id.detail_route_button);
+        double latitude = intent.getDoubleExtra(EXTRA_LATITUDE, 0);
+        double longitude = intent.getDoubleExtra(EXTRA_LONGITUDE, 0);
+        if (latitude == 0 || longitude == 0) {
+            routeButton.setVisibility(View.GONE); // 좌표가 없으면 목적지를 넣을 수 없다.
+            return;
+        }
+        String name = intent.getStringExtra(EXTRA_NAME);
+        routeButton.setVisibility(View.VISIBLE);
+        routeButton.setOnClickListener(v ->
+                RouteAppLauncher.showChooser(this, name != null ? name : "", latitude, longitude));
     }
 
     /** 즐겨찾기로 저장할 값. 주소는 상세 조회가 끝났으면 그 주소, 아니면 넘겨받은 주소(없으면 null). */
