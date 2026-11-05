@@ -288,7 +288,7 @@
     <string name="place_settings_title">집·회사 위치</string>
     <string name="place_settings_back">뒤로</string>
     <string name="place_settings_description">등록하면 즐겨찾기 탭에서 지금 조회 위치, 집 근처, 회사 근처 중 어디서 넣는 게 예상 총비용이 가장 낮은지 비교합니다.</string>
-    <string name="place_settings_privacy">집·회사 위치는 이 기기에만 저장되고 다른 곳으로 보내지 않습니다. 정확한 집 주소 대신 근처 역이나 건물을 등록해도 됩니다.</string>
+    <string name="place_settings_privacy">집·회사 위치는 이 기기에만 저장되고 백업에도 포함되지 않습니다. 위치를 검색할 때는 검색어를 카카오에, 주변 주유소를 찾을 때는 좌표만 오피넷에 보냅니다. 정확한 집 주소 대신 근처 역이나 건물을 등록해도 됩니다.</string>
     <string name="place_kind_home">집</string>
     <string name="place_kind_work">회사</string>
     <string name="place_not_registered">등록 안 함</string>
