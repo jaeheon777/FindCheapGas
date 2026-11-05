@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older that API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+   Android 11(API 30) 이하의 백업 규칙. API 31 이상은 data_extraction_rules.xml을 쓴다.
+   앱 DB(findcheapgas.db)에는 집·회사 위치가 들어 있어서 백업에서 뺀다.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <exclude domain="database" path="findcheapgas.db" />
+    <exclude domain="database" path="findcheapgas.db-wal" />
+    <exclude domain="database" path="findcheapgas.db-shm" />
+    <exclude domain="database" path="findcheapgas.db-journal" />
 </full-backup-content>

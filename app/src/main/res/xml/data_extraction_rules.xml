@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+   Android 12(API 31) 이상의 백업 규칙.
+   앱 DB(findcheapgas.db)에는 집·회사 위치가 들어 있어서 클라우드 백업과 기기 이전에서 뺀다.
+   이 규칙에 따라 즐겨찾기도 같은 DB에 있으므로 백업되지 않는다. 그 밖의 설정(SharedPreferences)은 그대로 백업된다.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="database" path="findcheapgas.db" />
+        <exclude domain="database" path="findcheapgas.db-wal" />
+        <exclude domain="database" path="findcheapgas.db-shm" />
+        <exclude domain="database" path="findcheapgas.db-journal" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="database" path="findcheapgas.db" />
+        <exclude domain="database" path="findcheapgas.db-wal" />
+        <exclude domain="database" path="findcheapgas.db-shm" />
+        <exclude domain="database" path="findcheapgas.db-journal" />
     </device-transfer>
-    -->
 </data-extraction-rules>

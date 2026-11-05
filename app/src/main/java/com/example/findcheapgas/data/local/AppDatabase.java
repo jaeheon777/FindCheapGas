@@ -10,20 +10,22 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 /**
- * 앱 로컬 DB. 주변 주유소 조회, 상세정보, 주유소 이름 검색 캐시와 즐겨찾기가 있다.
+ * 앱 로컬 DB. 주변 주유소 조회, 상세정보, 주유소 이름 검색 캐시와 즐겨찾기, 집·회사 위치가 있다.
+ * 이 기기에만 저장한다. 집·회사 위치가 들어 있어서 DB 파일은 클라우드 백업과 기기 이전에서 뺀다 (res/xml의 백업 규칙).
  * 버전 2: 상세정보 캐시 추가
  * 버전 3: 주유소 이름 검색 캐시 추가
  * 버전 4: 즐겨찾기 추가 (처음으로 사용자가 저장한 데이터가 들어감)
+ * 버전 5: 집·회사 위치 추가 (사용자가 저장한 데이터)
  *
  * 마이그레이션 규칙
  * - 버전을 올릴 때마다 Migration(이전, 다음)을 작성해 MIGRATIONS에 넣는다. 스키마는 app/schemas에 내보내 커밋한다.
  * - 캐시 표(station_*_cache)는 다시 받으면 되므로 Migration에서 지우고 새로 만들어도 된다.
- * - 즐겨찾기처럼 사용자가 저장한 표는 데이터를 반드시 옮겨서 보존한다.
+ * - 즐겨찾기, 집·회사 위치처럼 사용자가 저장한 표는 데이터를 반드시 옮겨서 보존한다.
  * - 캐시만 있던 버전 1, 2에서 올라올 때만 DB를 지우고 새로 만든다 (그때는 사용자 데이터가 없었다).
  */
 @Database(entities = {StationCacheEntity.class, StationDetailCacheEntity.class, StationSearchCacheEntity.class,
-        FavoriteStationEntity.class},
-        version = 4, exportSchema = true)
+        FavoriteStationEntity.class, SavedPlaceEntity.class},
+        version = 5, exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DB_NAME = "findcheapgas.db";
@@ -41,7 +43,19 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
-    public static final Migration[] MIGRATIONS = {MIGRATION_3_4};
+    /** 4 → 5: 집·회사 위치 표를 만든다. 즐겨찾기와 캐시 표는 그대로 둔다. */
+    public static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            // app/schemas/.../5.json의 createSql과 같아야 Room이 열 때 검사를 통과한다.
+            db.execSQL("CREATE TABLE IF NOT EXISTS `saved_place` ("
+                    + "`kind` TEXT NOT NULL, `name` TEXT NOT NULL, `address` TEXT, "
+                    + "`latitude` REAL NOT NULL, `longitude` REAL NOT NULL, "
+                    + "`savedAt` INTEGER NOT NULL, PRIMARY KEY(`kind`))");
+        }
+    };
+
+    public static final Migration[] MIGRATIONS = {MIGRATION_3_4, MIGRATION_4_5};
 
     private static volatile AppDatabase instance;
 
@@ -52,6 +66,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract StationSearchCacheDao stationSearchCacheDao();
 
     public abstract FavoriteStationDao favoriteStationDao();
+
+    public abstract SavedPlaceDao savedPlaceDao();
 
     public static AppDatabase getInstance(Context context) {
         if (instance == null) {
