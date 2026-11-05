@@ -129,6 +129,7 @@ public class MapFragment extends Fragment {
     private TextView bannerText;
     private MaterialButton bannerButton;
     private FloatingActionButton myLocationButton;
+    private View researchButton;
     private View mapLegend;
 
     private MaterialButtonToggleGroup searchModeGroup;
@@ -177,6 +178,8 @@ public class MapFragment extends Fragment {
 
         bannerButton.setOnClickListener(v -> onBannerButtonClick());
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
+        researchButton = view.findViewById(R.id.btn_research);
+        researchButton.setOnClickListener(v -> viewModel.researchMapCenter());
 
         setUpStationSheet(view);
         setUpSearch(view);
@@ -190,8 +193,12 @@ public class MapFragment extends Fragment {
 
         // 내 위치는 파란 점만 옮기고, 지도는 조회 위치(내 위치 또는 검색한 장소)로 옮긴다.
         viewModel.getLocation().observe(getViewLifecycleOwner(), this::updateMyLocationLabel);
+        // 지도 중심 기준("이 지역에서 다시 검색")이면 지도가 이미 그 자리에 있으므로 옮기지 않는다 (확대 수준도 그대로).
+        // 동 이름이 나중에 붙을 때도 여기로 오는데, 그때도 지도를 옮기지 않는다.
         viewModel.getOrigin().observe(getViewLifecycleOwner(), origin -> {
-            moveCameraToOrigin(origin, true);
+            if (origin != null && !origin.isMapCenter()) {
+                moveCameraToOrigin(origin, true);
+            }
             renderOriginChip(origin);
             renderFilters();
         });
@@ -207,6 +214,8 @@ public class MapFragment extends Fragment {
                 viewModel.onSearchedStationMissingShown();
             }
         });
+        viewModel.getResearchAvailable().observe(getViewLifecycleOwner(), show ->
+                researchButton.setVisibility(Boolean.TRUE.equals(show) ? View.VISIBLE : View.GONE));
         viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
         viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBanner());
         viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBanner());
@@ -283,6 +292,7 @@ public class MapFragment extends Fragment {
         mainHandler.removeCallbacksAndMessages(null);
         searchInput = null;
         searchModeGroup = null;
+        researchButton = null;
         mapView = null;
         kakaoMap = null;
         myLocationStyles = null;
@@ -395,6 +405,15 @@ public class MapFragment extends Fragment {
                         return true;
                     });
                     stationMarkers = StationMarkers.create(requireContext(), map);
+                    // 지도를 움직여도 조회하지 않는다. 이동이 끝나면 지도 중심만 알려서 다시 검색 버튼을 보여줄지 정한다.
+                    map.setOnCameraMoveEndListener((movedMap, position, gestureType) -> {
+                        LatLng center = position.getPosition();
+                        mainHandler.post(() -> {
+                            if (getView() != null) {
+                                viewModel.onMapMoved(center.getLatitude(), center.getLongitude());
+                            }
+                        });
+                    });
 
                     moveCameraToOrigin(viewModel.getOrigin().getValue(), false);
                     updateMyLocationLabel(viewModel.getLocation().getValue());
@@ -854,19 +873,19 @@ public class MapFragment extends Fragment {
         searchInput.clearFocus();
     }
 
-    /** 검색한 장소·주유소 기준일 때만 "강남역 기준" 칩을 보여준다. */
+    /** 검색한 장소·주유소, 지도 중심 기준일 때만 "강남역 기준", "역삼1동 기준" 칩을 보여준다. */
     private void renderOriginChip(SearchOrigin origin) {
-        if (origin == null || !origin.isPlace()) {
+        if (origin == null || !origin.isFixed()) {
             originChip.setVisibility(View.GONE);
             return;
         }
-        String text = getString(R.string.origin_chip, origin.getName());
-        originChip.setText(text);
-        originChip.setContentDescription(getString(R.string.origin_chip_description, origin.getName()));
+        String name = originLabel(origin);
+        originChip.setText(getString(R.string.origin_chip, name));
+        originChip.setContentDescription(getString(R.string.origin_chip_description, name));
         originChip.setVisibility(View.VISIBLE);
     }
 
-    /** 조회 위치 이름: 검색한 장소 이름, 내 위치, 기본 위치(서울시청) */
+    /** 조회 위치 이름: 검색한 장소 이름, 지도 중심의 동 이름(모르면 "지도 중심"), 내 위치, 기본 위치(서울시청) */
     private String originLabel(SearchOrigin origin) {
         return OriginLabels.of(requireContext(), origin);
     }

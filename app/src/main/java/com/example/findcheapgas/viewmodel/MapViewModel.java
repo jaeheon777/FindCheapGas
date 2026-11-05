@@ -16,6 +16,7 @@ import com.example.findcheapgas.data.repository.CarInfoRepository;
 import com.example.findcheapgas.data.repository.FavoriteRepository;
 import com.example.findcheapgas.model.AroundStations;
 import com.example.findcheapgas.data.repository.LocationRepository;
+import com.example.findcheapgas.data.repository.RegionNameRepository;
 import com.example.findcheapgas.data.repository.StationRepository;
 import com.example.findcheapgas.model.BrandFilter;
 import com.example.findcheapgas.model.BrandSettings;
@@ -40,8 +41,10 @@ import java.util.Set;
 /**
  * 지도 탭의 화면 상태를 가진다.
  * - 위치: 현재 좌표(지도 위 파란 점), 권한 상태, 위치 조회 중 여부, 기기 위치 켜짐 여부
- * - 조회 위치: 현재 위치 또는 검색한 장소·주유소 (SearchOriginState). 주변 조회, 거리, 이동 비용, 기준 주유소,
- *   예상 이득은 모두 조회 위치 기준이다. 장소 기준일 때 내 위치를 새로 받아도 조회 위치는 그대로다.
+ * - 조회 위치: 현재 위치, 검색한 장소·주유소, 지도 중심 (SearchOriginState). 주변 조회, 거리, 이동 비용, 기준 주유소,
+ *   예상 이득은 모두 조회 위치 기준이다. 장소·지도 중심 기준일 때 내 위치를 새로 받아도 조회 위치는 그대로다.
+ * - 이 지역에서 다시 검색: 지도 이동이 끝날 때마다 지도 중심을 받아서, 조회 위치에서 1km 이상 떨어져 있으면 버튼을 보여준다.
+ *   지도를 움직이는 것만으로는 조회하지 않고, 버튼을 눌렀을 때만 지도 중심을 조회 위치로 조회한다.
  * - 주유소: 주변 주유소 목록, 조회 중 여부, 오류, 선택한 주유소
  * - 선택: 유종, 반경, 정렬, 브랜드 빠른 필터 (마지막 선택을 StationFilterPreferences에 저장)
  * - 내 차 정보: CarInfoRepository의 LiveData를 그대로 내보낸다 (계산 기준 문구)
@@ -76,6 +79,8 @@ public class MapViewModel extends AndroidViewModel {
     // 주유소 이름 검색에서 고른 주유소가 지금 목록에 없을 때(그 유종을 안 팔거나 필터에 걸림) 한 번 보여줄 상호.
     // 보여주면 null로 되돌린다.
     private final MutableLiveData<String> searchedStationMissing = new MutableLiveData<>();
+    // "이 지역에서 다시 검색" 버튼을 보여줄지
+    private final MutableLiveData<Boolean> researchAvailable = new MutableLiveData<>(false);
     private final MutableLiveData<LocationPermissionState> permissionState =
             new MutableLiveData<>(LocationPermissionState.UNKNOWN);
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
@@ -119,6 +124,13 @@ public class MapViewModel extends AndroidViewModel {
     private FuelType fetchedFuelType;
     // 조회가 겹치면 마지막 요청의 결과만 반영한다.
     private int stationRequestId = 0;
+
+    // 마지막으로 이동이 끝난 지도 중심 (WGS84). 지도가 아직 안 움직였으면 hasMapCenter가 false
+    private boolean hasMapCenter = false;
+    private double mapCenterLatitude;
+    private double mapCenterLongitude;
+    // 지도 중심 조회 위치의 동 이름 (카카오 로컬 API). 실패하면 "지도 중심"으로 보여준다.
+    private final RegionNameRepository regionNameRepository = new RegionNameRepository();
 
     public MapViewModel(@NonNull Application application) {
         super(application);
@@ -165,6 +177,65 @@ public class MapViewModel extends AndroidViewModel {
         SearchOrigin current = origin.getValue();
         return BuildConfig.USE_MOCK_DATA && current != null
                 && MockOpinetDataSource.isOutsideMockArea(current.getLatitude(), current.getLongitude());
+    }
+
+    /** "이 지역에서 다시 검색" 버튼을 보여줄지 */
+    public LiveData<Boolean> getResearchAvailable() {
+        return researchAvailable;
+    }
+
+    /**
+     * 지도 이동이 끝났을 때 (손으로 움직였거나 코드로 옮겼거나). 조회하지 않고 버튼을 보여줄지만 정한다.
+     * 지도 중심이 조회 위치에서 1km 이상이면 보여주고, 조회 위치 근처로 돌아오면 숨긴다.
+     */
+    public void onMapMoved(double latitude, double longitude) {
+        hasMapCenter = true;
+        mapCenterLatitude = latitude;
+        mapCenterLongitude = longitude;
+        updateResearchAvailable();
+    }
+
+    private void updateResearchAvailable() {
+        boolean show = hasMapCenter && originState.shouldOfferResearch(mapCenterLatitude, mapCenterLongitude);
+        if (!Boolean.valueOf(show).equals(researchAvailable.getValue())) {
+            researchAvailable.setValue(show);
+        }
+    }
+
+    /**
+     * "이 지역에서 다시 검색" 버튼. 마지막 지도 중심을 조회 위치로 바꾸고 주변을 조회한다 (같은 위치·유종이면 20분 캐시).
+     * 조회 위치 이름(동 이름)은 따로 물어보고, 오기 전이나 실패하면 "지도 중심"으로 보여준다. 이름 때문에 조회를 기다리지 않는다.
+     */
+    public void researchMapCenter() {
+        if (!hasMapCenter) {
+            return;
+        }
+        pendingSelectId = null;
+        pendingSelectName = null;
+        SearchOrigin requested = originState.selectMapCenter(mapCenterLatitude, mapCenterLongitude);
+        setOrigin(requested);
+        regionNameRepository.find(requested.getLatitude(), requested.getLongitude(), regionName -> {
+            if (regionName == null) {
+                return;
+            }
+            SearchOrigin named = originState.nameMapCenter(requested, regionName);
+            if (named != null) {
+                onOriginRenamed(named);
+            }
+        });
+    }
+
+    /** 조회 위치의 이름만 바뀌었을 때. 다시 조회하지 않고 이름만 바꿔서 내보낸다 (즐겨찾기 탭의 조회 위치 이름도). */
+    private void onOriginRenamed(SearchOrigin named) {
+        origin.setValue(named);
+        if (named.isSamePosition(fetchedOrigin)) {
+            fetchedOrigin = named;
+        }
+        AroundStations current = aroundStations.getValue();
+        if (current != null && named.isSamePosition(current.getOrigin())) {
+            aroundStations.setValue(new AroundStations(named, current.getFuelType(), current.getAll(),
+                    current.getDisplayed()));
+        }
     }
 
     public LiveData<LocationPermissionState> getPermissionState() {
@@ -263,7 +334,7 @@ public class MapViewModel extends AndroidViewModel {
     }
 
     /**
-     * 내 위치 버튼, "OO 기준" 칩의 X. 장소 기준이면 내 위치 기준으로 돌아간다.
+     * 내 위치 버튼, "OO 기준" 칩의 X. 장소·지도 중심 기준이면 내 위치 기준으로 돌아간다.
      * 권한이 있으면 위치를 새로 받고, 없으면 마지막으로 받은 위치(보통 기본 위치)로 돌아간다.
      */
     public void returnToMyLocation() {
@@ -328,13 +399,20 @@ public class MapViewModel extends AndroidViewModel {
         }
     }
 
-    /** 조회 위치를 바꾸고 그 위치로 주변 주유소를 조회한다. */
+    /** 조회 위치를 바꾸고 그 위치로 주변 주유소를 조회한다. 다시 검색 버튼도 새 조회 위치 기준으로 다시 정한다. */
     private void setOrigin(SearchOrigin newOrigin) {
         origin.setValue(newOrigin);
-        if (newOrigin.isPlace() && isOutsideMockArea()) {
+        updateResearchAvailable();
+        if (newOrigin.isFixed() && isOutsideMockArea()) {
             mockAreaNotice.setValue(true);
         }
         loadStations(newOrigin);
+    }
+
+    /** 조회 중에 이름이 붙었으면(지도 중심의 동 이름) 이름이 붙은 쪽을 쓴다. */
+    private SearchOrigin latestOf(SearchOrigin requested) {
+        SearchOrigin current = originState.getOrigin();
+        return requested.isSamePosition(current) ? current : requested;
     }
 
     /** 화면으로 돌아올 때 호출. 기기 위치가 꺼져 있다가 켜졌으면 위치를 다시 가져온다. */
@@ -432,7 +510,7 @@ public class MapViewModel extends AndroidViewModel {
                     return;
                 }
                 fetchedStations = result;
-                fetchedOrigin = center;
+                fetchedOrigin = latestOf(center);
                 fetchedFuelType = queryFuelType;
                 stationsLoading.setValue(false);
                 String selectId = pendingSelectId;
@@ -459,7 +537,8 @@ public class MapViewModel extends AndroidViewModel {
                 emptyReason.setValue(StationListBuilder.EmptyReason.NONE);
                 stations.setValue(Collections.emptyList());
                 // 즐겨찾기 탭은 조회 위치와 유종만 알고, 가격은 상세정보에서 가져온다.
-                aroundStations.setValue(new AroundStations(center, queryFuelType, null, Collections.emptyList()));
+                aroundStations.setValue(new AroundStations(latestOf(center), queryFuelType, null,
+                        Collections.emptyList()));
             }
         });
     }
@@ -514,5 +593,6 @@ public class MapViewModel extends AndroidViewModel {
         carInfoRepository.getCarInfo().removeObserver(carInfoObserver);
         brandSettingsRepository.getBrandSettings().removeObserver(brandSettingsObserver);
         stationRepository.shutdown();
+        regionNameRepository.shutdown();
     }
 }

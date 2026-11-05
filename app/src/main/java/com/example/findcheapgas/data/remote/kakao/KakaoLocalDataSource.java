@@ -14,7 +14,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
- * 카카오 로컬 API로 장소를 찾는다. 백그라운드 스레드에서만 부른다.
+ * 카카오 로컬 API로 장소를 찾고, 좌표의 동 이름을 얻는다. 백그라운드 스레드에서만 부른다.
  * 오피넷과 Retrofit, OkHttp 설정을 따로 둔다. 헤더에 REST API 키가 들어가므로 HTTP 로깅 인터셉터를 붙이지 않고,
  * 요청 객체나 헤더를 로그나 예외 메시지에 넣지 않는다. 실패 메시지에는 HTTP 코드만 넣는다.
  * 가짜 데이터 모드에서도 실제 카카오 API를 쓴다 (오피넷 하루 300회 제한과 관계없음).
@@ -62,6 +62,19 @@ public class KakaoLocalDataSource {
             return places;
         }
         return KakaoLocalResponse.parseAddress(execute(api.searchAddress(query, ADDRESS_SIZE)));
+    }
+
+    /**
+     * 좌표의 동 이름 (행정동 우선, 예: 역삼1동). 이름을 알 수 없는 좌표(바다 등)면 null
+     *
+     * @throws IOException    네트워크 연결 실패, 시간 초과
+     * @throws KakaoException 키 오류(401, 403), 그 밖의 오류 응답
+     */
+    public String regionName(double latitude, double longitude) throws IOException, KakaoException {
+        if (!hasApiKey()) {
+            throw new KakaoException("KAKAO_REST_API_KEY가 없습니다.", 401);
+        }
+        return KakaoLocalResponse.parseRegionName(execute(api.coordToRegion(longitude, latitude)));
     }
 
     private static String execute(Call<ResponseBody> call) throws IOException, KakaoException {

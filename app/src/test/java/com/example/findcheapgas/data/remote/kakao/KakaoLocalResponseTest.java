@@ -2,6 +2,7 @@ package com.example.findcheapgas.data.remote.kakao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.example.findcheapgas.model.Place;
@@ -84,5 +85,44 @@ public class KakaoLocalResponseTest {
     public void lastCategory_withoutSeparator_isWholeText() {
         assertEquals("카페", KakaoLocalResponse.lastCategory("카페"));
         assertEquals("", KakaoLocalResponse.lastCategory(""));
+    }
+
+    // ---------- 좌표 → 행정구역 ----------
+
+    private static String regionDoc(String type, String depth1, String depth2, String depth3) {
+        return "{\"region_type\": \"" + type + "\", \"address_name\": \"주소\","
+                + " \"region_1depth_name\": \"" + depth1 + "\", \"region_2depth_name\": \"" + depth2 + "\","
+                + " \"region_3depth_name\": \"" + depth3 + "\", \"region_4depth_name\": \"\","
+                + " \"x\": 127.0364, \"y\": 37.5006}";
+    }
+
+    @Test
+    public void parseRegionName_prefersAdministrativeDong() throws KakaoException {
+        String body = "{\"meta\": {\"total_count\": 2}, \"documents\": ["
+                + regionDoc("B", "서울특별시", "강남구", "역삼동") + ","
+                + regionDoc("H", "서울특별시", "강남구", "역삼1동") + "]}";
+        assertEquals("역삼1동", KakaoLocalResponse.parseRegionName(body));
+    }
+
+    @Test
+    public void parseRegionName_fallsBackToLegalDongAndUpperRegion() throws KakaoException {
+        String onlyLegal = "{\"documents\": [" + regionDoc("B", "서울특별시", "강남구", "역삼동") + "]}";
+        assertEquals("역삼동", KakaoLocalResponse.parseRegionName(onlyLegal));
+
+        String noDong = "{\"documents\": [" + regionDoc("H", "세종특별자치시", "", "") + "]}";
+        assertEquals("세종특별자치시", KakaoLocalResponse.parseRegionName(noDong));
+
+        String gu = "{\"documents\": [" + regionDoc("H", "서울특별시", "강남구", "") + "]}";
+        assertEquals("강남구", KakaoLocalResponse.parseRegionName(gu));
+    }
+
+    @Test
+    public void parseRegionName_emptyDocuments_isNull() throws KakaoException {
+        assertNull(KakaoLocalResponse.parseRegionName("{\"meta\": {\"total_count\": 0}, \"documents\": []}"));
+    }
+
+    @Test(expected = KakaoException.class)
+    public void parseRegionName_invalidBody_throws() throws KakaoException {
+        KakaoLocalResponse.parseRegionName("<html>error</html>");
     }
 }

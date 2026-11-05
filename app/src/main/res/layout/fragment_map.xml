@@ -35,6 +35,7 @@
         - 검색창: [장소 | 주유소 이름] 선택, 검색어, 검색 버튼 (검색 버튼이나 키보드의 검색 키를 눌렀을 때만 검색)
         - 필터 줄: 조회 위치 칩(검색한 장소 기준일 때만), 유종, 반경, 브랜드 빠른 필터
         - 위치 권한 / 기기 위치 안내
+        - 이 지역에서 다시 검색 버튼 (가운데)
     -->
     <LinearLayout
         android:id="@+id/map_top_bar"
@@ -134,7 +135,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <!-- 검색한 장소·주유소 기준으로 조회 중일 때만 보인다. X를 누르면 내 위치 기준으로 돌아간다. -->
+                <!-- 검색한 장소·주유소, 지도 중심 기준으로 조회 중일 때만 보인다. X를 누르면 내 위치 기준으로 돌아간다. -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_origin"
                     style="@style/Widget.FindCheapGas.OriginChip"
@@ -206,6 +207,22 @@
                     android:layout_marginStart="8dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!--
+            이 지역에서 다시 검색. 지도 이동이 끝났을 때 지도 중심이 조회 위치에서 1km 이상 떨어져 있으면 코드에서 보이게 한다.
+            누르면 지도 중심을 조회 위치로 다시 조회하고 숨긴다.
+        -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_research"
+            style="@style/Widget.Material3.Button.ElevatedButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="@string/research_here"
+            android:visibility="gone"
+            app:icon="@drawable/ic_refresh"
+            tools:visibility="visible" />
     </LinearLayout>
 
     <!-- 주변 주유소 목록. 접힌 상태 → 절반 → 거의 전체로 끌어올릴 수 있다. -->

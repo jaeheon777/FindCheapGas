@@ -16,6 +16,8 @@ import java.util.List;
  *   "address_name": ..., "road_address_name": ..., "x": "127.02", "y": "37.49"}], "meta": {...}}
  * 주소:   {"documents": [{"address_name": ..., "x": ..., "y": ...,
  *   "road_address": {"address_name": ..., "building_name": ...} 또는 null}], "meta": {...}}</pre>
+ * 좌표 → 행정구역: {"documents": [{"region_type": "B", "region_3depth_name": "역삼동", ...},
+ *   {"region_type": "H", "region_3depth_name": "역삼1동", ...}]}
  * 좌표를 읽을 수 없는 항목은 지도에 옮길 수 없으므로 뺀다.
  */
 public final class KakaoLocalResponse {
@@ -64,6 +66,31 @@ public final class KakaoLocalResponse {
             places.add(new Place(name, address, ADDRESS_CATEGORY, latitude, longitude));
         }
         return places;
+    }
+
+    /**
+     * 좌표 → 행정구역 응답 → 동 이름. 행정동(H)을 먼저 쓰고, 없으면 법정동(B)을 쓴다.
+     * 동 이름이 비어 있으면 구·시 이름(2단계), 그것도 없으면 시·도 이름(1단계)을 쓴다. 아무것도 없으면 null
+     */
+    public static String parseRegionName(String body) throws KakaoException {
+        List<JsonObject> docs = documents(body);
+        String name = regionNameOf(docs, "H");
+        return name != null ? name : regionNameOf(docs, "B");
+    }
+
+    private static String regionNameOf(List<JsonObject> docs, String regionType) {
+        for (JsonObject doc : docs) {
+            if (!regionType.equals(text(doc, "region_type"))) {
+                continue;
+            }
+            for (String key : new String[]{"region_3depth_name", "region_2depth_name", "region_1depth_name"}) {
+                String name = text(doc, key);
+                if (!name.isEmpty()) {
+                    return name;
+                }
+            }
+        }
+        return null;
     }
 
     /** "교통,수송 > 지하철,철도 > 수도권2호선" → "수도권2호선" */

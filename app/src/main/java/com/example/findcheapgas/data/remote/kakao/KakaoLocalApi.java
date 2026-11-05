@@ -30,4 +30,15 @@ public interface KakaoLocalApi {
     Call<ResponseBody> searchAddress(
             @Query("query") String query,
             @Query("size") int size);
+
+    /**
+     * 좌표 → 행정구역 (법정동 B, 행정동 H). "이 지역에서 다시 검색"의 조회 위치 이름(예: 역삼1동)에 쓴다.
+     *
+     * @param longitude 경도 (x)
+     * @param latitude  위도 (y)
+     */
+    @GET("v2/local/geo/coord2regioncode.json")
+    Call<ResponseBody> coordToRegion(
+            @Query("x") double longitude,
+            @Query("y") double latitude);
 }

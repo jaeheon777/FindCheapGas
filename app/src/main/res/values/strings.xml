@@ -54,6 +54,8 @@
     <!-- 조회 위치 -->
     <string name="origin_my_location">내 위치</string>
     <string name="origin_default_location">서울시청</string>
+    <string name="origin_map_center">지도 중심</string>
+    <string name="research_here">이 지역에서 다시 검색</string>
     <string name="origin_chip">%1$s 기준</string>
     <string name="origin_chip_description">%1$s 기준으로 계산 중. 닫기를 누르면 내 위치 기준으로 돌아갑니다</string>
     <string name="searched_station_missing">%1$s 주변 주유소를 보여줍니다. %1$s은(는) 지금 고른 유종이나 브랜드 필터에 맞지 않아 목록에 없습니다</string>
