@@ -110,6 +110,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <HorizontalScrollView
+            android:id="@+id/filter_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
@@ -161,7 +162,7 @@
 
         <!--
             이 지역에서 다시 검색. 지도 이동이 끝났을 때 지도 중심이 조회 위치에서 고른 반경(최대 3km) 이상 떨어져 있으면 코드에서 보이게 한다.
-            누르면 지도 중심을 조회 위치로 다시 조회하고 숨긴다.
+            누르면 지도 중심을 조회 위치로 다시 조회하고 숨긴다. 시트를 내린 상태보다 올리면 흐려지다가 숨고, 다시 내리면 돌아온다.
         -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_research"
@@ -444,7 +445,7 @@
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
-    <!-- 목록 시트 위쪽 끝에 붙어서 시트와 함께 움직인다. -->
+    <!-- 목록 시트 위쪽 끝에 붙어서 시트와 함께 움직인다. 시트를 올려 지도 위쪽 필터 줄에 닿으면 코드에서 숨긴다. -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_my_location"
         android:layout_width="wrap_content"

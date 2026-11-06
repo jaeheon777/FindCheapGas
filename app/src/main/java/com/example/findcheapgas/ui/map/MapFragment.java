@@ -30,6 +30,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -102,6 +103,8 @@ public class MapFragment extends Fragment {
     // 주변 1~3km가 한 화면에 보이는 정도
     private static final int DEFAULT_ZOOM_LEVEL = 15;
     private static final int CAMERA_ANIMATION_MS = 500;
+    // 시트를 올린 정도(0~1)에 곱해서 다시 검색 버튼을 흐리게 한다. 5면 내린 상태에서 20%쯤 올렸을 때 다 사라진다.
+    private static final float RESEARCH_FADE_SPEED = 5f;
     // 기본 레이어에서 다른 라벨보다 위에 그려지도록 높게 둔다.
     private static final long MY_LOCATION_RANK = 10_000;
 
@@ -132,6 +135,11 @@ public class MapFragment extends Fragment {
     private View progress;
     private FloatingActionButton myLocationButton;
     private View researchButton;
+    // 지도 위쪽 검색창과 필터 줄. 내 위치 버튼이 시트를 따라 올라가다 여기에 닿으면 숨긴다.
+    private View topBar;
+    private View filterScroll;
+    // ViewModel이 다시 검색 버튼을 보여주라고 했는지. 실제로는 시트를 내린 상태일 때만 보인다.
+    private boolean researchWanted = false;
 
     private MaterialButtonToggleGroup searchModeGroup;
     private EditText searchInput;
@@ -191,8 +199,16 @@ public class MapFragment extends Fragment {
         myLocationButton = view.findViewById(R.id.btn_my_location);
 
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
+        // FAB 기본 동작은 시트가 움직일 때마다 버튼을 다시 보이게 하므로 끄고, 보이기·숨기기는 renderMyLocationButton에서만 한다.
+        if (myLocationButton.getLayoutParams() instanceof CoordinatorLayout.LayoutParams) {
+            FloatingActionButton.Behavior fabBehavior = new FloatingActionButton.Behavior();
+            fabBehavior.setAutoHideEnabled(false);
+            ((CoordinatorLayout.LayoutParams) myLocationButton.getLayoutParams()).setBehavior(fabBehavior);
+        }
         researchButton = view.findViewById(R.id.btn_research);
         researchButton.setOnClickListener(v -> viewModel.researchMapCenter());
+        topBar = view.findViewById(R.id.map_top_bar);
+        filterScroll = view.findViewById(R.id.filter_scroll);
 
         setUpStationSheet(view);
         setUpBestCard(view);
@@ -230,8 +246,10 @@ public class MapFragment extends Fragment {
                 viewModel.onSearchedStationMissingShown();
             }
         });
-        viewModel.getResearchAvailable().observe(getViewLifecycleOwner(), show ->
-                researchButton.setVisibility(Boolean.TRUE.equals(show) ? View.VISIBLE : View.GONE));
+        viewModel.getResearchAvailable().observe(getViewLifecycleOwner(), show -> {
+            researchWanted = Boolean.TRUE.equals(show);
+            renderResearchButton();
+        });
         viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
         // 위치 권한·기기 위치 안내는 이득 1위 카드 자리에서 보여준다.
         viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBestCard());
@@ -310,6 +328,8 @@ public class MapFragment extends Fragment {
         searchInput = null;
         searchModeGroup = null;
         researchButton = null;
+        topBar = null;
+        filterScroll = null;
         mapView = null;
         kakaoMap = null;
         myLocationStyles = null;
@@ -614,6 +634,8 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                renderResearchButton();
+                renderMyLocationButton();
             }
         });
         // 처음 배치, 화면 회전, 카드 내용·글꼴 크기 변화로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 바꾸지 않도록 post한다.
@@ -621,7 +643,69 @@ public class MapFragment extends Fragment {
                 v.post(() -> {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
                     fitPeekToBestCard();
+                    renderResearchButton();
+                    renderMyLocationButton();
                 }));
+    }
+
+    /**
+     * 이 지역에서 다시 검색 버튼은 지도 위쪽 필터 줄 바로 아래 제자리에 두고, 시트를 내린 상태에서만 보여준다.
+     * 시트를 올리기 시작하면 빠르게 흐려지다가 사라지고(누를 수 없음), 다시 내리면 돌아온다.
+     * 시트를 따라 올라가게 하면 시트를 끝까지 올렸을 때 검색창·필터와 겹치고, 시트를 올린 동안에는 목록을 보는 중이라
+     * 지도를 옮겨 다시 검색할 일이 적어서 숨기는 쪽을 택했다.
+     */
+    private void renderResearchButton() {
+        if (researchButton == null) {
+            return;
+        }
+        if (!researchWanted) {
+            researchButton.setAlpha(1f);
+            researchButton.setVisibility(View.GONE);
+            return;
+        }
+        float alpha = 1f - RESEARCH_FADE_SPEED * sheetSlideOffset();
+        if (alpha <= 0f) {
+            // 자리는 그대로 두어 위쪽 묶음의 높이가 바뀌지 않게 한다.
+            researchButton.setVisibility(View.INVISIBLE);
+        } else {
+            researchButton.setAlpha(Math.min(1f, alpha));
+            researchButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * 내 위치 버튼은 시트 위쪽 끝에 붙어서 시트와 함께 움직이므로 시트에 가려지지 않는다.
+     * 다만 시트를 많이 올리면 지도 위쪽의 검색창·필터 줄과 겹치므로, 버튼이 필터 줄 아래 끝에 닿으면 숨기고
+     * 시트를 내려 자리가 생기면 다시 보여준다. 지도를 쓸 수 없을 때는 계속 숨긴다.
+     */
+    private void renderMyLocationButton() {
+        if (myLocationButton == null || stationSheet == null || topBar == null || filterScroll == null
+                || mapMessage.getVisibility() == View.VISIBLE) {
+            return;
+        }
+        // 버튼 아래 끝은 시트 위쪽 끝에 붙어 있다.
+        int buttonTop = stationSheet.getTop() - myLocationButton.getHeight();
+        int limit = topBar.getTop() + filterScroll.getBottom();
+        if (buttonTop < limit) {
+            myLocationButton.hide();
+        } else {
+            myLocationButton.show();
+        }
+    }
+
+    /** 시트가 내린 상태에서 얼마나 올라갔는지 (0 = 내린 상태, 1 = 끝까지 올림). */
+    private float sheetSlideOffset() {
+        if (stationSheet == null || sheetBehavior == null || !(stationSheet.getParent() instanceof View)) {
+            return 0f;
+        }
+        int parentHeight = ((View) stationSheet.getParent()).getHeight();
+        int collapsedTop = parentHeight - sheetBehavior.getPeekHeight();
+        int expandedTop = sheetBehavior.getExpandedOffset();
+        if (collapsedTop <= expandedTop) {
+            return 0f;
+        }
+        float offset = (float) (collapsedTop - stationSheet.getTop()) / (collapsedTop - expandedTop);
+        return Math.max(0f, Math.min(1f, offset));
     }
 
     /**
