@@ -69,6 +69,27 @@
         <item name="colorControlNormal">@color/text_secondary</item>
         <item name="colorControlActivated">@color/accent_text</item>
 
+        <!-- 글꼴: 모든 글자를 Pretendard로. Material3 글자 단계도 앱 글자 단계(styles.xml)로 바꾼다. -->
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.FindCheapGas.Number</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.FindCheapGas.Number</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.FindCheapGas.Number</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.FindCheapGas.ScreenTitle</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.FindCheapGas.ScreenTitle</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.FindCheapGas.ScreenTitle</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.FindCheapGas.ScreenTitle</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.FindCheapGas.CardTitle</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.FindCheapGas.SectionTitle</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.FindCheapGas.Body</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.FindCheapGas.BodySmall</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.FindCheapGas.Caption</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.FindCheapGas.Label</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.FindCheapGas.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.FindCheapGas.LabelSmall</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.FindCheapGas.Body</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.FindCheapGas.Body</item>
+
         <!--
             상태 표시줄은 화면 바탕색으로 칠하고, 아이콘 색은 밝은 테마는 어둡게, 어두운 테마는 밝게 한다
             (values-night/bools.xml). 기본값(보라 계열)은 어두운 테마에서 흰 아이콘이 잘 보이지 않는다.

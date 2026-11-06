@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.DailyAveragePrice;
+import com.example.findcheapgas.ui.AppFonts;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.util.TrendChartGeometry;
 
@@ -91,10 +93,11 @@ public class PriceTrendView extends View {
         valuePaint.setColor(ContextCompat.getColor(context, R.color.trend_value_text));
         valuePaint.setTextSize(res.getDimension(R.dimen.trend_value_text));
         valuePaint.setTextAlign(Paint.Align.CENTER);
-        valuePaint.setFakeBoldText(true);
+        valuePaint.setTypeface(AppFonts.of(context, Typeface.BOLD));
 
         datePaint.setColor(ContextCompat.getColor(context, R.color.trend_axis_text));
         datePaint.setTextSize(res.getDimension(R.dimen.trend_axis_text));
+        datePaint.setTypeface(AppFonts.of(context, Typeface.NORMAL));
         datePaint.setTextAlign(Paint.Align.CENTER);
 
         pointRadius = dp(3.5f);

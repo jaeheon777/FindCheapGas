@@ -3,7 +3,6 @@ package com.example.findcheapgas.ui.detail;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,9 +31,10 @@ import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationDetail;
-import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.ui.AppFonts;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.util.FormatUtil;
 import com.example.findcheapgas.util.PriceTrend;
 import com.example.findcheapgas.viewmodel.DetailViewModel;
@@ -422,7 +422,7 @@ public class StationDetailActivity extends AppCompatActivity {
         TextView total = addSavingRow(rows, R.string.detail_saving_total,
                 getString(R.string.detail_saving_approx, FormatUtil.formatWon(saving.getTotalCost())),
                 getString(R.string.detail_saving_total_note), null);
-        total.setTypeface(null, Typeface.BOLD);
+        AppFonts.setBold(total, true);
 
         if (saving.isBaseline()) {
             addSavingRow(rows, R.string.detail_saving_difference,
@@ -433,7 +433,7 @@ public class StationDetailActivity extends AppCompatActivity {
                     getString(R.string.detail_saving_difference_note,
                             FormatUtil.formatWon(saving.getBaselineTotalCost()),
                             FormatUtil.formatWon(saving.getTotalCost())), null);
-            difference.setTypeface(null, Typeface.BOLD);
+            AppFonts.setBold(difference, true);
             difference.setTextColor(ContextCompat.getColor(this, SavingColors.textColorOf(saving.getLevel())));
         }
         section.setVisibility(View.VISIBLE);
@@ -553,7 +553,7 @@ public class StationDetailActivity extends AppCompatActivity {
             row.findViewById(R.id.fuel_selected).setVisibility(selected ? View.VISIBLE : View.GONE);
             TextView priceText = row.findViewById(R.id.fuel_price);
             priceText.setText(FormatUtil.formatPrice(price.getPrice()));
-            priceText.setTypeface(null, selected ? Typeface.BOLD : Typeface.NORMAL);
+            AppFonts.setBold(priceText, selected);
 
             TextView tradeTime = row.findViewById(R.id.fuel_trade_time);
             String time = FormatUtil.formatTradeTime(price.getTradeDate(), price.getTradeTime());

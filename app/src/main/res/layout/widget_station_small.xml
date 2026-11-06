@@ -22,6 +22,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
+            android:fontFamily="@font/app_font"
             android:textColor="@color/widget_text_primary"
             android:textSize="@dimen/widget_small_text_name"
             android:textStyle="bold" />
@@ -36,6 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
+                android:fontFamily="@font/app_font"
                 android:textColor="@color/widget_text_primary"
                 android:textSize="@dimen/widget_small_text_price" />
 
@@ -47,6 +49,7 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
+                android:fontFamily="@font/app_font"
                 android:textColor="@color/widget_saving_gain"
                 android:textSize="@dimen/widget_small_text_price"
                 android:textStyle="bold" />
@@ -60,6 +63,7 @@
         android:ellipsize="end"
         android:maxLines="2"
         android:text="@string/widget_loading"
+        android:fontFamily="@font/app_font"
         android:textColor="@color/widget_text_primary"
         android:textSize="@dimen/widget_small_text_price" />
 </LinearLayout>

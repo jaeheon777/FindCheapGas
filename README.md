@@ -246,6 +246,7 @@ flowchart TD
 |---|---|---|
 | 언어 | Java | |
 | UI | XML 레이아웃, Fragment, BottomNavigationView | 화면, 하단 탭 |
+| 글꼴 | Pretendard (SIL Open Font License 1.1) | 앱 기본 글꼴 (Regular, Medium, SemiBold, Bold), 위젯 |
 | 지도 | 카카오맵 Android SDK v2 | 지도, 마커, 현재 위치 표시 |
 | 위치 | Google Play Services Location | 현재 위치 조회 |
 | 네트워크 | Retrofit2, Gson | API 요청, JSON 파싱 |
@@ -320,6 +321,7 @@ app/src/main/java/com/example/findcheapgas/
 ├── MainActivity.java             메인 화면 (로딩 화면, 처음 실행이면 내 차 정보 입력 화면으로 이동, 하단 탭 3개 전환, 지도 탭으로 바꾸기, 위젯을 눌러 열면 지도 탭에서 그 위치 기준으로 이득 1위 선택)
 ├── ui/                           화면 (Fragment)
 │   ├── OriginLabels.java         조회 위치 이름 (검색한 장소, 지도 중심의 동 이름 또는 "지도 중심", 내 위치, 서울시청). 지도 탭과 즐겨찾기 탭이 같이 씀
+│   ├── AppFonts.java             코드에서 굵기를 바꾸는 글자와 직접 그리는 글자(지도 마커, 7일 추이 그래프)에 앱 글꼴(Pretendard) 적용
 │   ├── SavingColors.java         예상 이득 구간별 글자색 (초록 이득, 회색 비슷, 빨강 손해). 지도 탭 목록, 즐겨찾기, 상세 화면이 같이 씀
 │   ├── map/
 │   │   ├── MapFragment.java      지도 탭 (MapViewModel은 Activity 범위, 위치 권한 요청, 카카오맵, 내 위치, 검색창(장소 / 주유소 이름), 조회 위치 칩("강남역 기준", "역삼1동 기준", X를 누르면 내 위치 기준), 유종·반경·브랜드 필터 줄, 이 지역에서 다시 검색 버튼(지도 이동이 끝날 때 지도 중심을 알림), 마커 색 범례, 주유소 목록 시트와 정렬 메뉴, 계산 기준 문구(누르면 내 차 정보 수정), 목록 항목이나 선택된 마커를 누르면 계산 결과와 함께 상세 화면 열기)
@@ -481,7 +483,10 @@ app/src/main/java/com/example/findcheapgas/
     ├── WidgetPreferences.java    위젯 ID별 위치 종류, 종류별 마지막 내용과 마지막 정상 결과 (SharedPreferences, 백업에서 제외)
     └── WidgetSettingsWatcher.java 내 차 정보, 내 브랜드, 유종·반경·필터, 집·회사 위치가 바뀌면 위젯 다시 그리기 요청
 
-app/src/main/res/layout/widget_*.xml 위젯 화면 (기본, 작게 줄였을 때, Android 12 이상 미리보기). 색과 글자 크기는 colors.xml, dimens.xml의 widget_*, 어두운 색은 values-night/colors.xml
+app/src/main/res/layout/widget_*.xml 위젯 화면 (기본, 작게 줄였을 때, Android 12 이상 미리보기). 색과 글자 크기는 colors.xml, dimens.xml의 widget_*, 어두운 색은 values-night/colors.xml, 글꼴은 Pretendard(Android 8.0 이상)
+app/src/main/res/font/            Pretendard 글꼴 (pretendard_*.otf 4개)과 굵기 묶음 (app_font: Regular+Bold, app_font_medium, app_font_semibold)
+app/src/main/res/values/          테마(themes.xml), 색(colors.xml, 어두운 색은 values-night), 글자 단계·공통 스타일(styles.xml), 크기(dimens.xml)
+app/src/main/assets/licenses/OFL.txt Pretendard 글꼴 라이선스 (SIL Open Font License 1.1 전문)
 app/src/main/res/xml/widget_info.xml 위젯 정보 (기본 4×2, 크기 조절, 구성 화면, updatePeriodMillis 0)
 app/src/main/assets/mock/         가짜 데이터 (강남역 주변 5km, 유종별 around_B027.json 등)
 app/src/main/assets/mock/detail/  가짜 상세정보 (주변 데이터의 모든 주유소, 주유소 ID별 A0900001.json 등)
@@ -557,5 +562,11 @@ Android Studio에서 프로젝트를 열고 Gradle Sync를 한 뒤, 연결한 �
 
 - 유가 정보: [오피넷 (한국석유공사)](https://www.opinet.co.kr)
 - 지도, 장소 검색: [카카오 디벨로퍼스](https://developers.kakao.com)
+
+### 글꼴
+
+- [Pretendard](https://github.com/orioncactus/pretendard) v1.3.9, Copyright (c) 2021 Kil Hyung-jin, with Reserved Font Name Pretendard.
+- SIL Open Font License 1.1로 배포되는 글꼴입니다. 정적(static) OTF 파일 중 Regular, Medium, SemiBold, Bold를 수정하지 않고 `app/src/main/res/font/`에 넣었습니다.
+- 라이선스 전문은 [app/src/main/assets/licenses/OFL.txt](app/src/main/assets/licenses/OFL.txt)에 있습니다.
 
 앱에 표시되는 가격은 오피넷에서 제공하는 정보이므로 실제 주유소 가격과 다를 수 있습니다. 예상 이득은 도로 거리를 추정하고 사용자가 입력한 조건으로 계산한 값이므로 실제와 차이가 있을 수 있습니다.

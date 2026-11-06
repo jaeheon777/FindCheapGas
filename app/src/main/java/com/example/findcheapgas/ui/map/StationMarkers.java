@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -14,6 +15,7 @@ import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.ui.AppFonts;
 import com.example.findcheapgas.util.FormatUtil;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.LatLng;
@@ -181,7 +183,7 @@ class StationMarkers {
 
         Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(13 * density);
-        textPaint.setFakeBoldText(true);
+        textPaint.setTypeface(AppFonts.of(context, Typeface.BOLD));
         textPaint.setColor(color(textColorOf(level)));
         Paint.FontMetrics metrics = textPaint.getFontMetrics();
         float textHeight = metrics.descent - metrics.ascent;

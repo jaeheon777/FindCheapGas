@@ -20,6 +20,7 @@
             android:layout_weight="1"
             android:maxLines="1"
             android:text="@string/widget_title_home"
+            android:fontFamily="@font/app_font"
             android:textColor="@color/widget_text_secondary"
             android:textSize="@dimen/widget_text_title"
             android:textStyle="bold" />
@@ -44,6 +45,7 @@
             android:layout_height="wrap_content"
             android:maxLines="1"
             android:text="@string/widget_preview_station"
+            android:fontFamily="@font/app_font"
             android:textColor="@color/widget_text_primary"
             android:textSize="@dimen/widget_text_name"
             android:textStyle="bold" />
@@ -58,6 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/widget_preview_price"
+                android:fontFamily="@font/app_font"
                 android:textColor="@color/widget_text_primary"
                 android:textSize="@dimen/widget_text_price"
                 android:textStyle="bold" />
@@ -67,6 +70,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/widget_preview_saving"
+                android:fontFamily="@font/app_font"
                 android:textColor="@color/widget_saving_gain"
                 android:textSize="@dimen/widget_text_saving"
                 android:textStyle="bold" />
@@ -77,6 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/widget_gap"
             android:text="@string/widget_preview_detail"
+            android:fontFamily="@font/app_font"
             android:textColor="@color/widget_text_secondary"
             android:textSize="@dimen/widget_text_detail" />
     </LinearLayout>
@@ -86,6 +91,7 @@
         android:layout_height="wrap_content"
         android:maxLines="1"
         android:text="@string/widget_preview_footer"
+        android:fontFamily="@font/app_font"
         android:textColor="@color/widget_text_secondary"
         android:textSize="@dimen/widget_text_footer" />
 </LinearLayout>

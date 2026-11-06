@@ -1,5 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+        글자 단계 (TextAppearance). 글꼴은 Pretendard, 크기는 dimens.xml의 text_*.
+        글자색은 Material3와 같게 이어받는다: 작은 글씨·라벨은 보조 글자색(?android:textColorSecondary), 나머지는 기본 글자색.
+        레이아웃에서 android:textColor를 주면 그 색이 우선한다. themes.xml에서 Material3 글자 단계 속성을 모두 이 스타일로 바꾼다.
+    -->
+    <!-- 큰 숫자: 예상 이득 금액처럼 화면의 주인공 숫자. 숫자 폭을 같게 해서 금액이 바뀌어도 흔들리지 않는다. -->
+    <style name="TextAppearance.FindCheapGas.Number" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_number</item>
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+    </style>
+
+    <!-- 화면 제목 -->
+    <style name="TextAppearance.FindCheapGas.ScreenTitle" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_screen_title</item>
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <!-- 카드 제목, 목록의 상호 -->
+    <style name="TextAppearance.FindCheapGas.CardTitle" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_card_title</item>
+        <item name="android:fontFamily">@font/app_font_semibold</item>
+        <item name="fontFamily">@font/app_font_semibold</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <!-- 구역 제목 -->
+    <style name="TextAppearance.FindCheapGas.SectionTitle" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_section_title</item>
+        <item name="android:fontFamily">@font/app_font_semibold</item>
+        <item name="fontFamily">@font/app_font_semibold</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 본문 -->
+    <style name="TextAppearance.FindCheapGas.Body" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 보조 문장 (주소, 조건 문구) -->
+    <style name="TextAppearance.FindCheapGas.BodySmall" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_body_small</item>
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 작은 글씨 (안내, 가격 기준 일시) -->
+    <style name="TextAppearance.FindCheapGas.Caption" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:fontFamily">@font/app_font</item>
+        <item name="fontFamily">@font/app_font</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 버튼 글자 -->
+    <style name="TextAppearance.FindCheapGas.Label" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">@dimen/text_label</item>
+        <item name="android:fontFamily">@font/app_font_semibold</item>
+        <item name="fontFamily">@font/app_font_semibold</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 칩, 탭, 범례 같은 작은 라벨 -->
+    <style name="TextAppearance.FindCheapGas.LabelMedium" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">@dimen/text_label_medium</item>
+        <item name="android:fontFamily">@font/app_font_medium</item>
+        <item name="fontFamily">@font/app_font_medium</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <!-- 배지 같은 가장 작은 라벨 -->
+    <style name="TextAppearance.FindCheapGas.LabelSmall" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">@dimen/text_label_small</item>
+        <item name="android:fontFamily">@font/app_font_medium</item>
+        <item name="fontFamily">@font/app_font_medium</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
     <!-- 지도 위 필터 줄의 칩: 누르면 선택 메뉴가 열리고, 오른쪽에 ▼ 표시 -->
     <style name="Widget.FindCheapGas.FilterDropdownChip" parent="Widget.Material3.Chip.Assist.Elevated">
         <item name="closeIcon">@drawable/ic_arrow_drop_down</item>

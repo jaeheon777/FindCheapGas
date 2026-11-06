@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
-import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.util.FormatUtil;
 
 import java.util.ArrayList;

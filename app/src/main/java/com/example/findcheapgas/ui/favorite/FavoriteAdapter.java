@@ -1,7 +1,6 @@
 package com.example.findcheapgas.ui.favorite;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,8 +17,9 @@ import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.FavoriteItem;
 import com.example.findcheapgas.model.FavoritePrice;
 import com.example.findcheapgas.model.FavoriteStation;
-import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.ui.AppFonts;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.util.FavoritePriceResolver;
 import com.example.findcheapgas.util.FormatUtil;
 
@@ -105,7 +105,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
         boolean available = price != null && price.isAvailable();
         // 가격이 없으면 작은 보조 글자로 쓴다.
         holder.price.setTextSize(TypedValue.COMPLEX_UNIT_PX, available ? holder.priceTextSize : holder.noteTextSize);
-        holder.price.setTypeface(null, available ? Typeface.BOLD : Typeface.NORMAL);
+        AppFonts.setBold(holder.price, available);
         holder.price.setTextColor(available ? holder.priceColor : holder.defaultColor);
         if (price == null) {
             holder.price.setText(R.string.favorite_price_loading);
