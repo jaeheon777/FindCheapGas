@@ -29,14 +29,14 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingBottom="24dp">
+        android:paddingBottom="@dimen/space_xxl">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp">
+            android:paddingStart="@dimen/space_xl"
+            android:paddingEnd="@dimen/space_xl">
 
             <!-- 기본 정보 (목록에서 넘겨받은 값) -->
             <TextView
@@ -50,7 +50,7 @@
                 android:id="@+id/detail_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/space_xs"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="SK에너지 · 조회 위치에서 0.4km" />
@@ -58,7 +58,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/space_m"
                 android:gravity="bottom"
                 android:orientation="horizontal">
 
@@ -73,7 +73,7 @@
                     android:id="@+id/detail_selected_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="@dimen/space_s"
                     android:textAppearance="?attr/textAppearanceHeadlineMedium"
                     android:textStyle="bold"
                     tools:text="1,659원" />
@@ -103,14 +103,14 @@
                     android:id="@+id/detail_saving_basis"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     tools:text="연비 12km/L · 40L 기준 (기본값)" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="@dimen/space_xxs"
                     android:text="@string/detail_saving_basis_hint"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -120,9 +120,9 @@
                     android:id="@+id/detail_saving_is_baseline"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_s"
                     android:background="@drawable/bg_saving_notice"
-                    android:padding="12dp"
+                    android:padding="@dimen/space_m"
                     android:text="@string/detail_saving_is_baseline"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:visibility="gone" />
@@ -132,13 +132,13 @@
                     android:id="@+id/detail_saving_rows"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:orientation="vertical" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_s"
                     android:text="@string/detail_saving_note"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant" />
@@ -149,7 +149,7 @@
                 android:id="@+id/detail_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/space_xxl"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:visibility="gone"
@@ -160,13 +160,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:indeterminate="true"
-                    app:indicatorSize="32dp" />
+                    app:indicatorSize="@dimen/progress_size" />
 
                 <TextView
                     android:id="@+id/detail_status_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/space_m"
                     android:gravity="center"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -174,10 +174,10 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/detail_retry_button"
-                    style="@style/Widget.Material3.Button.TonalButton"
+                    style="@style/Widget.FindCheapGas.Button.Secondary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_s"
                     android:text="@string/station_retry" />
             </LinearLayout>
 
@@ -201,7 +201,7 @@
                     android:id="@+id/detail_address"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceBodyLarge"
                     android:textIsSelectable="true"
                     tools:text="서울특별시 강남구 테헤란로 152" />
@@ -224,7 +224,7 @@
                         style="@style/Widget.Material3.Button.TextButton.Icon"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="-12dp"
+                        android:layout_marginStart="@dimen/text_button_align_offset"
                         android:textAppearance="?attr/textAppearanceBodyLarge"
                         app:icon="@drawable/ic_phone"
                         tools:text="02-0000-0001" />
@@ -241,14 +241,14 @@
                     android:id="@+id/detail_price_rows"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:orientation="vertical" />
 
                 <TextView
                     android:id="@+id/detail_prices_empty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:text="@string/detail_prices_empty"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -265,13 +265,13 @@
                     android:id="@+id/detail_facilities"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="@dimen/space_xs" />
 
                 <TextView
                     android:id="@+id/detail_facilities_empty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:text="@string/detail_facilities_empty"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -281,7 +281,7 @@
                     android:id="@+id/detail_self_note"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:text="@string/detail_self_estimated_note"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -309,7 +309,7 @@
                     android:id="@+id/detail_average_basis"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     android:visibility="gone"
                     tools:text="휘발유 1,671원 · 표시 가격 기준 (할인 전)"
@@ -319,14 +319,14 @@
                     android:id="@+id/detail_average_rows"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:orientation="vertical" />
 
                 <TextView
                     android:id="@+id/detail_average_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="@string/detail_average_loading" />
@@ -335,7 +335,7 @@
                     android:id="@+id/detail_average_note"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:text="@string/detail_average_note"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
@@ -363,7 +363,7 @@
                     android:id="@+id/detail_trend_heading"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceLabelLarge"
                     tools:text="최근 7일 전국 평균 (휘발유)" />
 
@@ -371,7 +371,7 @@
                     android:id="@+id/detail_trend_chart"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/trend_chart_height"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_s"
                     android:visibility="gone"
                     tools:visibility="visible" />
 
@@ -379,7 +379,7 @@
                     android:id="@+id/detail_trend_summary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:visibility="gone"
                     tools:text="6일 전(10/31)보다 약 12원 올랐습니다"
@@ -389,7 +389,7 @@
                     android:id="@+id/detail_trend_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="@string/detail_trend_loading" />
@@ -408,12 +408,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="@dimen/space_m"
         android:visibility="gone">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/detail_favorite_button"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            style="@style/Widget.FindCheapGas.Button.Secondary"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -422,10 +422,10 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/detail_show_on_map_button"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.FindCheapGas.Button.Secondary"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/space_s"
             android:layout_weight="1"
             android:text="@string/detail_show_on_map"
             android:visibility="gone"
@@ -435,7 +435,7 @@
             android:id="@+id/detail_route_button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/space_s"
             android:layout_weight="1"
             android:contentDescription="@string/detail_route_description"
             android:text="@string/detail_route"

@@ -1,6 +1,7 @@
 package com.example.findcheapgas.ui.map;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -174,15 +175,15 @@ class StationMarkers {
 
     /** 아래쪽에 꼬리가 달린 둥근 말풍선에 가격을 쓴다. */
     private Bitmap createBitmap(String text, SavingLevel level, boolean selected) {
-        float density = context.getResources().getDisplayMetrics().density;
-        float paddingH = 9 * density;
-        float paddingV = 5 * density;
-        float tailHeight = 6 * density;
-        float tailHalfWidth = 5 * density;
-        float border = (selected ? 2.5f : 1f) * density;
+        Resources res = context.getResources();
+        float paddingH = res.getDimension(R.dimen.marker_padding_horizontal);
+        float paddingV = res.getDimension(R.dimen.marker_padding_vertical);
+        float tailHeight = res.getDimension(R.dimen.marker_tail_height);
+        float tailHalfWidth = res.getDimension(R.dimen.marker_tail_half_width);
+        float border = res.getDimension(selected ? R.dimen.marker_border_selected : R.dimen.marker_border);
 
         Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setTextSize(13 * density);
+        textPaint.setTextSize(res.getDimension(R.dimen.marker_text_size));
         textPaint.setTypeface(AppFonts.of(context, Typeface.BOLD));
         textPaint.setColor(color(textColorOf(level)));
         Paint.FontMetrics metrics = textPaint.getFontMetrics();

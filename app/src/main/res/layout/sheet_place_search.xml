@@ -9,7 +9,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingBottom="16dp">
+    android:paddingBottom="@dimen/space_l">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:layout_width="match_parent"
@@ -19,17 +19,17 @@
         android:id="@+id/place_search_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="@dimen/space_l"
+        android:paddingEnd="@dimen/space_l"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         tools:text="집 위치 검색" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:layout_marginTop="@dimen/space_xs"
+        android:paddingStart="@dimen/space_l"
+        android:paddingEnd="@dimen/space_l"
         android:text="@string/place_settings_privacy"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurfaceVariant" />
@@ -37,11 +37,11 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/space_s"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp">
+        android:paddingStart="@dimen/space_l"
+        android:paddingEnd="@dimen/space_s">
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
@@ -60,9 +60,9 @@
 
         <ImageButton
             android:id="@+id/place_search_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="4dp"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginStart="@dimen/space_xs"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/search_button"
             app:srcCompat="@drawable/ic_search"
@@ -76,16 +76,16 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="@dimen/space_xxl"
         android:visibility="gone">
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/place_search_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/space_s"
             android:indeterminate="true"
-            app:indicatorSize="24dp" />
+            app:indicatorSize="@dimen/progress_size_small" />
 
         <TextView
             android:id="@+id/place_search_status_text"
@@ -100,7 +100,7 @@
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_s"
             android:text="@string/search_retry" />
     </LinearLayout>
 
@@ -108,6 +108,6 @@
         android:id="@+id/place_search_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="@dimen/space_s"
         tools:listitem="@layout/item_search_result" />
 </LinearLayout>

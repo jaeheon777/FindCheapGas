@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pretendard Medium (작은 라벨). textStyle="bold"면 Bold -->
+<!-- Pretendard Medium (작은 라벨). textStyle="bold"면 Bold. API 24~25는 app: 속성으로 읽는다. -->
 <font-family xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UnusedAttribute">
     <font
         android:font="@font/pretendard_medium"
         android:fontStyle="normal"

@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="48dp"
+    android:minHeight="@dimen/touch_target"
     android:orientation="horizontal"
-    android:paddingTop="6dp"
-    android:paddingBottom="6dp">
+    android:paddingTop="@dimen/space_s"
+    android:paddingBottom="@dimen/space_s">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -45,7 +45,7 @@
         android:id="@+id/saving_row_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="@dimen/space_m"
         android:gravity="end"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         tools:text="약 574원" />

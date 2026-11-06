@@ -485,7 +485,9 @@ app/src/main/java/com/example/findcheapgas/
 
 app/src/main/res/layout/widget_*.xml 위젯 화면 (기본, 작게 줄였을 때, Android 12 이상 미리보기). 색과 글자 크기는 colors.xml, dimens.xml의 widget_*, 어두운 색은 values-night/colors.xml, 글꼴은 Pretendard(Android 8.0 이상)
 app/src/main/res/font/            Pretendard 글꼴 (pretendard_*.otf 4개)과 굵기 묶음 (app_font: Regular+Bold, app_font_medium, app_font_semibold)
-app/src/main/res/values/          테마(themes.xml), 색(colors.xml, 어두운 색은 values-night), 글자 단계·공통 스타일(styles.xml), 크기(dimens.xml)
+app/src/main/res/values/          테마(themes.xml, Material3 색 역할과 공통 컴포넌트 스타일 연결), 색(colors.xml, 어두운 색은 values-night), 글자 단계와 공통 스타일(styles.xml: 카드, 주요·보조·텍스트 버튼, 칩, 하단 탭, 시트, 다이얼로그, 스낵바, 입력칸, 목록 한 줄), 글자 크기·여백·모서리(dimens.xml)
+app/src/main/res/color/           상태별 색 (주요·보조 버튼, 칩, 하단 탭, 글자색의 선택됨 / 누를 수 없음)
+app/src/main/res/layout/view_list_row_amount.xml 목록 한 줄 조각 (왼쪽 상호·보조 정보는 말줄임, 오른쪽 금액·설명은 줄바꿈 없이 오른쪽 정렬)
 app/src/main/assets/licenses/OFL.txt Pretendard 글꼴 라이선스 (SIL Open Font License 1.1 전문)
 app/src/main/res/xml/widget_info.xml 위젯 정보 (기본 4×2, 크기 조절, 구성 화면, updatePeriodMillis 0)
 app/src/main/assets/mock/         가짜 데이터 (강남역 주변 5km, 유종별 around_B027.json 등)

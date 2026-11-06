@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    목록 한 줄 조각: 왼쪽(상호·보조 정보) + 오른쪽(금액·설명). 스타일은 styles.xml의 Widget.FindCheapGas.ListRow.*
+    - 오른쪽 금액("약 2,900원")과 설명("더 들어요")은 오른쪽 정렬하고 줄바꿈하지 않는다. 오른쪽이 먼저 폭을 차지한다.
+    - 공간이 모자라면 왼쪽 상호와 보조 정보가 말줄임(…)된다. 긴 상호, 큰 글꼴 설정에서도 줄이 깨지지 않는다.
+    다음 작업에서 지도 탭 목록과 즐겨찾기 목록이 이 조각을 쓴다.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.FindCheapGas.ListRow"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:ignore="UnusedResources">
+
+    <LinearLayout style="@style/Widget.FindCheapGas.ListRow.Start">
+
+        <TextView
+            android:id="@+id/list_row_title"
+            style="@style/Widget.FindCheapGas.ListRow.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="아주 긴 이름의 셀프 주유소 강남역점" />
+
+        <TextView
+            android:id="@+id/list_row_subtitle"
+            style="@style/Widget.FindCheapGas.ListRow.Subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="GS칼텍스 · 1.2km · 1,659원" />
+    </LinearLayout>
+
+    <LinearLayout style="@style/Widget.FindCheapGas.ListRow.End">
+
+        <TextView
+            android:id="@+id/list_row_amount"
+            style="@style/Widget.FindCheapGas.ListRow.Amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="약 2,900원" />
+
+        <TextView
+            android:id="@+id/list_row_amount_note"
+            style="@style/Widget.FindCheapGas.ListRow.AmountNote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="더 들어요" />
+    </LinearLayout>
+</LinearLayout>

@@ -10,13 +10,13 @@
     style="?attr/materialCardViewOutlinedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp">
+    android:layout_marginTop="@dimen/space_s">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/card_padding">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -40,12 +40,9 @@
                 android:id="@+id/compare_cheapest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_s"
                 android:background="@drawable/bg_best_badge"
-                android:paddingStart="6dp"
-                android:paddingTop="1dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="1dp"
+                style="@style/Widget.FindCheapGas.Badge"
                 android:text="@string/compare_cheapest"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="@color/badge_best_text"
@@ -57,7 +54,7 @@
                 android:id="@+id/compare_extra"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_s"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
                 android:textColor="@color/saving_loss_text"
                 android:visibility="gone"
@@ -68,7 +65,7 @@
             android:id="@+id/compare_station"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_xs"
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceTitleSmall"
@@ -78,7 +75,7 @@
             android:id="@+id/compare_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             tools:text="1,639원 · 0.8km" />
 
@@ -86,7 +83,7 @@
             android:id="@+id/compare_total"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textStyle="bold"
             tools:text="예상 총비용 약 66,174원" />
@@ -95,7 +92,7 @@
             android:id="@+id/compare_age"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="약 1시간 전 가격" />
@@ -105,7 +102,7 @@
             android:id="@+id/compare_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_xs"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
@@ -113,10 +110,10 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/compare_register"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.FindCheapGas.Button.Secondary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_xs"
             android:text="@string/compare_register"
             android:visibility="gone" />
     </LinearLayout>

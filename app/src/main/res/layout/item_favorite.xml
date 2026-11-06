@@ -10,9 +10,9 @@
     android:background="?android:attr/colorBackground"
     android:foreground="?attr/selectableItemBackground"
     android:orientation="horizontal"
-    android:paddingStart="16dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp"
+    android:paddingStart="@dimen/space_l"
+    android:paddingTop="@dimen/space_m"
+    android:paddingBottom="@dimen/space_m"
     tools:ignore="RtlSymmetry">
 
     <LinearLayout
@@ -34,7 +34,7 @@
             android:id="@+id/favorite_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="SK에너지 · 내 위치에서 0.4km" />
@@ -43,7 +43,7 @@
             android:id="@+id/favorite_address"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceBodySmall"
@@ -54,7 +54,7 @@
             android:id="@+id/favorite_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/space_xs"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:visibility="gone"
             tools:text="내 위치에서 멀어서 예상 이득을 계산하지 않습니다"
@@ -62,10 +62,10 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/favorite_delete"
-            style="@style/Widget.Material3.Button.TextButton"
+            style="@style/Widget.FindCheapGas.Button.Text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="36dp"
+            android:minHeight="@dimen/button_height_compact"
             android:paddingStart="0dp"
             android:text="@string/favorite_delete"
             android:visibility="gone" />
@@ -74,7 +74,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="@dimen/space_m"
         android:gravity="end"
         android:orientation="vertical">
 
@@ -90,7 +90,7 @@
             android:id="@+id/favorite_saving"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceLabelMedium"
             tools:text="약 1,925원 이득" />
 
@@ -98,7 +98,7 @@
             android:id="@+id/favorite_stale"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/space_xxs"
             android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone"
@@ -108,9 +108,9 @@
 
     <ImageButton
         android:id="@+id/favorite_menu"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="4dp"
+        android:layout_width="@dimen/touch_target"
+        android:layout_height="@dimen/touch_target"
+        android:layout_marginEnd="@dimen/space_xs"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_more_vert"
         tools:ignore="ContentDescription" />

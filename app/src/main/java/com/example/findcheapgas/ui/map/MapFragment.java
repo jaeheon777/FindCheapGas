@@ -3,6 +3,7 @@ package com.example.findcheapgas.ui.map;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -537,11 +538,11 @@ public class MapFragment extends Fragment {
 
     /** 흰 테두리가 있는 파란 원 */
     private Bitmap createMyLocationBitmap() {
-        float density = getResources().getDisplayMetrics().density;
-        int size = Math.round(22 * density);
+        Resources res = getResources();
+        int size = res.getDimensionPixelSize(R.dimen.my_location_dot_size);
         float radius = size / 2f;
-        float shadow = density;
-        float border = 3 * density;
+        float shadow = res.getDimension(R.dimen.my_location_shadow);
+        float border = res.getDimension(R.dimen.my_location_border);
 
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);

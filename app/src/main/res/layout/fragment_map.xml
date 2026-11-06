@@ -18,7 +18,7 @@
         android:layout_height="match_parent"
         android:background="?android:attr/colorBackground"
         android:gravity="center"
-        android:padding="24dp"
+        android:padding="@dimen/space_xxl"
         android:textAppearance="?attr/textAppearanceBodyLarge"
         android:visibility="gone" />
 
@@ -43,24 +43,24 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top"
         android:orientation="vertical"
-        android:paddingTop="8dp">
+        android:paddingTop="@dimen/space_s">
 
         <com.google.android.material.card.MaterialCardView
             style="?attr/materialCardViewElevatedStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="8dp"
-            app:cardCornerRadius="24dp">
+            android:layout_marginStart="@dimen/space_m"
+            android:layout_marginEnd="@dimen/space_m"
+            android:layout_marginBottom="@dimen/space_s"
+            app:shapeAppearance="@style/ShapeAppearance.FindCheapGas.Pill">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="6dp"
-                android:paddingEnd="4dp">
+                android:paddingStart="@dimen/space_s"
+                android:paddingEnd="@dimen/space_xs">
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/search_mode_group"
@@ -74,12 +74,12 @@
                         android:id="@+id/search_mode_place"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="@dimen/control_height_compact"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
                         android:minWidth="0dp"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
+                        android:paddingStart="@dimen/space_m"
+                        android:paddingEnd="@dimen/space_m"
                         android:text="@string/search_mode_place"
                         android:textAppearance="?attr/textAppearanceLabelMedium" />
 
@@ -87,12 +87,12 @@
                         android:id="@+id/search_mode_station"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
+                        android:layout_height="@dimen/control_height_compact"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
                         android:minWidth="0dp"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
+                        android:paddingStart="@dimen/space_m"
+                        android:paddingEnd="@dimen/space_m"
                         android:text="@string/search_mode_station"
                         android:textAppearance="?attr/textAppearanceLabelMedium" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -100,8 +100,8 @@
                 <EditText
                     android:id="@+id/search_input"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="8dp"
+                    android:layout_height="@dimen/touch_target"
+                    android:layout_marginStart="@dimen/space_s"
                     android:layout_weight="1"
                     android:background="@null"
                     android:hint="@string/search_hint_place"
@@ -113,8 +113,8 @@
 
                 <ImageButton
                     android:id="@+id/search_button"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="@dimen/touch_target"
+                    android:layout_height="@dimen/touch_target"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/search_button"
                     android:src="@drawable/ic_search" />
@@ -125,8 +125,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+            android:paddingStart="@dimen/space_m"
+            android:paddingEnd="@dimen/space_m"
             android:scrollbars="none">
 
             <LinearLayout
@@ -141,7 +141,7 @@
                     style="@style/Widget.FindCheapGas.OriginChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="@dimen/space_s"
                     android:visibility="gone"
                     tools:text="강남역 기준"
                     tools:visibility="visible" />
@@ -158,7 +158,7 @@
                     style="@style/Widget.FindCheapGas.FilterDropdownChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="@dimen/space_s"
                     tools:text="반경 3km" />
 
                 <com.google.android.material.chip.Chip
@@ -166,7 +166,7 @@
                     style="@style/Widget.FindCheapGas.FilterDropdownChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="@dimen/space_s"
                     tools:text="브랜드: 전체" />
             </LinearLayout>
         </HorizontalScrollView>
@@ -177,9 +177,9 @@
             style="?attr/materialCardViewElevatedStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginStart="@dimen/space_m"
+            android:layout_marginTop="@dimen/space_s"
+            android:layout_marginEnd="@dimen/space_m"
             android:visibility="gone">
 
             <LinearLayout
@@ -187,10 +187,10 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="8dp">
+                android:paddingStart="@dimen/space_l"
+                android:paddingTop="@dimen/space_s"
+                android:paddingEnd="@dimen/space_s"
+                android:paddingBottom="@dimen/space_s">
 
                 <TextView
                     android:id="@+id/location_banner_text"
@@ -204,7 +204,7 @@
                     style="?attr/borderlessButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp" />
+                    android:layout_marginStart="@dimen/space_s" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -218,7 +218,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/space_s"
             android:text="@string/research_here"
             android:visibility="gone"
             app:icon="@drawable/ic_refresh"
@@ -231,7 +231,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_station_sheet"
-        android:elevation="8dp"
+        android:elevation="@dimen/elevation_sheet"
         android:orientation="vertical"
         app:behavior_expandedOffset="@dimen/station_sheet_expanded_offset"
         app:behavior_fitToContents="false"
@@ -243,9 +243,9 @@
         <com.google.android.material.bottomsheet.BottomSheetDragHandleView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="24dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+            android:minHeight="@dimen/drag_handle_min_height"
+            android:paddingTop="@dimen/space_s"
+            android:paddingBottom="@dimen/space_s" />
 
         <!-- 제목 줄: 왼쪽에 제목과 조건 문구, 오른쪽에 정렬 버튼 -->
         <LinearLayout
@@ -253,9 +253,9 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="4dp">
+            android:paddingStart="@dimen/space_l"
+            android:paddingEnd="@dimen/space_s"
+            android:paddingBottom="@dimen/space_xs">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -284,10 +284,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="?attr/selectableItemBackground"
-                    android:drawablePadding="2dp"
+                    android:drawablePadding="@dimen/space_xxs"
                     android:gravity="center_vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
+                    android:paddingTop="@dimen/space_xs"
+                    android:paddingBottom="@dimen/space_xs"
                     android:textAppearance="?attr/textAppearanceLabelMedium"
                     android:textColor="?attr/colorPrimary"
                     app:drawableEndCompat="@drawable/ic_chevron_right"
@@ -297,12 +297,12 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_sort"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.FindCheapGas.Button.Text"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="@dimen/control_height_compact"
                 android:minWidth="0dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="4dp"
+                android:paddingStart="@dimen/space_s"
+                android:paddingEnd="@dimen/space_xs"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 app:icon="@drawable/ic_arrow_drop_down"
                 app:iconGravity="end"
@@ -319,7 +319,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
-                android:paddingBottom="8dp"
+                android:paddingBottom="@dimen/space_s"
                 tools:listitem="@layout/item_station" />
 
             <!-- 불러오는 중, 주유소 없음, 오류 안내 -->
@@ -329,16 +329,16 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:padding="16dp"
+                android:padding="@dimen/space_l"
                 android:visibility="gone">
 
                 <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/station_status_progress"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="@dimen/space_s"
                     android:indeterminate="true"
-                    app:indicatorSize="24dp" />
+                    app:indicatorSize="@dimen/progress_size_small" />
 
                 <TextView
                     android:id="@+id/station_status_text"
@@ -353,7 +353,7 @@
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/space_s"
                     android:text="@string/station_retry" />
             </LinearLayout>
         </FrameLayout>
@@ -369,11 +369,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_marginStart="12dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginStart="@dimen/space_m"
+        android:layout_marginBottom="@dimen/space_m"
         android:contentDescription="@string/map_legend_description"
         android:importantForAccessibility="yes"
-        app:cardCornerRadius="12dp"
+        app:cardCornerRadius="@dimen/corner_button"
         app:layout_anchor="@id/station_sheet"
         app:layout_anchorGravity="top|start">
 
@@ -383,10 +383,10 @@
             android:gravity="center_vertical"
             android:importantForAccessibility="noHideDescendants"
             android:orientation="horizontal"
-            android:paddingStart="10dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="10dp"
-            android:paddingBottom="4dp">
+            android:paddingStart="@dimen/space_m"
+            android:paddingTop="@dimen/space_xs"
+            android:paddingEnd="@dimen/space_m"
+            android:paddingBottom="@dimen/space_xs">
 
             <TextView
                 style="@style/Widget.FindCheapGas.MapLegendItem"
@@ -399,7 +399,7 @@
                 style="@style/Widget.FindCheapGas.MapLegendItem"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_s"
                 android:text="@string/map_legend_similar"
                 app:drawableTint="@color/marker_similar_background" />
 
@@ -407,14 +407,14 @@
                 style="@style/Widget.FindCheapGas.MapLegendItem"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_s"
                 android:text="@string/map_legend_loss"
                 app:drawableTint="@color/marker_loss_background" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/space_s"
                 android:text="@string/map_legend_threshold"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant" />
@@ -427,7 +427,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/space_l"
         android:contentDescription="@string/my_location"
         app:fabSize="mini"
         app:layout_anchor="@id/station_sheet"

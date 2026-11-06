@@ -8,7 +8,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -80,7 +79,7 @@ public class PriceTrendView extends View {
         Resources res = getResources();
         linePaint.setColor(ContextCompat.getColor(context, R.color.trend_line));
         linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setStrokeWidth(dp(2));
+        linePaint.setStrokeWidth(res.getDimension(R.dimen.trend_line_width));
         linePaint.setStrokeJoin(Paint.Join.ROUND);
         linePaint.setStrokeCap(Paint.Cap.ROUND);
 
@@ -88,7 +87,7 @@ public class PriceTrendView extends View {
         pointHolePaint.setColor(ContextCompat.getColor(context, R.color.trend_point_hole));
 
         baselinePaint.setColor(ContextCompat.getColor(context, R.color.trend_baseline));
-        baselinePaint.setStrokeWidth(dp(1));
+        baselinePaint.setStrokeWidth(res.getDimension(R.dimen.trend_baseline_width));
 
         valuePaint.setColor(ContextCompat.getColor(context, R.color.trend_value_text));
         valuePaint.setTextSize(res.getDimension(R.dimen.trend_value_text));
@@ -100,11 +99,11 @@ public class PriceTrendView extends View {
         datePaint.setTypeface(AppFonts.of(context, Typeface.NORMAL));
         datePaint.setTextAlign(Paint.Align.CENTER);
 
-        pointRadius = dp(3.5f);
-        lastPointRadius = dp(5);
-        labelGap = dp(6);
+        pointRadius = res.getDimension(R.dimen.trend_point_radius);
+        lastPointRadius = res.getDimension(R.dimen.trend_last_point_radius);
+        labelGap = res.getDimension(R.dimen.trend_label_gap);
         // 양 끝 점의 숫자("1,668원")가 잘리지 않을 만큼 좌우를 비운다.
-        sidePadding = valuePaint.measureText("0,000원") / 2 + dp(2);
+        sidePadding = valuePaint.measureText("0,000원") / 2 + res.getDimension(R.dimen.trend_side_padding);
     }
 
     /** 날짜순 평균가. 2개 미만이면 화면이 이 View 대신 안내 문구를 보여준다. */
@@ -228,9 +227,5 @@ public class PriceTrendView extends View {
             }
         }
         return false;
-    }
-
-    private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
     }
 }
