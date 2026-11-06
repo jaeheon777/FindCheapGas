@@ -19,13 +19,13 @@ import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * 상세 화면의 길찾기 버튼. 카카오맵 / 티맵 중 고르는 선택창을 보여주고, 고른 앱을 연다.
+ * 상세 화면과 지도 탭 이득 1위 카드의 길찾기 버튼. 카카오맵 / 티맵 중 고르는 선택창을 보여주고, 고른 앱을 연다.
  * - 설치 여부는 선택창을 열 때마다 확인한다 (AndroidManifest.xml의 queries에 두 패키지를 선언해 둠).
  * - 설치됨: 길찾기 주소(URL 스킴)로 바로 연다. 열 수 없으면(ActivityNotFoundException) 플레이스토어로 보낸다.
  * - 설치 필요: 플레이스토어 앱(market://)으로 보내고, 그것도 없으면 웹 설치 페이지를 연다.
  * 주소와 순서는 RouteLinks가 만든다. 이 앱은 외부 앱을 여는 것까지만 하고 경로를 그리지 않는다.
  */
-final class RouteAppLauncher {
+public final class RouteAppLauncher {
 
     private static final String TAG = "RouteAppLauncher";
 
@@ -37,7 +37,7 @@ final class RouteAppLauncher {
      * @param latitude  WGS84 위도
      * @param longitude WGS84 경도
      */
-    static void showChooser(Activity activity, String name, double latitude, double longitude) {
+    public static void showChooser(Activity activity, String name, double latitude, double longitude) {
         View content = activity.getLayoutInflater().inflate(R.layout.dialog_route_app, null);
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.route_app_title)

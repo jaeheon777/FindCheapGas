@@ -32,6 +32,29 @@ public final class FormatUtil {
     }
 
     /**
+     * 주인공 숫자 문구 (지도 탭의 이득 1위 카드, 상세 화면 맨 위 카드). 과장하지 않도록 구간마다 다르게 쓴다.
+     * - 1,000원 이상 이득: "약 2,583원 아낄 수 있어요"
+     * - 1,000원 이상 손해: "약 1,200원 더 들어요"
+     * - 그 사이: "가장 가까운 곳과 비슷해요". 이득 1위인데 0원 이하면(더 나은 곳이 없음) "가장 가까운 곳에서 넣는 게 좋아요"
+     * - 기준 주유소 자신: 이득 1위면 "가장 가까운 곳에서 넣는 게 좋아요", 아니면 "가장 가까운 주유소예요"
+     * 구간은 SavingLevel(±1,000원)을 따라서 숫자 색과 맞는다.
+     */
+    public static String formatSavingHeadline(StationSaving saving) {
+        long won = saving.getSavingWon();
+        if (saving.isBaseline()) {
+            return saving.isBest() ? "가장 가까운 곳에서 넣는 게 좋아요" : "가장 가까운 주유소예요";
+        }
+        switch (saving.getLevel()) {
+            case GAIN:
+                return "약 " + formatWon(won) + " 아낄 수 있어요";
+            case LOSS:
+                return "약 " + formatWon(-won) + " 더 들어요";
+            default:
+                return saving.isBest() && won <= 0 ? "가장 가까운 곳에서 넣는 게 좋아요" : "가장 가까운 곳과 비슷해요";
+        }
+    }
+
+    /**
      * 목록과 상세 화면의 예상 이득 문구. 추정치이므로 "약"을 붙인다.
      * 기준 주유소: "기준 (가장 가까운 곳)", 이득: "약 1,925원 이득", 손해: "약 300원 손해",
      * 원 단위로 차이가 없으면 "기준과 거의 같음"

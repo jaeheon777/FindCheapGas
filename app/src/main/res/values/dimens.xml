@@ -38,14 +38,19 @@
 
     <!-- 선, 높이 -->
     <dimen name="stroke_thin">1dp</dimen>
+    <!-- 주인공 카드의 테두리 (어두운 테마의 라임 테두리) -->
+    <dimen name="stroke_emphasis">1.5dp</dimen>
     <dimen name="elevation_floating">2dp</dimen>
     <dimen name="elevation_sheet">8dp</dimen>
 
     <!-- 누르는 영역과 컨트롤 크기 -->
     <dimen name="touch_target">48dp</dimen>
     <dimen name="icon_size">24dp</dimen>
-    <dimen name="chip_icon_size">20dp</dimen>
     <dimen name="chip_close_icon_size">18dp</dimen>
+    <!-- 지도 필터 칩의 작은 ▼ -->
+    <dimen name="chip_dropdown_icon_size">16dp</dimen>
+    <!-- 검색창 안 장소 / 주유소 이름 선택 버튼: 누르는 영역은 48dp, 보이는 높이는 위아래로 이만큼 줄인 32dp -->
+    <dimen name="search_mode_inset">8dp</dimen>
     <dimen name="button_height">52dp</dimen>
     <dimen name="button_height_compact">36dp</dimen>
     <dimen name="control_height_compact">40dp</dimen>
@@ -63,8 +68,11 @@
     <!-- 지도 색 범례 점 -->
     <dimen name="legend_dot_size">10dp</dimen>
 
-    <!-- 주유소 목록 시트를 접었을 때 높이: 손잡이 + 제목·조건 문구·계산 기준 문구 + 항목 약 1.5개 -->
-    <dimen name="station_sheet_peek_height">238dp</dimen>
+    <!--
+        주유소 목록 시트를 접었을 때 높이: 손잡이 + 이득 1위 카드.
+        카드 높이는 글꼴 크기와 내용에 따라 달라서, 화면이 그려지면 코드에서 카드 높이를 재서 다시 맞춘다. 이 값은 처음 그릴 때만 쓴다.
+    -->
+    <dimen name="station_sheet_peek_height">232dp</dimen>
     <!-- 시트를 끝까지 올려도 검색창, 필터 줄과 지도 일부가 보인다. -->
     <dimen name="station_sheet_expanded_offset">152dp</dimen>
 

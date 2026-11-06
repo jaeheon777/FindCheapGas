@@ -8,21 +8,25 @@
 
     <!-- 지도 탭 -->
     <string name="my_location">내 위치로</string>
-    <string name="permission_rationale">위치 권한을 허용하면 내 주변 주유소를 볼 수 있습니다</string>
+    <string name="permission_rationale">위치 권한을 허용하면 내 주변 주유소를 볼 수 있어요</string>
     <string name="permission_request">권한 허용</string>
     <string name="permission_open_settings">설정 열기</string>
-    <string name="location_disabled">기기 위치가 꺼져 있습니다. 위치를 켜면 내 주변 주유소를 볼 수 있습니다</string>
+    <string name="location_disabled">기기 위치가 꺼져 있어요. 위치를 켜면 내 주변 주유소를 볼 수 있어요</string>
     <string name="location_open_settings">위치 켜기</string>
-    <string name="map_unavailable">이 기기에서는 지도를 표시할 수 없습니다</string>
-    <string name="map_auth_failed">카카오맵 인증에 실패했습니다.\n앱 키와 키 해시 등록을 확인해 주세요.</string>
-    <string name="map_error">지도를 불러오지 못했습니다.\n잠시 후 다시 시도해 주세요.</string>
+    <string name="map_unavailable">이 기기에서는 지도를 표시할 수 없어요</string>
+    <string name="map_auth_failed">카카오맵 인증에 실패했어요.
+앱 키와 키 해시 등록을 확인해 주세요.</string>
+    <string name="map_error">지도를 불러오지 못했어요.
+잠시 후 다시 시도해 주세요.</string>
 
     <!-- 마커 색 범례 -->
-    <string name="map_legend_gain">이득</string>
-    <string name="map_legend_similar">비슷</string>
-    <string name="map_legend_loss">손해</string>
-    <string name="map_legend_threshold">기준 ±1,000원</string>
-    <string name="map_legend_description">마커 색: 초록은 가장 가까운 곳보다 1,000원 이상 이득, 회색은 차이 1,000원 미만, 빨강은 1,000원 이상 손해</string>
+    <string name="map_legend_gain">초록: 약 1,000원 이상 아낄 수 있어요</string>
+    <string name="map_legend_similar">회색: 차이가 1,000원 미만이라 비슷해요</string>
+    <string name="map_legend_loss">빨강: 약 1,000원 이상 더 들어요</string>
+    <string name="map_legend_title">마커 색 안내</string>
+    <string name="map_legend_note">가장 가까운 주유소와 비교한 금액이에요. 내 차 정보, 할인, 이동 비용으로 계산한 예상 금액이라 실제와 다를 수 있어요.</string>
+    <string name="map_legend_confirm">확인</string>
+    <string name="map_legend_description">마커 색 안내. 초록은 가장 가까운 곳보다 1,000원 이상 이득, 회색은 차이 1,000원 미만, 빨강은 1,000원 이상 손해</string>
 
     <!-- 지도 위 검색창 -->
     <string name="search_mode_place">장소</string>
@@ -57,31 +61,29 @@
     <string name="origin_map_center">지도 중심</string>
     <string name="research_here">이 지역에서 다시 검색</string>
     <string name="origin_chip">%1$s 기준</string>
-    <string name="origin_chip_description">%1$s 기준으로 계산 중. 닫기를 누르면 내 위치 기준으로 돌아갑니다</string>
-    <string name="searched_station_missing">%1$s 주변 주유소를 보여줍니다. %1$s은(는) 지금 고른 유종이나 브랜드 필터에 맞지 않아 목록에 없습니다</string>
-    <string name="mock_area_notice">가짜 데이터 모드에서는 강남역 주변 주유소만 볼 수 있습니다</string>
+    <string name="origin_chip_description">%1$s 기준으로 계산 중이에요. 닫기를 누르면 내 위치 기준으로 돌아가요</string>
+    <string name="searched_station_missing">%1$s 주변 주유소를 보여줘요. %1$s은(는) 지금 고른 유종이나 브랜드 필터에 맞지 않아 목록에 없어요</string>
+    <string name="mock_area_notice">가짜 데이터 모드에서는 강남역 주변 주유소만 볼 수 있어요</string>
 
     <!-- 지도 위 필터 줄 -->
-    <string name="filter_radius">반경 %1$s</string>
     <string name="filter_fuel_type_description">유종 %1$s, 눌러서 변경</string>
     <string name="filter_radius_description">반경 %1$s, 눌러서 변경</string>
     <string name="filter_brand_description">브랜드 필터 %1$s, 눌러서 변경</string>
 
     <!-- 브랜드 빠른 필터 시트 -->
     <string name="brand_filter_title">브랜드 필터</string>
-    <string name="brand_filter_description">고른 것 중 하나라도 맞는 주유소를 보여줍니다. 누르면 바로 적용됩니다.</string>
+    <string name="brand_filter_description">고른 것 중 하나라도 맞는 주유소를 보여줘요. 누르면 바로 적용돼요.</string>
     <string name="brand_filter_all">전체</string>
     <string name="brand_filter_discount_only">할인 브랜드만</string>
     <string name="brand_filter_preferred_only">선호 브랜드만</string>
-    <string name="brand_filter_discount_disabled">할인을 설정한 브랜드가 없습니다. 설정 탭의 내 브랜드에서 할인을 입력하면 고를 수 있습니다.</string>
-    <string name="brand_filter_preferred_disabled">선호 브랜드가 없습니다. 설정 탭의 내 브랜드에서 선호를 켜면 고를 수 있습니다.</string>
+    <string name="brand_filter_discount_disabled">할인을 설정한 브랜드가 없어요. 설정 탭의 내 브랜드에서 할인을 입력하면 고를 수 있어요.</string>
+    <string name="brand_filter_preferred_disabled">선호 브랜드가 없어요. 설정 탭의 내 브랜드에서 선호를 켜면 고를 수 있어요.</string>
     <string name="brand_filter_discount_suffix">" · 리터당 %1$s 할인"</string>
-    <string name="brand_filter_hidden_note">숨긴 브랜드 %1$d곳은 여기에 나오지 않습니다. 설정 탭의 내 브랜드에서 바꿀 수 있습니다.</string>
+    <string name="brand_filter_hidden_note">숨긴 브랜드 %1$d곳은 여기에 나오지 않아요. 설정 탭의 내 브랜드에서 바꿀 수 있어요.</string>
 
     <!-- 주변 주유소 목록 -->
-    <string name="station_sheet_title">주변 주유소</string>
-    <string name="station_sheet_title_count">주변 주유소 %1$d곳</string>
-    <string name="station_sheet_condition">%1$s 기준 · %2$s · %3$s · %4$s</string>
+    <string name="station_sheet_title">주변 주유소 · %1$s 기준</string>
+    <string name="station_sheet_title_count">주변 %1$d곳 · %2$s 기준</string>
     <string name="station_sort_description">정렬 %1$s, 눌러서 변경</string>
     <string name="station_cheapest">최저가</string>
     <string name="station_best">이득 1위</string>
@@ -89,15 +91,21 @@
     <string name="station_info">%1$s · %2$s</string>
     <string name="station_preferred">선호 브랜드</string>
     <string name="station_discount_applied">%1$s 할인 적용</string>
-    <string name="station_locating">현재 위치를 확인하는 중입니다</string>
-    <string name="station_loading">주변 주유소를 불러오는 중입니다</string>
-    <string name="station_empty">반경 %1$s 안에 주유소가 없습니다</string>
-    <string name="station_empty_brand_filter">선택한 브랜드의 주유소가 반경 안에 없습니다</string>
-    <string name="station_empty_hidden_brands">반경 안의 주유소가 모두 숨긴 브랜드입니다.\n설정 탭의 내 브랜드에서 숨기기를 끌 수 있습니다.</string>
-    <string name="station_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
-    <string name="station_error_opinet">유가 정보를 불러오지 못했습니다.\n오늘 조회 한도를 넘었거나 오피넷 서버에 문제가 있을 수 있습니다.</string>
-    <string name="station_error_daily_limit">오늘 조회 한도(300회)에 도달했습니다.\n내일 다시 시도해 주세요. 저장된 결과는 계속 볼 수 있습니다.</string>
+    <string name="station_locating">현재 위치를 확인하고 있어요</string>
+    <string name="station_loading">주변 주유소를 불러오고 있어요</string>
+    <string name="station_empty">반경 %1$s 안에 주유소가 없어요</string>
+    <string name="station_empty_brand_filter">고른 브랜드의 주유소가 반경 안에 없어요</string>
+    <string name="station_empty_hidden_brands">반경 안의 주유소가 모두 숨긴 브랜드예요. 내 브랜드에서 숨기기를 끌 수 있어요</string>
+    <string name="station_error_network">인터넷에 연결할 수 없어요. 연결 상태를 확인해 주세요</string>
+    <string name="station_error_opinet">유가 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요</string>
+    <string name="station_error_daily_limit">오늘 조회 한도(300회)에 도달했어요. 저장된 결과만 볼 수 있어요</string>
     <string name="station_retry">다시 시도</string>
+    <!-- 시트를 내린 상태의 이득 1위 카드 -->
+    <string name="best_card_label">이득 1위</string>
+    <string name="best_card_label_selected">선택한 주유소</string>
+    <string name="best_card_show_best">이득 1위 보기</string>
+    <string name="best_card_info">%1$s · %2$s · %3$s</string>
+    <string name="best_card_description">%1$s. %2$s. %3$s. 눌러서 계산 내역 보기</string>
     <string name="station_basis_description">계산 기준 %1$s, 눌러서 내 차 정보 수정</string>
 
     <!-- 주유소 상세 화면 -->
@@ -176,15 +184,15 @@
     <string name="detail_trend_error_network">인터넷에 연결할 수 없어 가격 추이를 불러오지 못했습니다</string>
     <string name="detail_trend_error">가격 추이를 불러오지 못했습니다</string>
     <string name="detail_route">길찾기</string>
-    <string name="detail_route_description">길찾기. 카카오맵이나 티맵을 열고 이 주유소를 목적지로 넣습니다</string>
+    <string name="detail_route_description">길찾기. 카카오맵이나 티맵을 열고 이 주유소를 목적지로 넣어요</string>
     <string name="route_app_title">길찾기 앱 선택</string>
     <string name="route_app_kakao_map">카카오맵</string>
     <string name="route_app_tmap">티맵</string>
     <string name="route_app_installed">설치됨</string>
     <string name="route_app_not_installed">설치 필요</string>
     <string name="route_app_row_description">%1$s, %2$s</string>
-    <string name="route_app_note">길안내는 고른 앱에서 합니다. 설치되지 않은 앱을 고르면 설치 페이지로 이동합니다.</string>
-    <string name="route_app_open_failed">길찾기 앱이나 설치 페이지를 열 수 없습니다</string>
+    <string name="route_app_note">길안내는 고른 앱에서 해요. 설치되지 않은 앱을 고르면 설치 페이지로 이동해요.</string>
+    <string name="route_app_open_failed">길찾기 앱이나 설치 페이지를 열 수 없어요</string>
 
     <!-- 내 차 정보 입력 (처음 실행, 수정) -->
     <string name="onboarding_heading">내 차 정보를 알려 주세요</string>

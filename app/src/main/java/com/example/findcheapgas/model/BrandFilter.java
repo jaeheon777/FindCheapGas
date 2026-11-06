@@ -120,6 +120,22 @@ public final class BrandFilter {
         return parts.get(0) + " 외 " + (parts.size() - 1);
     }
 
+    /**
+     * 지도 필터 줄의 짧은 칩 문구. effective()를 거친 필터에 쓴다.
+     * 전체: "브랜드", 하나: "할인 브랜드", "선호 브랜드", "SK", 여럿: "브랜드 3" (고른 개수)
+     * 무엇을 골랐는지는 label()로 접근성 설명에 넣는다.
+     */
+    public String chipLabel() {
+        int count = brandCodes.size() + (discountOnly ? 1 : 0) + (preferredOnly ? 1 : 0);
+        if (count == 0) {
+            return "브랜드";
+        }
+        if (count == 1) {
+            return label();
+        }
+        return "브랜드 " + count;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

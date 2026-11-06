@@ -40,6 +40,23 @@ public class FormatUtilTest {
     }
 
     @Test
+    public void savingHeadline_texts() {
+        assertEquals("약 1,925원 아낄 수 있어요", FormatUtil.formatSavingHeadline(saving("x", 66_174, 68_099.17)));
+        assertEquals("약 1,200원 더 들어요", FormatUtil.formatSavingHeadline(saving("x", 69_299.17, 68_099.17)));
+        // 1,000원 미만 차이는 이득이든 손해든 비슷
+        assertEquals("가장 가까운 곳과 비슷해요", FormatUtil.formatSavingHeadline(saving("x", 67_400, 68_099.17)));
+        assertEquals("가장 가까운 곳과 비슷해요", FormatUtil.formatSavingHeadline(saving("x", 68_399.2, 68_099.17)));
+        assertEquals("가장 가까운 곳과 비슷해요",
+                FormatUtil.formatSavingHeadline(saving("x", 67_400, 68_099.17).markedBest()));
+        // 이득 1위인데 더 나은 곳이 없으면
+        assertEquals("가장 가까운 곳에서 넣는 게 좋아요",
+                FormatUtil.formatSavingHeadline(saving("x", 68_099.17, 68_099.17).markedBest()));
+        assertEquals("가장 가까운 곳에서 넣는 게 좋아요",
+                FormatUtil.formatSavingHeadline(saving("base", 68_099, 68_099).markedBest()));
+        assertEquals("가장 가까운 주유소예요", FormatUtil.formatSavingHeadline(saving("base", 68_099, 68_099)));
+    }
+
+    @Test
     public void tradeTime_dateAndTime() {
         assertEquals("11월 4일 15:30", FormatUtil.formatTradeTime("20261104", "153000"));
         assertEquals("1월 15일 08:05", FormatUtil.formatTradeTime("20270115", "0805"));

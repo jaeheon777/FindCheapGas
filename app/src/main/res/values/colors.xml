@@ -67,6 +67,14 @@
     <color name="saving_similar_text">#FF636A75</color>
     <color name="saving_loss_text">#FFD42A33</color>
 
+    <!--
+        주인공 카드 (지도 탭의 이득 1위 카드, 상세 화면 맨 위 카드).
+        밝게: 흰 카드 + 이득 초록 숫자, 테두리 없음 / 어둡게(values-night): 카드 색 + 라임 테두리 + 라임 숫자.
+        손해·비슷 숫자는 saving_loss_text, saving_similar_text를 그대로 쓴다.
+    -->
+    <color name="hero_saving_gain_text">#FF0B7D3E</color>
+    <color name="hero_card_stroke">#00000000</color>
+
     <!-- 목록 배지 -->
     <color name="badge_best_background">#FF0B7D3E</color>
     <color name="badge_best_text">#FFFFFFFF</color>

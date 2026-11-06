@@ -134,6 +134,15 @@
         <item name="shapeAppearance">@style/ShapeAppearance.FindCheapGas.Card</item>
     </style>
 
+    <!--
+        주인공 카드: 화면마다 하나, 주인공 숫자(예상 이득)를 담는 카드 (지도 탭의 이득 1위 카드, 상세 화면 맨 위 카드).
+        밝게는 흰 카드, 어둡게는 라임 테두리 (hero_card_stroke, 밝은 테마에서는 투명).
+    -->
+    <style name="Widget.FindCheapGas.Card.Hero">
+        <item name="strokeColor">@color/hero_card_stroke</item>
+        <item name="strokeWidth">@dimen/stroke_emphasis</item>
+    </style>
+
     <!-- ===== 버튼 ===== -->
     <!-- 주요 버튼: 라임 바탕 + 거의 검정 글자, 모서리 12dp, 높이 52dp. 화면마다 하나만 쓴다. 테마의 기본 버튼 스타일 -->
     <style name="Widget.FindCheapGas.Button.Primary" parent="Widget.Material3.Button">
@@ -163,6 +172,20 @@
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="shapeAppearance">@style/ShapeAppearance.FindCheapGas.Button</item>
+    </style>
+
+    <!--
+        검색창 안의 작은 선택 버튼 (장소 / 주유소 이름). 고른 쪽만 라임 바탕 + 거의 검정 글자(보조 버튼의 checked 색).
+        보이는 높이는 32dp로 작게 하고, 위아래 inset으로 누르는 영역 48dp는 지킨다.
+    -->
+    <style name="Widget.FindCheapGas.Button.SearchMode" parent="Widget.FindCheapGas.Button.Secondary">
+        <item name="android:textAppearance">@style/TextAppearance.FindCheapGas.LabelSmall</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:insetTop">@dimen/search_mode_inset</item>
+        <item name="android:insetBottom">@dimen/search_mode_inset</item>
+        <item name="android:paddingStart">@dimen/space_s</item>
+        <item name="android:paddingEnd">@dimen/space_s</item>
     </style>
 
     <!-- 텍스트 버튼: 바탕 없이 강조 글자색(밝게 올리브, 어둡게 라임) -->
@@ -204,7 +227,7 @@
         <item name="closeIcon">@drawable/ic_arrow_drop_down</item>
         <item name="closeIconTint">@color/text_secondary</item>
         <item name="closeIconVisible">true</item>
-        <item name="closeIconSize">@dimen/chip_icon_size</item>
+        <item name="closeIconSize">@dimen/chip_dropdown_icon_size</item>
         <item name="closeIconStartPadding">0dp</item>
         <item name="android:checkable">false</item>
     </style>
@@ -355,11 +378,13 @@
     </style>
 
     <!-- ===== 화면 조각 ===== -->
-    <!-- 지도 색 범례 한 칸: 색 점 + 글자 (점 색은 각 TextView의 drawableTint) -->
+    <!-- 마커 색 안내 한 줄: 색 점 + 설명 (점 색은 각 TextView의 drawableTint) -->
     <style name="Widget.FindCheapGas.MapLegendItem" parent="">
-        <item name="android:drawablePadding">@dimen/space_xs</item>
+        <item name="android:drawablePadding">@dimen/space_m</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
+        <item name="android:paddingTop">@dimen/space_s</item>
+        <item name="android:paddingBottom">@dimen/space_s</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodyMedium</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="drawableStartCompat">@drawable/bg_legend_dot</item>
     </style>

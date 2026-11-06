@@ -52,9 +52,12 @@ import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.model.UserLocation;
 import com.example.findcheapgas.ui.OriginLabels;
+import com.example.findcheapgas.ui.SavingColors;
+import com.example.findcheapgas.ui.detail.RouteAppLauncher;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.util.FormatUtil;
+import com.example.findcheapgas.util.PlaceCompareBuilder;
 import com.example.findcheapgas.util.StationListBuilder;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.example.findcheapgas.viewmodel.SearchViewModel;
@@ -62,6 +65,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.kakao.vectormap.KakaoMap;
@@ -126,12 +130,8 @@ public class MapFragment extends Fragment {
 
     private TextView mapMessage;
     private View progress;
-    private View banner;
-    private TextView bannerText;
-    private MaterialButton bannerButton;
     private FloatingActionButton myLocationButton;
     private View researchButton;
-    private View mapLegend;
 
     private MaterialButtonToggleGroup searchModeGroup;
     private EditText searchInput;
@@ -141,8 +141,6 @@ public class MapFragment extends Fragment {
     private Chip radiusChip;
     private Chip brandChip;
     private MaterialButton sortButton;
-    private TextView conditionText;
-    private TextView basisText;
 
     private View stationSheet;
     private BottomSheetBehavior<View> sheetBehavior;
@@ -150,10 +148,29 @@ public class MapFragment extends Fragment {
     private RecyclerView stationList;
     private LinearLayoutManager stationLayoutManager;
     private StationAdapter stationAdapter;
-    private View stationStatus;
-    private View stationStatusProgress;
-    private TextView stationStatusText;
-    private View stationRetryButton;
+    // 지도 아래 여백으로 쓴 시트 peek 높이. 이득 1위 카드 높이가 바뀌면 둘 다 다시 맞춘다.
+    private int appliedPeekHeight;
+
+    // 시트를 내린 상태의 이득 1위 카드
+    private View bestCard;
+    private View bestCardContent;
+    private TextView bestCardLabel;
+    private View bestCardShowBest;
+    private TextView bestCardHeadline;
+    private TextView bestCardName;
+    private TextView bestCardInfo;
+    private View bestCardRoute;
+    private TextView basisText;
+    private View bestCardStatus;
+    private View bestCardStatusProgress;
+    private TextView bestCardStatusText;
+    private MaterialButton bestCardStatusButton;
+    // 카드가 지금 보여주는 주유소 (상세 화면, 길찾기에 넘긴다). 안내를 보여주는 중이면 null
+    @Nullable
+    private StationSaving cardStation;
+    // 안내 버튼을 눌렀을 때 할 일 (다시 시도, 권한 요청, 설정 열기)
+    @Nullable
+    private Runnable cardStatusAction;
 
     @Nullable
     @Override
@@ -171,18 +188,14 @@ public class MapFragment extends Fragment {
 
         mapMessage = view.findViewById(R.id.map_message);
         progress = view.findViewById(R.id.location_progress);
-        banner = view.findViewById(R.id.location_banner);
-        bannerText = view.findViewById(R.id.location_banner_text);
-        bannerButton = view.findViewById(R.id.location_banner_button);
         myLocationButton = view.findViewById(R.id.btn_my_location);
-        mapLegend = view.findViewById(R.id.map_legend);
 
-        bannerButton.setOnClickListener(v -> onBannerButtonClick());
         myLocationButton.setOnClickListener(v -> onMyLocationClick());
         researchButton = view.findViewById(R.id.btn_research);
         researchButton.setOnClickListener(v -> viewModel.researchMapCenter());
 
         setUpStationSheet(view);
+        setUpBestCard(view);
         setUpSearch(view);
         setUpFilters(view);
 
@@ -202,6 +215,8 @@ public class MapFragment extends Fragment {
             }
             renderOriginChip(origin);
             renderFilters();
+            renderSheetTitle();
+            renderBestCard();
         });
         viewModel.getMockAreaNotice().observe(getViewLifecycleOwner(), show -> {
             if (Boolean.TRUE.equals(show)) {
@@ -218,8 +233,9 @@ public class MapFragment extends Fragment {
         viewModel.getResearchAvailable().observe(getViewLifecycleOwner(), show ->
                 researchButton.setVisibility(Boolean.TRUE.equals(show) ? View.VISIBLE : View.GONE));
         viewModel.getLoading().observe(getViewLifecycleOwner(), loading -> renderProgress());
-        viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBanner());
-        viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBanner());
+        // 위치 권한·기기 위치 안내는 이득 1위 카드 자리에서 보여준다.
+        viewModel.getPermissionState().observe(getViewLifecycleOwner(), state -> renderBestCard());
+        viewModel.getLocationEnabled().observe(getViewLifecycleOwner(), enabled -> renderBestCard());
 
         viewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType -> renderFilters());
         viewModel.getRadius().observe(getViewLifecycleOwner(), radius -> renderFilters());
@@ -233,16 +249,18 @@ public class MapFragment extends Fragment {
         viewModel.getStations().observe(getViewLifecycleOwner(), this::showStations);
         viewModel.getStationsLoading().observe(getViewLifecycleOwner(), loading -> {
             renderProgress();
-            renderStationStatus();
+            renderBestCard();
         });
-        viewModel.getStationsError().observe(getViewLifecycleOwner(), error -> renderStationStatus());
+        viewModel.getStationsError().observe(getViewLifecycleOwner(), error -> renderBestCard());
         // 즐겨찾기한 주유소는 목록 상호 뒤에 북마크를 단다.
         viewModel.getFavoriteIds().observe(getViewLifecycleOwner(), stationAdapter::setFavoriteIds);
+        // 마커를 누르면 카드가 그 주유소로 바뀐다.
         viewModel.getSelectedStationId().observe(getViewLifecycleOwner(), id -> {
             stationAdapter.setSelectedId(id);
             if (stationMarkers != null) {
                 stationMarkers.setSelected(id);
             }
+            renderBestCard();
         });
 
         // 지도 탭이 처음 열릴 때 한 번만 권한을 묻는다.
@@ -305,6 +323,9 @@ public class MapFragment extends Fragment {
         stationList = null;
         stationLayoutManager = null;
         stationAdapter = null;
+        cardStation = null;
+        cardStatusAction = null;
+        appliedPeekHeight = 0;
     }
 
     // ---------- 권한 ----------
@@ -323,25 +344,33 @@ public class MapFragment extends Fragment {
         viewModel.onPermissionDenied(permanently);
     }
 
-    private void renderBanner() {
+    /**
+     * 이득 1위 카드 자리에 위치 권한 / 기기 위치 안내를 보여줄지.
+     * 내 위치를 따라가는 중인데 실제 내 위치를 얻지 못해 기본 위치(서울시청)로 조회한 경우에만 보여준다.
+     * 검색한 장소 기준이거나 마지막 위치라도 얻었으면 그 결과가 쓸모 있으므로 결과를 그대로 보여준다.
+     * @return 안내 문구와 버튼 문구, 보여주지 않으면 null
+     */
+    @Nullable
+    private int[] locationNotice() {
+        SearchOrigin origin = viewModel.getOrigin().getValue();
+        UserLocation location = viewModel.getLocation().getValue();
+        if ((origin != null && origin.isFixed()) || (location != null && location.isUserLocation())) {
+            return null;
+        }
         LocationPermissionState state = viewModel.getPermissionState().getValue();
         if (state == LocationPermissionState.DENIED || state == LocationPermissionState.PERMANENTLY_DENIED) {
-            bannerText.setText(R.string.permission_rationale);
-            bannerButton.setText(state == LocationPermissionState.PERMANENTLY_DENIED
-                    ? R.string.permission_open_settings
-                    : R.string.permission_request);
-            banner.setVisibility(View.VISIBLE);
-        } else if (state == LocationPermissionState.GRANTED
-                && Boolean.FALSE.equals(viewModel.getLocationEnabled().getValue())) {
-            bannerText.setText(R.string.location_disabled);
-            bannerButton.setText(R.string.location_open_settings);
-            banner.setVisibility(View.VISIBLE);
-        } else {
-            banner.setVisibility(View.GONE);
+            return new int[]{R.string.permission_rationale, state == LocationPermissionState.PERMANENTLY_DENIED
+                    ? R.string.permission_open_settings : R.string.permission_request};
         }
+        if (state == LocationPermissionState.GRANTED
+                && Boolean.FALSE.equals(viewModel.getLocationEnabled().getValue())) {
+            return new int[]{R.string.location_disabled, R.string.location_open_settings};
+        }
+        return null;
     }
 
-    private void onBannerButtonClick() {
+    /** 권한 요청, 앱 설정 열기(다시 묻지 않음), 위치 설정 열기(기기 위치 꺼짐) 중 지금 상태에 맞는 것 */
+    private void requestLocationAccess() {
         LocationPermissionState state = viewModel.getPermissionState().getValue();
         if (state == LocationPermissionState.PERMANENTLY_DENIED) {
             openSettings(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -358,7 +387,7 @@ public class MapFragment extends Fragment {
         viewModel.returnToMyLocation();
         if (!viewModel.hasPermission()) {
             // 권한이 없으면 내 위치를 알 수 없으므로 권한도 받는다 (그동안은 기본 위치 기준).
-            onBannerButtonClick();
+            requestLocationAccess();
         }
     }
 
@@ -395,8 +424,9 @@ public class MapFragment extends Fragment {
                         return;
                     }
                     kakaoMap = map;
-                    // 아래 목록 시트에 가리는 만큼 지도 중심을 위로 올린다.
-                    map.setPadding(0, 0, 0, getResources().getDimensionPixelSize(R.dimen.station_sheet_peek_height));
+                    // 아래 시트(손잡이 + 이득 1위 카드)에 가리는 만큼 지도 중심을 위로 올린다.
+                    map.setPadding(0, 0, 0, appliedPeekHeight > 0 ? appliedPeekHeight
+                            : getResources().getDimensionPixelSize(R.dimen.station_sheet_peek_height));
                     map.setOnLabelClickListener((clickedMap, layer, label) -> {
                         String stationId = stationMarkers != null ? stationMarkers.stationIdOf(layer, label) : null;
                         if (stationId == null) {
@@ -460,7 +490,6 @@ public class MapFragment extends Fragment {
         mapMessage.setText(message);
         mapMessage.setVisibility(View.VISIBLE);
         myLocationButton.setVisibility(View.GONE);
-        mapLegend.setVisibility(View.GONE);
     }
 
     /** 탭이 보이고 화면이 켜져 있을 때만 지도를 그린다. */
@@ -558,23 +587,19 @@ public class MapFragment extends Fragment {
         return bitmap;
     }
 
-    // ---------- 주변 주유소 (마커, 아래 목록) ----------
+    // ---------- 주변 주유소 (마커, 아래 시트) ----------
 
     private void setUpStationSheet(View view) {
         stationSheet = view.findViewById(R.id.station_sheet);
         sheetBehavior = BottomSheetBehavior.from(stationSheet);
         sheetTitle = view.findViewById(R.id.station_sheet_title);
         stationList = view.findViewById(R.id.station_list);
-        stationStatus = view.findViewById(R.id.station_status);
-        stationStatusProgress = view.findViewById(R.id.station_status_progress);
-        stationStatusText = view.findViewById(R.id.station_status_text);
-        stationRetryButton = view.findViewById(R.id.station_retry_button);
+        view.findViewById(R.id.btn_legend).setOnClickListener(v -> showLegend());
 
         stationAdapter = new StationAdapter(this::onStationItemClick);
         stationLayoutManager = new LinearLayoutManager(requireContext());
         stationList.setLayoutManager(stationLayoutManager);
         stationList.setAdapter(stationAdapter);
-        stationRetryButton.setOnClickListener(v -> viewModel.retryStations());
 
         // 시트는 화면 높이만큼 크고 아래로 내려가 있으므로, 화면 밖으로 나간 만큼 목록 아래 여백을 늘려
         // 어느 상태에서든 마지막 항목까지 스크롤하면 화면 안에 보이게 한다.
@@ -587,37 +612,38 @@ public class MapFragment extends Fragment {
                         && newState != BottomSheetBehavior.STATE_SETTLING) {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
                 }
-                updateLegendVisibility();
             }
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                updateLegendVisibility();
             }
         });
-        // 처음 배치, 화면 회전 등으로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 여백을 바꾸지 않도록 post한다.
+        // 처음 배치, 화면 회전, 카드 내용·글꼴 크기 변화로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 바꾸지 않도록 post한다.
         sheet.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
                 v.post(() -> {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
-                    updateLegendVisibility();
+                    fitPeekToBestCard();
                 }));
     }
 
     /**
-     * 범례는 시트 위쪽에 붙어 움직이므로, 시트를 절반보다 높이 올리면 필터 줄과 겹치지 않게 숨긴다.
-     * 그때는 지도가 거의 가려져서 범례가 필요 없다.
+     * 시트를 내렸을 때 손잡이와 이득 1위 카드가 딱 보이도록 peek 높이를 카드 아래 끝에 맞추고,
+     * 지도 아래 여백도 같은 값으로 바꿔서 지도 중심이 카드에 가리지 않게 한다.
      */
-    private void updateLegendVisibility() {
-        if (sheetBehavior == null || mapLegend == null || mapMessage.getVisibility() == View.VISIBLE) {
+    private void fitPeekToBestCard() {
+        if (sheetBehavior == null || bestCard == null || bestCard.getHeight() == 0) {
             return;
         }
-        View sheet = stationSheet;
-        if (sheet == null || !(sheet.getParent() instanceof View)) {
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) bestCard.getLayoutParams();
+        int peek = bestCard.getBottom() + params.bottomMargin;
+        if (peek == appliedPeekHeight) {
             return;
         }
-        int parentHeight = ((View) sheet.getParent()).getHeight();
-        boolean aboveHalf = parentHeight > 0 && sheet.getTop() < parentHeight / 2;
-        mapLegend.setVisibility(aboveHalf ? View.INVISIBLE : View.VISIBLE);
+        appliedPeekHeight = peek;
+        sheetBehavior.setPeekHeight(peek, sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED);
+        if (kakaoMap != null) {
+            kakaoMap.setPadding(0, 0, 0, peek);
+        }
     }
 
     /** 시트에서 부모 아래로 잘려 나간 높이만큼 목록 아래 여백을 준다. */
@@ -634,6 +660,15 @@ public class MapFragment extends Fragment {
         }
     }
 
+    /** 목록 머리줄의 (?) 버튼: 마커 색 안내 */
+    private void showLegend() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.map_legend_title)
+                .setView(R.layout.dialog_map_legend)
+                .setPositiveButton(R.string.map_legend_confirm, null)
+                .show();
+    }
+
     private void showStations(List<StationSaving> stations) {
         List<StationSaving> list = stations != null ? stations : Collections.emptyList();
         stationAdapter.submit(list, cheapestPrice(list));
@@ -646,13 +681,20 @@ public class MapFragment extends Fragment {
         } else {
             stationLayoutManager.scrollToPosition(0);
         }
-        if (stations != null && !stations.isEmpty()) {
-            sheetTitle.setText(getString(R.string.station_sheet_title_count, stations.size()));
-        } else {
-            sheetTitle.setText(R.string.station_sheet_title);
-        }
+        renderSheetTitle();
         showStationMarkers(list);
-        renderStationStatus();
+        renderBestCard();
+    }
+
+    /** 목록 머리줄: "주변 23곳 · 내 위치 기준". 유종·반경은 필터 칩에 있어서 쓰지 않는다. */
+    private void renderSheetTitle() {
+        List<StationSaving> stations = viewModel.getStations().getValue();
+        String origin = originLabel(viewModel.getOrigin().getValue());
+        if (stations != null && !stations.isEmpty()) {
+            sheetTitle.setText(getString(R.string.station_sheet_title_count, stations.size(), origin));
+        } else {
+            sheetTitle.setText(getString(R.string.station_sheet_title, origin));
+        }
     }
 
     private void showStationMarkers(List<StationSaving> stations) {
@@ -669,52 +711,144 @@ public class MapFragment extends Fragment {
         progress.setVisibility(busy ? View.VISIBLE : View.GONE);
     }
 
+    // ---------- 이득 1위 카드 ----------
+
+    private void setUpBestCard(View view) {
+        bestCard = view.findViewById(R.id.best_card);
+        bestCardContent = view.findViewById(R.id.best_card_content);
+        bestCardLabel = view.findViewById(R.id.best_card_label);
+        bestCardShowBest = view.findViewById(R.id.best_card_show_best);
+        bestCardHeadline = view.findViewById(R.id.best_card_headline);
+        bestCardName = view.findViewById(R.id.best_card_name);
+        bestCardInfo = view.findViewById(R.id.best_card_info);
+        bestCardRoute = view.findViewById(R.id.best_card_route);
+        basisText = view.findViewById(R.id.best_card_basis);
+        bestCardStatus = view.findViewById(R.id.best_card_status);
+        bestCardStatusProgress = view.findViewById(R.id.best_card_status_progress);
+        bestCardStatusText = view.findViewById(R.id.best_card_status_text);
+        bestCardStatusButton = view.findViewById(R.id.best_card_status_button);
+
+        // 카드 본문을 누르면 지도 탭에서 계산한 결과와 함께 상세 화면을 연다.
+        bestCardContent.setOnClickListener(v -> {
+            if (cardStation != null) {
+                openDetail(cardStation);
+            }
+        });
+        bestCardRoute.setOnClickListener(v -> {
+            if (cardStation != null) {
+                GasStation station = cardStation.getStation();
+                RouteAppLauncher.showChooser(requireActivity(), station.getName(),
+                        station.getLatitude(), station.getLongitude());
+            }
+        });
+        bestCardShowBest.setOnClickListener(v -> showBestStation());
+        basisText.setOnClickListener(v ->
+                startActivity(OnboardingActivity.createEditIntent(requireContext())));
+        bestCardStatusButton.setOnClickListener(v -> {
+            if (cardStatusAction != null) {
+                cardStatusAction.run();
+            }
+        });
+    }
+
     /**
-     * 목록 대신 보여줄 안내: 불러오는 중 → 오류 → 주유소 없음 순서로 확인한다.
-     * 주유소가 없으면 반경 때문인지, 숨긴 브랜드나 빠른 필터 때문인지 나눠서 알려준다.
+     * 시트를 내린 상태의 카드. 안내가 필요하면 안내를 보여주고, 아니면 주유소 한 곳을 보여준다.
+     * 안내 순서: 불러오는 중 → 오류 → 위치 권한·기기 위치 → 위치 확인 중 → 주유소 없음.
+     * 주유소는 마커로 고른 주유소가 있으면 그곳, 없으면 실제 예상 이득 1위(StationSaving.isBest)다.
+     * 선호 브랜드의 정렬용 +500원은 쓰지 않으므로 목록 1번 줄과 다를 수 있다.
      */
-    private void renderStationStatus() {
+    private void renderBestCard() {
+        if (bestCard == null) {
+            return;
+        }
         List<StationSaving> stations = viewModel.getStations().getValue();
         StationError error = viewModel.getStationsError().getValue();
         boolean loading = Boolean.TRUE.equals(viewModel.getStationsLoading().getValue());
+        int[] locationNotice = locationNotice();
 
-        String message = null;
-        boolean showProgress = false;
-        boolean showRetry = false;
         if (loading) {
-            message = getString(R.string.station_loading);
-            showProgress = true;
+            showCardStatus(getString(R.string.station_loading), true, 0, null);
         } else if (error != null) {
-            message = getString(errorMessage(error));
             // 하루 한도에 도달했으면 다시 시도해도 오늘은 조회할 수 없다.
-            showRetry = error != StationError.DAILY_LIMIT;
+            showCardStatus(getString(errorMessage(error)), false,
+                    error != StationError.DAILY_LIMIT ? R.string.station_retry : 0, viewModel::retryStations);
+        } else if (locationNotice != null) {
+            showCardStatus(getString(locationNotice[0]), false, locationNotice[1], this::requestLocationAccess);
         } else if (stations == null) {
             // 아직 위치를 받기 전
-            message = getString(R.string.station_locating);
-            showProgress = true;
+            showCardStatus(getString(R.string.station_locating), true, 0, null);
         } else if (stations.isEmpty()) {
-            StationListBuilder.EmptyReason reason = viewModel.getEmptyReason().getValue();
-            if (reason == StationListBuilder.EmptyReason.RADIUS && viewModel.isOutsideMockArea()) {
-                message = getString(R.string.mock_area_notice);
-            } else if (reason == StationListBuilder.EmptyReason.BRAND_FILTER) {
-                message = getString(R.string.station_empty_brand_filter);
-            } else if (reason == StationListBuilder.EmptyReason.HIDDEN_BRANDS) {
-                message = getString(R.string.station_empty_hidden_brands);
-            } else {
-                message = getString(R.string.station_empty, viewModel.getRadius().getValue().getLabel());
-            }
+            showCardStatus(emptyMessage(), false, 0, null);
+        } else {
+            StationSaving best = PlaceCompareBuilder.findBest(stations);
+            StationSaving selected = viewModel.findStation(viewModel.getSelectedStationId().getValue());
+            showCardStation(selected != null ? selected : best != null ? best : stations.get(0));
         }
+    }
 
-        if (message == null) {
-            stationStatus.setVisibility(View.GONE);
-            stationList.setVisibility(View.VISIBLE);
+    /** 주유소가 없는 이유: 반경 때문인지, 숨긴 브랜드나 빠른 필터 때문인지 나눠서 알려준다. */
+    private String emptyMessage() {
+        StationListBuilder.EmptyReason reason = viewModel.getEmptyReason().getValue();
+        if (reason == StationListBuilder.EmptyReason.RADIUS && viewModel.isOutsideMockArea()) {
+            return getString(R.string.mock_area_notice);
+        } else if (reason == StationListBuilder.EmptyReason.BRAND_FILTER) {
+            return getString(R.string.station_empty_brand_filter);
+        } else if (reason == StationListBuilder.EmptyReason.HIDDEN_BRANDS) {
+            return getString(R.string.station_empty_hidden_brands);
+        }
+        return getString(R.string.station_empty, viewModel.getRadius().getValue().getLabel());
+    }
+
+    private void showCardStatus(String message, boolean showProgress, @StringRes int button,
+                                @Nullable Runnable action) {
+        cardStation = null;
+        cardStatusAction = button != 0 ? action : null;
+        bestCardStatusText.setText(message);
+        bestCardStatusProgress.setVisibility(showProgress ? View.VISIBLE : View.GONE);
+        if (button != 0) {
+            bestCardStatusButton.setText(button);
+        }
+        bestCardStatusButton.setVisibility(button != 0 ? View.VISIBLE : View.GONE);
+        bestCardStatus.setVisibility(View.VISIBLE);
+        bestCardContent.setVisibility(View.GONE);
+    }
+
+    private void showCardStation(StationSaving saving) {
+        cardStation = saving;
+        cardStatusAction = null;
+        GasStation station = saving.getStation();
+        boolean best = saving.isBest();
+
+        bestCardLabel.setText(best ? R.string.best_card_label : R.string.best_card_label_selected);
+        bestCardShowBest.setVisibility(best ? View.GONE : View.VISIBLE);
+        String headline = FormatUtil.formatSavingHeadline(saving);
+        bestCardHeadline.setText(headline);
+        bestCardHeadline.setTextColor(ContextCompat.getColor(requireContext(),
+                SavingColors.heroTextColorOf(saving.getLevel())));
+        bestCardName.setText(station.getName());
+        String info = getString(R.string.best_card_info, station.getBrandName(),
+                FormatUtil.formatDistance(station.getDistance()), FormatUtil.formatPrice(station.getPrice()));
+        bestCardInfo.setText(info);
+        bestCardContent.setContentDescription(getString(R.string.best_card_description,
+                bestCardLabel.getText(), headline, station.getName() + ", " + info));
+
+        bestCardStatus.setVisibility(View.GONE);
+        bestCardContent.setVisibility(View.VISIBLE);
+    }
+
+    /** "이득 1위 보기": 이득 1위를 선택하고 지도를 그 주유소로 옮긴다. */
+    private void showBestStation() {
+        viewModel.selectBestStation();
+        StationSaving best = PlaceCompareBuilder.findBest(viewModel.getStations().getValue());
+        if (best == null) {
             return;
         }
-        stationStatusText.setText(message);
-        stationStatusProgress.setVisibility(showProgress ? View.VISIBLE : View.GONE);
-        stationRetryButton.setVisibility(showRetry ? View.VISIBLE : View.GONE);
-        stationStatus.setVisibility(View.VISIBLE);
-        stationList.setVisibility(View.GONE);
+        if (kakaoMap != null) {
+            kakaoMap.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(
+                    best.getStation().getLatitude(), best.getStation().getLongitude())),
+                    CameraAnimation.from(CAMERA_ANIMATION_MS));
+        }
+        scrollListTo(best.getStation().getId());
     }
 
     @StringRes
@@ -730,8 +864,8 @@ public class MapFragment extends Fragment {
     }
 
     /**
-     * 마커를 처음 누르면 목록에서 그 주유소를 강조하고 맨 위로 스크롤한다.
-     * 이미 선택된 마커를 한 번 더 누르면 상세 화면을 연다.
+     * 마커를 처음 누르면 그 주유소를 선택한다. 이득 1위 카드가 그 주유소로 바뀌고(상세는 열지 않음),
+     * 목록에서도 그 줄을 강조하고 맨 위로 스크롤한다. 이미 선택된 마커를 한 번 더 누르면 상세 화면을 연다.
      */
     private void onMarkerClick(String stationId) {
         if (getView() == null) {
@@ -898,8 +1032,6 @@ public class MapFragment extends Fragment {
         radiusChip = view.findViewById(R.id.chip_radius);
         brandChip = view.findViewById(R.id.chip_brand);
         sortButton = view.findViewById(R.id.btn_sort);
-        conditionText = view.findViewById(R.id.station_sheet_condition);
-        basisText = view.findViewById(R.id.station_sheet_basis);
 
         // 칩의 ▼ 아이콘을 눌러도 칩을 누른 것과 같게 한다.
         fuelTypeChip.setOnClickListener(this::showFuelTypeMenu);
@@ -909,8 +1041,6 @@ public class MapFragment extends Fragment {
         brandChip.setOnClickListener(v -> showBrandFilter());
         brandChip.setOnCloseIconClickListener(v -> showBrandFilter());
         sortButton.setOnClickListener(this::showSortMenu);
-        basisText.setOnClickListener(v ->
-                startActivity(OnboardingActivity.createEditIntent(requireContext())));
     }
 
     private void showFuelTypeMenu(View anchor) {
@@ -952,7 +1082,7 @@ public class MapFragment extends Fragment {
         popup.show();
     }
 
-    /** 필터 칩, 정렬 버튼, 시트의 조건 문구(조회 위치 · 유종 · 반경 · 정렬)를 지금 선택에 맞춘다. */
+    /** 필터 칩("휘발유", "5km")과 정렬 버튼을 지금 선택에 맞춘다. */
     private void renderFilters() {
         FuelType fuelType = viewModel.getFuelType().getValue();
         SearchRadius radius = viewModel.getRadius().getValue();
@@ -962,28 +1092,25 @@ public class MapFragment extends Fragment {
         }
         fuelTypeChip.setText(fuelType.getLabel());
         fuelTypeChip.setContentDescription(getString(R.string.filter_fuel_type_description, fuelType.getLabel()));
-        radiusChip.setText(getString(R.string.filter_radius, radius.getLabel()));
+        radiusChip.setText(radius.getLabel());
         radiusChip.setContentDescription(getString(R.string.filter_radius_description, radius.getLabel()));
         sortButton.setText(sortOrder.getLabel());
         sortButton.setContentDescription(getString(R.string.station_sort_description, sortOrder.getLabel()));
-        conditionText.setText(getString(R.string.station_sheet_condition,
-                originLabel(viewModel.getOrigin().getValue()), fuelType.getLabel(), radius.getLabel(),
-                sortOrder.getLabel()));
     }
 
-    /** 브랜드 칩 글자: "브랜드: 전체", "할인 브랜드", "SK 외 2" 등 */
+    /** 브랜드 칩 글자: "브랜드", "할인 브랜드", "SK", "브랜드 2" 등. 접근성 설명에는 고른 내용("SK 외 1")을 쓴다. */
     private void renderBrandChip() {
         BrandFilter filter = viewModel.getBrandFilter().getValue();
         BrandSettings settings = viewModel.getBrandSettings().getValue();
         if (filter == null || settings == null) {
             return;
         }
-        String label = filter.effective(settings).label();
-        brandChip.setText(label);
-        brandChip.setContentDescription(getString(R.string.filter_brand_description, label));
+        BrandFilter effective = filter.effective(settings);
+        brandChip.setText(effective.chipLabel());
+        brandChip.setContentDescription(getString(R.string.filter_brand_description, effective.label()));
     }
 
-    /** 시트 제목 아래 계산 기준 문구. 기본값이면 "(기본값)"이 붙는다. */
+    /** 이득 1위 카드 맨 아래 계산 기준 문구. 기본값이면 "(기본값)"이 붙는다. */
     private void renderCalculationBasis(CarInfo carInfo) {
         String basis = FormatUtil.formatCalculationBasis(carInfo);
         basisText.setText(basis);

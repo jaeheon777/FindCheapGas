@@ -94,4 +94,15 @@ public class BrandSettingsTest {
                 .withBrand("GSC", true).label());
         assertEquals("할인 브랜드 외 1", BrandFilter.ALL.withDiscountOnly(true).withBrand("GSC", true).label());
     }
+
+    @Test
+    public void brandFilter_chipLabels() {
+        assertEquals("브랜드", BrandFilter.ALL.chipLabel());
+        assertEquals("할인 브랜드", BrandFilter.ALL.withDiscountOnly(true).chipLabel());
+        assertEquals("선호 브랜드", BrandFilter.ALL.withPreferredOnly(true).chipLabel());
+        assertEquals("SK", BrandFilter.ALL.withBrand("SKE", true).chipLabel());
+        assertEquals("브랜드 2", BrandFilter.ALL.withBrand("SKE", true).withBrand("GSC", true).chipLabel());
+        assertEquals("브랜드 3", BrandFilter.ALL.withDiscountOnly(true).withPreferredOnly(true)
+                .withBrand("GSC", true).chipLabel());
+    }
 }
