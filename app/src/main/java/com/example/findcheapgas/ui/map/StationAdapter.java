@@ -1,6 +1,8 @@
 package com.example.findcheapgas.ui.map;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,18 +19,18 @@ import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.util.FormatUtil;
+import com.google.android.material.color.MaterialColors;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
- * 아래 시트의 주유소 목록. 순위는 지금 정렬 기준의 순서(1부터)다.
- * 가격 아래에 예상 이득을 쓰고, 예상 이득 1위에는 "이득 1위"(기준 주유소가 1위면 "가까운 곳이 가장 유리"),
- * 표시 가격이 가장 싼 곳에는 "최저가" 배지를 붙인다. 두 배지는 한 곳에 함께 붙을 수 있다.
- * 선호 브랜드는 상호 앞에 ★를, 브랜드 할인이 적용된 곳은 "100원 할인 적용" 배지를 붙인다.
- * 즐겨찾기한 주유소는 상호 뒤에 작은 북마크를 단다.
+ * 아래 시트의 주유소 목록. 한 줄은 view_list_row_amount 조각을 쓴다.
+ * - 왼쪽 첫 줄: 상호 (선호 브랜드는 앞에 작은 ★)
+ * - 왼쪽 둘째 줄: 브랜드 · 거리 + 배지 하나 (이득 1위 > 할인 적용 > 최저가 중 가장 앞의 하나만)
+ * - 오른쪽: 가격, 그 아래 "약 2,583원 아껴요" / "비슷해요" / "약 1,200원 더 들어요"
+ * 순서는 지금 정렬 기준 그대로이고, 이득 1위 배지는 실제 예상 이득 1위(isBest)에 붙는다.
+ * 즐겨찾기는 상세 화면에서만 다루므로 줄에는 표시하지 않는다.
  */
 public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHolder> {
 
@@ -41,8 +43,6 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
     private int cheapestPrice = Integer.MAX_VALUE;
     @Nullable
     private String selectedId;
-    // 즐겨찾기한 주유소 ID. 상호 뒤에 북마크를 단다.
-    private Set<String> favoriteIds = Collections.emptySet();
 
     public StationAdapter(OnStationClickListener clickListener) {
         this.clickListener = clickListener;
@@ -52,11 +52,6 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         stations.clear();
         stations.addAll(newStations);
         cheapestPrice = newCheapestPrice;
-        notifyDataSetChanged();
-    }
-
-    public void setFavoriteIds(@Nullable Set<String> ids) {
-        favoriteIds = ids != null ? ids : Collections.emptySet();
         notifyDataSetChanged();
     }
 
@@ -88,7 +83,7 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_station, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.view_list_row_amount, parent, false);
         return new ViewHolder(view);
     }
 
@@ -97,45 +92,67 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         StationSaving saving = stations.get(position);
         GasStation station = saving.getStation();
         Context context = holder.itemView.getContext();
-        holder.rank.setText(String.valueOf(position + 1));
+
         holder.name.setText(station.getName());
-        // 선호 브랜드는 상호 앞에 ★ (색은 레이아웃의 drawableTint)
+        // 선호 브랜드는 상호 앞에 작은 ★
         TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(holder.name,
                 saving.isPreferred() ? R.drawable.ic_star_small : 0, 0, 0, 0);
-        holder.name.setContentDescription(saving.isPreferred()
-                ? context.getString(R.string.station_preferred) + ", " + station.getName()
-                : null);
-        holder.favorite.setVisibility(favoriteIds.contains(station.getId()) ? View.VISIBLE : View.GONE);
-        holder.info.setText(context.getString(R.string.station_info,
-                station.getBrandName(), FormatUtil.formatDistance(station.getDistance())));
-        holder.price.setText(FormatUtil.formatPrice(station.getPrice()));
-        holder.saving.setText(FormatUtil.formatSaving(saving));
-        holder.saving.setTextColor(savingTextColor(context, saving, holder.defaultSavingColor));
+        String distance = FormatUtil.formatDistance(station.getDistance());
+        holder.info.setText(context.getString(R.string.station_info, station.getBrandName(), distance));
+        String price = FormatUtil.formatPrice(station.getPrice());
+        holder.price.setText(price);
+        String note = FormatUtil.formatSavingNote(saving);
+        holder.note.setText(note);
+        holder.note.setTextColor(saving.isBaseline() ? holder.secondaryColor
+                : ContextCompat.getColor(context, SavingColors.textColorOf(saving.getLevel())));
+        String badge = bindBadge(holder, saving, context);
 
-        boolean cheapest = station.getPrice() == cheapestPrice;
-        if (saving.isBest()) {
-            holder.best.setText(saving.isBaseline() ? R.string.station_best_baseline : R.string.station_best);
+        // 접근성 설명: 상호, 선호 여부, 브랜드, 거리, 가격, 예상 이득, 배지 순서
+        List<String> parts = new ArrayList<>();
+        parts.add(station.getName());
+        if (saving.isPreferred()) {
+            parts.add(context.getString(R.string.station_preferred));
         }
-        holder.best.setVisibility(saving.isBest() ? View.VISIBLE : View.GONE);
-        holder.cheapest.setVisibility(cheapest ? View.VISIBLE : View.GONE);
-        boolean discounted = saving.getDiscountRule().hasDiscount();
-        if (discounted) {
-            holder.discount.setText(context.getString(R.string.station_discount_applied,
-                    FormatUtil.formatPrice(saving.getDiscountRule().getPerLiter())));
+        parts.add(station.getBrandName());
+        parts.add(distance);
+        parts.add(price);
+        parts.add(note);
+        if (badge != null) {
+            parts.add(badge);
         }
-        holder.discount.setVisibility(discounted ? View.VISIBLE : View.GONE);
-        holder.badges.setVisibility(saving.isBest() || cheapest || discounted ? View.VISIBLE : View.GONE);
+        holder.itemView.setContentDescription(TextUtils.join(", ", parts));
 
         holder.itemView.setActivated(station.getId().equals(selectedId));
         holder.itemView.setOnClickListener(v -> clickListener.onStationClick(saving));
     }
 
-    /** 이득은 초록, 비슷은 회색, 손해는 빨강, 기준이면 보조 글자색 */
-    private static int savingTextColor(Context context, StationSaving saving, int defaultColor) {
-        if (saving.isBaseline()) {
-            return defaultColor;
+    /**
+     * 배지는 하나만: 이득 1위(라임 바탕) > 할인 적용(올리브 글자) > 최저가(회색 테두리).
+     * @return 붙인 배지 글자, 없으면 null
+     */
+    @Nullable
+    private String bindBadge(ViewHolder holder, StationSaving saving, Context context) {
+        String text;
+        if (saving.isBest()) {
+            text = context.getString(saving.isBaseline() ? R.string.station_best_baseline : R.string.station_best);
+            holder.badge.setBackgroundResource(R.drawable.bg_badge_best);
+            holder.badge.setTextColor(holder.onBrandColor);
+        } else if (saving.getDiscountRule().hasDiscount()) {
+            text = context.getString(R.string.station_discount_applied,
+                    FormatUtil.formatPrice(saving.getDiscountRule().getPerLiter()));
+            holder.badge.setBackground(null);
+            holder.badge.setTextColor(holder.accentColor);
+        } else if (saving.getStation().getPrice() == cheapestPrice) {
+            text = context.getString(R.string.station_cheapest);
+            holder.badge.setBackgroundResource(R.drawable.bg_badge_outline);
+            holder.badge.setTextColor(holder.secondaryColor);
+        } else {
+            holder.badge.setVisibility(View.GONE);
+            return null;
         }
-        return ContextCompat.getColor(context, SavingColors.textColorOf(saving.getLevel()));
+        holder.badge.setText(text);
+        holder.badge.setVisibility(View.VISIBLE);
+        return text;
     }
 
     @Override
@@ -144,32 +161,30 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        final TextView rank;
         final TextView name;
-        final View favorite;
         final TextView info;
-        final View badges;
-        final TextView best;
-        final TextView cheapest;
-        final TextView discount;
+        final TextView badge;
         final TextView price;
-        final TextView saving;
-        // 보조 글자색 (station_info와 같은 색)
-        final int defaultSavingColor;
+        final TextView note;
+        // 테마 색: 보조 글자색, 강조 글자색(밝게 올리브, 어둡게 라임), 라임 위 글자색
+        final int secondaryColor;
+        final int accentColor;
+        final int onBrandColor;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            rank = itemView.findViewById(R.id.station_rank);
-            name = itemView.findViewById(R.id.station_name);
-            favorite = itemView.findViewById(R.id.station_favorite);
-            info = itemView.findViewById(R.id.station_info);
-            badges = itemView.findViewById(R.id.station_badges);
-            best = itemView.findViewById(R.id.station_best);
-            cheapest = itemView.findViewById(R.id.station_cheapest);
-            discount = itemView.findViewById(R.id.station_discount);
-            price = itemView.findViewById(R.id.station_price);
-            saving = itemView.findViewById(R.id.station_saving);
-            defaultSavingColor = info.getCurrentTextColor();
+            name = itemView.findViewById(R.id.list_row_title);
+            info = itemView.findViewById(R.id.list_row_subtitle);
+            badge = itemView.findViewById(R.id.list_row_badge);
+            price = itemView.findViewById(R.id.list_row_amount);
+            note = itemView.findViewById(R.id.list_row_amount_note);
+            secondaryColor = MaterialColors.getColor(itemView, com.google.android.material.R.attr.colorOnSurfaceVariant);
+            accentColor = MaterialColors.getColor(itemView, androidx.appcompat.R.attr.colorPrimary);
+            onBrandColor = MaterialColors.getColor(itemView, com.google.android.material.R.attr.colorOnPrimaryContainer);
+            // 선호 브랜드 ★의 간격과 색
+            name.setCompoundDrawablePadding(itemView.getResources().getDimensionPixelSize(R.dimen.space_xs));
+            TextViewCompat.setCompoundDrawableTintList(name, ColorStateList.valueOf(
+                    ContextCompat.getColor(itemView.getContext(), R.color.preferred_star)));
         }
     }
 }

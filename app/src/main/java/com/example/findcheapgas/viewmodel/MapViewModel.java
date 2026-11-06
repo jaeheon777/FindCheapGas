@@ -13,7 +13,6 @@ import com.example.findcheapgas.data.local.StationFilterPreferences;
 import com.example.findcheapgas.data.mock.MockOpinetDataSource;
 import com.example.findcheapgas.data.repository.BrandSettingsRepository;
 import com.example.findcheapgas.data.repository.CarInfoRepository;
-import com.example.findcheapgas.data.repository.FavoriteRepository;
 import com.example.findcheapgas.model.AroundStations;
 import com.example.findcheapgas.data.repository.LocationRepository;
 import com.example.findcheapgas.data.repository.RegionNameRepository;
@@ -37,7 +36,6 @@ import com.example.findcheapgas.util.StationListBuilder;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 지도 탭의 화면 상태를 가진다.
@@ -107,7 +105,6 @@ public class MapViewModel extends AndroidViewModel {
     // 마지막 주변 조회 결과 (조회 위치, 유종, 5km 안 전체 목록, 화면 목록). 즐겨찾기 탭이 같은 기준으로 계산할 때 쓴다.
     // 조회가 끝날 때와 화면 목록을 다시 만들 때 바뀐다. 아직 조회하지 않았으면 null
     private final MutableLiveData<AroundStations> aroundStations = new MutableLiveData<>();
-    private final FavoriteRepository favoriteRepository;
 
     // 지도 탭을 처음 열 때 한 번만 권한을 묻기 위한 표시
     private boolean permissionRequested = false;
@@ -149,7 +146,6 @@ public class MapViewModel extends AndroidViewModel {
         carInfoRepository.getCarInfo().observeForever(carInfoObserver);
         brandSettingsRepository = BrandSettingsRepository.getInstance(application);
         brandSettingsRepository.getBrandSettings().observeForever(brandSettingsObserver);
-        favoriteRepository = FavoriteRepository.getInstance(application);
     }
 
     public LiveData<UserLocation> getLocation() {
@@ -280,11 +276,6 @@ public class MapViewModel extends AndroidViewModel {
     /** 마지막 주변 조회 결과. 아직 조회하지 않았으면 null */
     public LiveData<AroundStations> getAroundStations() {
         return aroundStations;
-    }
-
-    /** 즐겨찾기한 주유소 ID (목록의 북마크 표시) */
-    public LiveData<Set<String>> getFavoriteIds() {
-        return favoriteRepository.getFavoriteIds();
     }
 
     public LiveData<FuelType> getFuelType() {

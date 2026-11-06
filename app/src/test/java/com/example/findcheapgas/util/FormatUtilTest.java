@@ -40,6 +40,15 @@ public class FormatUtilTest {
     }
 
     @Test
+    public void savingNote_texts() {
+        assertEquals("가장 가까운 곳", FormatUtil.formatSavingNote(saving("base", 68_099, 68_099)));
+        assertEquals("약 1,925원 아껴요", FormatUtil.formatSavingNote(saving("x", 66_174, 68_099.17)));
+        assertEquals("약 1,200원 더 들어요", FormatUtil.formatSavingNote(saving("x", 69_299.17, 68_099.17)));
+        assertEquals("비슷해요", FormatUtil.formatSavingNote(saving("x", 67_400, 68_099.17)));
+        assertEquals("비슷해요", FormatUtil.formatSavingNote(saving("x", 68_399.2, 68_099.17)));
+    }
+
+    @Test
     public void savingHeadline_texts() {
         assertEquals("약 1,925원 아낄 수 있어요", FormatUtil.formatSavingHeadline(saving("x", 66_174, 68_099.17)));
         assertEquals("약 1,200원 더 들어요", FormatUtil.formatSavingHeadline(saving("x", 69_299.17, 68_099.17)));

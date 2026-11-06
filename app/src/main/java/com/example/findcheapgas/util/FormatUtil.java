@@ -55,6 +55,25 @@ public final class FormatUtil {
     }
 
     /**
+     * 지도 탭 목록 한 줄의 가격 아래 설명. 짧게 쓰고 구간은 SavingLevel(±1,000원)을 따른다.
+     * 이득: "약 2,583원 아껴요", 비슷: "비슷해요", 손해: "약 1,200원 더 들어요", 기준 주유소: "가장 가까운 곳"
+     */
+    public static String formatSavingNote(StationSaving saving) {
+        if (saving.isBaseline()) {
+            return "가장 가까운 곳";
+        }
+        long won = saving.getSavingWon();
+        switch (saving.getLevel()) {
+            case GAIN:
+                return "약 " + formatWon(won) + " 아껴요";
+            case LOSS:
+                return "약 " + formatWon(-won) + " 더 들어요";
+            default:
+                return "비슷해요";
+        }
+    }
+
+    /**
      * 목록과 상세 화면의 예상 이득 문구. 추정치이므로 "약"을 붙인다.
      * 기준 주유소: "기준 (가장 가까운 곳)", 이득: "약 1,925원 이득", 손해: "약 300원 손해",
      * 원 단위로 차이가 없으면 "기준과 거의 같음"

@@ -252,8 +252,6 @@ public class MapFragment extends Fragment {
             renderBestCard();
         });
         viewModel.getStationsError().observe(getViewLifecycleOwner(), error -> renderBestCard());
-        // 즐겨찾기한 주유소는 목록 상호 뒤에 북마크를 단다.
-        viewModel.getFavoriteIds().observe(getViewLifecycleOwner(), stationAdapter::setFavoriteIds);
         // 마커를 누르면 카드가 그 주유소로 바뀐다.
         viewModel.getSelectedStationId().observe(getViewLifecycleOwner(), id -> {
             stationAdapter.setSelectedId(id);

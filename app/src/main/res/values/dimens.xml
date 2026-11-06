@@ -53,7 +53,6 @@
     <dimen name="search_mode_inset">8dp</dimen>
     <dimen name="button_height">52dp</dimen>
     <dimen name="button_height_compact">36dp</dimen>
-    <dimen name="control_height_compact">40dp</dimen>
     <dimen name="list_row_min_height">56dp</dimen>
     <dimen name="list_row_min_height_large">64dp</dimen>
     <dimen name="drag_handle_min_height">24dp</dimen>
@@ -61,10 +60,9 @@
     <dimen name="progress_size">32dp</dimen>
     <dimen name="progress_track_corner">2dp</dimen>
 
-    <!-- 목록 배지 ("이득 1위", "최저가", "할인 적용"), 순위 원 -->
+    <!-- 목록 배지 ("이득 1위", "최저가", "할인 적용") -->
     <dimen name="badge_padding_horizontal">6dp</dimen>
     <dimen name="badge_padding_vertical">1dp</dimen>
-    <dimen name="rank_badge_size">28dp</dimen>
     <!-- 지도 색 범례 점 -->
     <dimen name="legend_dot_size">10dp</dimen>
 

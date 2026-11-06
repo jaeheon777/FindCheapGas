@@ -440,7 +440,7 @@
                 android:layout_height="match_parent"
                 android:clipToPadding="false"
                 android:paddingBottom="@dimen/space_s"
-                tools:listitem="@layout/item_station" />
+                tools:listitem="@layout/view_list_row_amount" />
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 

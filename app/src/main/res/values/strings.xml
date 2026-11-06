@@ -87,7 +87,7 @@
     <string name="station_sort_description">정렬 %1$s, 눌러서 변경</string>
     <string name="station_cheapest">최저가</string>
     <string name="station_best">이득 1위</string>
-    <string name="station_best_baseline">가까운 곳이 가장 유리</string>
+    <string name="station_best_baseline">가까운 곳이 유리</string>
     <string name="station_info">%1$s · %2$s</string>
     <string name="station_preferred">선호 브랜드</string>
     <string name="station_discount_applied">%1$s 할인 적용</string>
@@ -277,7 +277,6 @@
     <string name="settings_choice_cancel">취소</string>
 
     <!-- 즐겨찾기 -->
-    <string name="station_favorite">즐겨찾기</string>
     <string name="detail_favorite_add">즐겨찾기</string>
     <string name="detail_favorite_saved">즐겨찾기됨</string>
     <string name="detail_favorite_add_description">즐겨찾기에 추가</string>

@@ -13,7 +13,6 @@
 
     <color name="bg_screen">#FF101113</color>
     <color name="bg_card">#FF1C1D21</color>
-    <color name="bg_card_subtle">#FF26282D</color>
     <color name="bg_control">#FF2E3036</color>
 
     <color name="text_primary">#FFF2F3F5</color>
@@ -42,10 +41,7 @@
 
     <color name="badge_best_background">#FF3DD68C</color>
     <color name="badge_best_text">#FF0D2B1A</color>
-    <color name="badge_cheapest">#FF7AB3FF</color>
-    <color name="badge_discount">#FFC5F04A</color>
     <color name="preferred_star">#FFFFC94D</color>
-    <color name="favorite_bookmark">#FFC5F04A</color>
 
     <!-- 홈 화면 위젯: 앱 설정이 아니라 휴대폰 시스템의 다크 모드를 따른다 (런처가 그림). -->
     <color name="widget_background">#FF1C1D21</color>

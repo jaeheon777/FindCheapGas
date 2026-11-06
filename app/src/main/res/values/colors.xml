@@ -18,8 +18,6 @@
     <!-- 바탕 -->
     <color name="bg_screen">#FFF2F4F6</color>
     <color name="bg_card">#FFFFFFFF</color>
-    <!-- 카드 안의 작은 상자 (계산 안내, 순위 원) -->
-    <color name="bg_card_subtle">#FFF2F4F6</color>
     <!-- 꺼진 스위치 길, 채운 입력칸 -->
     <color name="bg_control">#FFE5E8EB</color>
 
@@ -75,15 +73,11 @@
     <color name="hero_saving_gain_text">#FF0B7D3E</color>
     <color name="hero_card_stroke">#00000000</color>
 
-    <!-- 목록 배지 -->
+    <!-- 집·회사 비교 카드의 "가장 저렴" 배지 (지도 탭 목록 배지는 테마 색으로 그린다) -->
     <color name="badge_best_background">#FF0B7D3E</color>
     <color name="badge_best_text">#FFFFFFFF</color>
-    <color name="badge_cheapest">#FF2862C8</color>
-    <color name="badge_discount">#FF557300</color>
     <!-- 목록의 선호 브랜드 ★ -->
     <color name="preferred_star">#FFB45309</color>
-    <!-- 즐겨찾기 북마크 표시 -->
-    <color name="favorite_bookmark">#FF557300</color>
     <!-- 즐겨찾기 탭에서 왼쪽으로 밀 때 뒤 배경 -->
     <color name="swipe_delete_background">#FFD42A33</color>
     <color name="swipe_delete_icon">#FFFFFFFF</color>
