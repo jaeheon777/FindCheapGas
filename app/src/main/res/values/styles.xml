@@ -414,11 +414,30 @@
         <item name="android:focusable">true</item>
     </style>
 
-    <!-- 상세 화면의 구역 제목 (주소, 전화, 유종별 가격, 부가시설): 작은 강조 글자 -->
+    <!--
+        상세 화면 아래쪽 카드 (유종별 가격, 주유소 정보, 평균가 대비, 7일 가격 추이).
+        회색 바탕 위 흰 카드(어둡게는 카드 색), 카드 사이는 12dp, 안쪽 여백은 card_padding.
+    -->
+    <style name="Widget.FindCheapGas.DetailCard" parent="Widget.FindCheapGas.Card">
+        <item name="android:layout_marginTop">@dimen/space_m</item>
+    </style>
+
+    <style name="Widget.FindCheapGas.DetailCard.Content" parent="">
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/card_padding</item>
+    </style>
+
+    <!-- 카드 제목 ("유종별 가격", "평균가 대비", "7일 가격 추이") -->
+    <style name="Widget.FindCheapGas.DetailCard.Title" parent="">
+        <item name="android:textAppearance">?attr/textAppearanceTitleMedium</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- 주유소 정보 카드 안의 작은 제목 (주소, 전화, 부가시설): 보조 글자색 -->
     <style name="Widget.FindCheapGas.DetailSectionTitle" parent="">
-        <item name="android:layout_marginTop">@dimen/space_xxl</item>
-        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
-        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:layout_marginTop">@dimen/space_l</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelMedium</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <!-- 설정 탭 카드 안의 누를 수 있는 한 줄 (이름, 오른쪽에 지금 값) -->

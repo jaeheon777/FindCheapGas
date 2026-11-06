@@ -131,20 +131,20 @@ public class AverageComparisonBuilderTest {
         AverageComparison result = AverageComparisonBuilder.build(FuelType.GASOLINE,
                 detail("서울특별시 강남구", gasoline(1671)), 0, null, AVERAGES, 40);
         AverageComparison.Line national = result.getLines().get(0);
-        assertEquals("전국 평균 1,712원보다 리터당 41원 저렴", FormatUtil.formatAverageComparison(national));
-        assertEquals("40L 기준 약 1,640원 저렴", FormatUtil.formatAverageForFuelAmount(national));
-        assertEquals("서울 평균 1,768원보다 리터당 97원 저렴",
+        assertEquals("전국 평균 1,712원보다 리터당 41원 저렴해요", FormatUtil.formatAverageComparison(national));
+        assertEquals("40L 기준 약 1,640원 저렴해요", FormatUtil.formatAverageForFuelAmount(national));
+        assertEquals("서울 평균 1,768원보다 리터당 97원 저렴해요",
                 FormatUtil.formatAverageComparison(result.getLines().get(1)));
     }
 
     @Test
     public void format_pricierAndEqual() {
         AverageComparison.Line pricier = new AverageComparison.Line("서울", 1768, 12, 40);
-        assertEquals("서울 평균 1,768원보다 리터당 12원 비쌈", FormatUtil.formatAverageComparison(pricier));
-        assertEquals("40L 기준 약 480원 비쌈", FormatUtil.formatAverageForFuelAmount(pricier));
+        assertEquals("서울 평균 1,768원보다 리터당 12원 비싸요", FormatUtil.formatAverageComparison(pricier));
+        assertEquals("40L 기준 약 480원 비싸요", FormatUtil.formatAverageForFuelAmount(pricier));
 
         AverageComparison.Line equal = new AverageComparison.Line("전국", 1712, 0, 40);
-        assertEquals("전국 평균 1,712원 · 평균과 같음", FormatUtil.formatAverageComparison(equal));
+        assertEquals("전국 평균 1,712원 · 평균과 같아요", FormatUtil.formatAverageComparison(equal));
         assertNull(FormatUtil.formatAverageForFuelAmount(equal));
     }
 }

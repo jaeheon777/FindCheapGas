@@ -266,19 +266,19 @@ public final class FormatUtil {
 
     /**
      * 평균가 비교 한 줄 (표시 가격 기준, 할인 전).
-     * "전국 평균 1,712원보다 리터당 41원 저렴", "서울 평균 1,768원보다 리터당 12원 비쌈", "전국 평균 1,712원 · 평균과 같음"
+     * "전국 평균 1,712원보다 리터당 41원 저렴해요", "서울 평균 1,768원보다 리터당 12원 비싸요", "전국 평균 1,712원 · 평균과 같아요"
      */
     public static String formatAverageComparison(AverageComparison.Line line) {
         String average = line.getRegionLabel() + " 평균 " + formatPrice(line.getAverageWon());
         int difference = line.getDifferencePerLiter();
         if (difference == 0) {
-            return average + " · 평균과 같음";
+            return average + " · 평균과 같아요";
         }
-        return average + "보다 리터당 " + formatPrice(Math.abs(difference)) + (difference < 0 ? " 저렴" : " 비쌈");
+        return average + "보다 리터당 " + formatPrice(Math.abs(difference)) + (difference < 0 ? " 저렴해요" : " 비싸요");
     }
 
     /**
-     * 평균가 비교 줄 아래의 내 주유량 환산. "40L 기준 약 1,640원 저렴", "40L 기준 약 480원 비쌈".
+     * 평균가 비교 줄 아래의 내 주유량 환산. "40L 기준 약 1,640원 저렴해요", "40L 기준 약 480원 비싸요".
      * 차이가 없으면 null (보여주지 않는다).
      */
     public static String formatAverageForFuelAmount(AverageComparison.Line line) {
@@ -287,7 +287,7 @@ public final class FormatUtil {
             return null;
         }
         return formatFuelAmount(line.getFuelAmount()) + " 기준 약 " + formatPrice(Math.abs(difference))
-                + (difference < 0 ? " 저렴" : " 비쌈");
+                + (difference < 0 ? " 저렴해요" : " 비싸요");
     }
 
     /** 오피넷 날짜 "20261031" → "10/31". 읽을 수 없으면 그대로 */
@@ -300,7 +300,7 @@ public final class FormatUtil {
 
     /**
      * 7일 추이 요약 한 줄. 지난 사실만 적고 앞으로의 값은 말하지 않는다.
-     * "6일 전(10/31)보다 약 12원 올랐습니다", "6일 전(10/31)보다 약 6원 내렸습니다", "6일 전(10/31)과 같습니다"
+     * "6일 전(10/31)보다 약 12원 올랐어요", "6일 전(10/31)보다 약 6원 내렸어요", "6일 전(10/31)과 같아요"
      * 날짜를 읽을 수 없으면 "첫날(…)"로 쓴다.
      */
     public static String formatTrendChange(PriceTrend.Summary summary) {
@@ -308,9 +308,9 @@ public final class FormatUtil {
                 + "(" + formatShortDate(summary.getFirstDate()) + ")";
         int change = summary.getChange();
         if (change == 0) {
-            return since + "과 같습니다";
+            return since + "과 같아요";
         }
-        return since + "보다 약 " + formatPrice(Math.abs(change)) + (change > 0 ? " 올랐습니다" : " 내렸습니다");
+        return since + "보다 약 " + formatPrice(Math.abs(change)) + (change > 0 ? " 올랐어요" : " 내렸어요");
     }
 
     /** 추이 그래프 접근성 설명. "최근 7일 전국 평균 휘발유, 최저 1,656원, 최고 1,668원, 마지막 1,668원" */

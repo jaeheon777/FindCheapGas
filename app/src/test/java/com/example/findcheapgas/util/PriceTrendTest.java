@@ -60,7 +60,7 @@ public class PriceTrendTest {
         assertEquals(1656, summary.getMin());
         assertEquals(1668, summary.getMax());
         assertEquals(1668, summary.getLast());
-        assertEquals("6일 전(10/31)보다 약 12원 올랐습니다", FormatUtil.formatTrendChange(summary));
+        assertEquals("6일 전(10/31)보다 약 12원 올랐어요", FormatUtil.formatTrendChange(summary));
         assertEquals("최근 7일 전국 평균 휘발유, 최저 1,656원, 최고 1,668원, 마지막 1,668원",
                 FormatUtil.formatTrendDescription(FuelType.GASOLINE, summary));
     }
@@ -70,11 +70,11 @@ public class PriceTrendTest {
         PriceTrend.Summary fell = PriceTrend.summarize(Arrays.asList(
                 gasoline("20261103", 1534.92), gasoline("20261106", 1528.74)));
         assertEquals(3, fell.getDays());
-        assertEquals("3일 전(11/3)보다 약 6원 내렸습니다", FormatUtil.formatTrendChange(fell));
+        assertEquals("3일 전(11/3)보다 약 6원 내렸어요", FormatUtil.formatTrendChange(fell));
 
         PriceTrend.Summary same = PriceTrend.summarize(Arrays.asList(
                 gasoline("20261031", 1004.31), gasoline("20261106", 1004.18)));
-        assertEquals("6일 전(10/31)과 같습니다", FormatUtil.formatTrendChange(same));
+        assertEquals("6일 전(10/31)과 같아요", FormatUtil.formatTrendChange(same));
     }
 
     @Test
@@ -82,7 +82,7 @@ public class PriceTrendTest {
         PriceTrend.Summary summary = PriceTrend.summarize(Arrays.asList(
                 gasoline("20261228", 1700), gasoline("20270103", 1690)));
         assertEquals(6, summary.getDays());
-        assertEquals("6일 전(12/28)보다 약 10원 내렸습니다", FormatUtil.formatTrendChange(summary));
+        assertEquals("6일 전(12/28)보다 약 10원 내렸어요", FormatUtil.formatTrendChange(summary));
     }
 
     @Test

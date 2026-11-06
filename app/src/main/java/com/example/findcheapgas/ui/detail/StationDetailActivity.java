@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.annotation.StringRes;
@@ -51,7 +52,8 @@ import java.util.List;
  * 목록에서 이미 아는 정보(상호, 브랜드, 선택한 유종 가격, 거리)는 Intent로 받아 바로 보여주고,
  * 상세 조회(DetailViewModel)가 끝나면 주소, 전화, 유종별 가격, 부가시설을 채운다.
  * 상세 조회가 실패해도 기본 정보는 그대로 둔다.
- * 예상 이득 계산 내역은 지도 탭이 계산한 결과(StationSaving)를 Intent로 받아 그대로 보여준다.
+ * 맨 위 카드에는 지도 탭이 계산한 결과(StationSaving)를 Intent로 받아 주인공 숫자(예상 이득)와 기준 주유소, 계산 기준을 보여주고,
+ * "계산 내역 보기"를 누르면 계산 내역 표를 펼친다 (펼침 상태는 회전해도 유지).
  * 여기서는 다시 조회하거나 계산하지 않고, 계산 기준(내 차 정보)도 바꿀 수 없다.
  * 닫힐 때 주유소 ID를 결과로 돌려줘서 지도 탭이 그 주유소를 선택한 채로 보여주게 한다.
  * 즐겨찾기 탭에서도 열린다 (createFavoriteIntent). 이때는 "지도에서 보기" 버튼이 보이고, 누르면 결과로 알려서
@@ -82,12 +84,18 @@ public class StationDetailActivity extends AppCompatActivity {
     // 결과: "지도에서 보기"를 눌렀으면 true
     private static final String EXTRA_SHOW_ON_MAP = "show_on_map";
 
+    // 계산 내역을 펼쳤는지 (화면 회전 뒤에도 유지)
+    private static final String STATE_SAVING_EXPANDED = "saving_expanded";
+
     // 1회 할인 한도를 비워 둔 채 할인액이 이 금액 이상이면 "한도가 있다면..." 주의 문구를 보여준다.
     private static final int NO_CAP_WARNING_DISCOUNT = 5_000;
 
     private DetailViewModel viewModel;
     private FuelType selectedFuelType;
     private MaterialButton favoriteButton;
+    private boolean savingExpanded;
+    private View savingSection;
+    private MaterialButton savingToggle;
 
     private View status;
     private View statusProgress;
@@ -215,9 +223,12 @@ public class StationDetailActivity extends AppCompatActivity {
         setResult(RESULT_OK, new Intent().putExtra(EXTRA_STATION_ID, stationId));
 
         selectedFuelType = FuelType.fromCode(intent.getStringExtra(EXTRA_FUEL_TYPE), FuelType.GASOLINE);
+        savingExpanded = savedInstanceState != null && savedInstanceState.getBoolean(STATE_SAVING_EXPANDED);
         bindViews();
         showSummary(intent);
-        showSaving(savingFrom(intent));
+        StationSaving saving = savingFrom(intent);
+        showHero(saving);
+        showSaving(saving);
 
         viewModel = new ViewModelProvider(this).get(DetailViewModel.class);
         viewModel.getDetail().observe(this, detail -> {
@@ -236,6 +247,12 @@ public class StationDetailActivity extends AppCompatActivity {
         setUpActions(intent, stationId);
         viewModel.isFavorite().observe(this, this::renderFavoriteButton);
         viewModel.getFavoriteMessage().observe(this, this::showFavoriteMessage);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_SAVING_EXPANDED, savingExpanded);
     }
 
     /**
@@ -324,6 +341,12 @@ public class StationDetailActivity extends AppCompatActivity {
         statusProgress = findViewById(R.id.detail_status_progress);
         statusText = findViewById(R.id.detail_status_text);
         retryButton = findViewById(R.id.detail_retry_button);
+        savingSection = findViewById(R.id.detail_saving_section);
+        savingToggle = findViewById(R.id.detail_saving_toggle);
+        savingToggle.setOnClickListener(v -> {
+            savingExpanded = !savingExpanded;
+            renderSavingExpanded();
+        });
         content = findViewById(R.id.detail_content);
         addressText = findViewById(R.id.detail_address);
         phoneSection = findViewById(R.id.detail_phone_section);
@@ -372,13 +395,49 @@ public class StationDetailActivity extends AppCompatActivity {
     }
 
     /**
-     * 예상 이득 계산 내역. 계산 결과가 없으면 구역을 숨긴다.
+     * 맨 위 카드의 주인공 숫자와 그 아래 한 줄.
+     * - 이득: "약 2,583원 아낄 수 있어요"(초록, 어두운 테마는 라임), 손해: "약 1,200원 더 들어요"(빨강), 비슷: "가장 가까운 곳과 비슷해요"(회색)
+     * - 아래 한 줄: "역삼셀프주유소보다 · 내 차 기준 · 연비 15km/L · 40L" (기준 주유소 이름 + 계산 기준)
+     * - 이 주유소가 기준 주유소 자신이면 "가장 가까운 주유소예요" / "다른 곳과 비교하는 기준이에요 · 계산 기준"
+     * 계산 결과가 없으면(즐겨찾기 탭에서 5km 밖 등) 숫자와 계산 내역 버튼을 숨긴다.
+     */
+    private void showHero(@Nullable StationSaving saving) {
+        TextView headline = findViewById(R.id.detail_headline);
+        TextView basis = findViewById(R.id.detail_headline_basis);
+        if (saving == null) {
+            headline.setVisibility(View.GONE);
+            basis.setVisibility(View.GONE);
+            savingToggle.setVisibility(View.GONE);
+            return;
+        }
+        String calculationBasis = FormatUtil.formatCalculationBasis(saving.getCarInfo());
+        if (saving.isBaseline()) {
+            headline.setText(R.string.detail_hero_baseline);
+            basis.setText(getString(R.string.detail_hero_basis_baseline, calculationBasis));
+        } else {
+            headline.setText(FormatUtil.formatSavingHeadline(saving));
+            basis.setText(getString(R.string.detail_hero_basis, saving.getBaseline().getName(), calculationBasis));
+        }
+        headline.setTextColor(ContextCompat.getColor(this, SavingColors.heroTextColorOf(saving.getLevel())));
+        headline.setVisibility(View.VISIBLE);
+        basis.setVisibility(View.VISIBLE);
+        savingToggle.setVisibility(View.VISIBLE);
+    }
+
+    /** "계산 내역 보기" / "계산 내역 접기" */
+    private void renderSavingExpanded() {
+        savingSection.setVisibility(savingExpanded ? View.VISIBLE : View.GONE);
+        savingToggle.setText(savingExpanded ? R.string.detail_saving_collapse : R.string.detail_saving_expand);
+        savingToggle.setIconResource(savingExpanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
+    }
+
+    /**
+     * 예상 이득 계산 내역. 계산 결과가 없으면 구역을 숨긴다. 펼쳤을 때만 보인다.
      * 금액은 계산할 때 실수로 들고 있고, 여기서 보여줄 때만 원 단위로 반올림한다.
      */
     private void showSaving(@Nullable StationSaving saving) {
-        View section = findViewById(R.id.detail_saving_section);
         if (saving == null) {
-            section.setVisibility(View.GONE);
+            savingSection.setVisibility(View.GONE);
             return;
         }
         GasStation station = saving.getStation();
@@ -436,7 +495,7 @@ public class StationDetailActivity extends AppCompatActivity {
             AppFonts.setBold(difference, true);
             difference.setTextColor(ContextCompat.getColor(this, SavingColors.textColorOf(saving.getLevel())));
         }
-        section.setVisibility(View.VISIBLE);
+        renderSavingExpanded();
     }
 
     /**
