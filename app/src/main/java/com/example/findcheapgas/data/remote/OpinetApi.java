@@ -51,4 +51,31 @@ public interface OpinetApi {
             @Query("code") String apiKey,
             @Query("osnm") String osnm,
             @Query("out") String out);
+
+    /**
+     * 전국 주유소 평균가격(현재). 파라미터 없이 부르면 모든 유종이 한 번에 온다.
+     * 응답: TRADE_DT, PRODCD, PRODNM, PRICE, DIFF
+     */
+    @GET("avgAllPrice.do")
+    Call<ResponseBody> getNationalAverage(
+            @Query("code") String apiKey,
+            @Query("out") String out);
+
+    /**
+     * 시도별 주유소 평균가격(현재). sido와 prodcd를 생략하면 모든 시도, 모든 유종이 한 번에 온다.
+     * 응답: SIDOCD, SIDONM, PRODCD, PRICE, DIFF
+     */
+    @GET("avgSidoPrice.do")
+    Call<ResponseBody> getSidoAverage(
+            @Query("code") String apiKey,
+            @Query("out") String out);
+
+    /**
+     * 최근 7일간 전국 일일 평균가격. date와 prodcd를 생략하면 최근 7일, 모든 유종이 한 번에 온다.
+     * 응답: DATE, PRODCD, PRICE
+     */
+    @GET("avgRecentPrice.do")
+    Call<ResponseBody> getRecentAverage(
+            @Query("code") String apiKey,
+            @Query("out") String out);
 }

@@ -3,10 +3,13 @@ package com.example.findcheapgas.data.mock;
 import android.content.Context;
 
 import com.example.findcheapgas.data.remote.OpinetAroundResponse;
+import com.example.findcheapgas.data.remote.OpinetAverageResponse;
 import com.example.findcheapgas.data.remote.OpinetDetailResponse;
 import com.example.findcheapgas.data.remote.OpinetException;
 import com.example.findcheapgas.data.remote.OpinetSearchResponse;
 import com.example.findcheapgas.data.remote.StationNotFoundException;
+import com.example.findcheapgas.model.AveragePrice;
+import com.example.findcheapgas.model.DailyAveragePrice;
 import com.example.findcheapgas.model.StationDetail;
 import com.example.findcheapgas.model.StationQuery;
 import com.example.findcheapgas.model.StationSearchResult;
@@ -28,6 +31,9 @@ import java.util.Locale;
  * - 상세정보: assets/mock/detail/{주유소 ID}.json. 주변 데이터의 모든 주유소가 있고, 가격은 주변 데이터와 같다.
  * - 상호 검색: 상세정보 파일 전체에서 상호에 검색어가 들어간 주유소를 찾는다. 상세 파일이 상호 검색 응답과
  *   같은 필드(UNI_ID, POLL_DIV_CO, OS_NM, NEW_ADR, GIS_X_COOR, GIS_Y_COOR)를 가지고 있어서 같은 해석을 쓴다.
+ * - 평균가: assets/mock/avg_all.json(전국), avg_sido.json(시도별), avg_recent.json(최근 7일 전국 일일).
+ *   실제 응답처럼 여러 유종이 한 번에 들어 있고, 강남역 주변 가짜 주유소 가격 사이에 오도록 정했다
+ *   (평균보다 싼 주유소와 비싼 주유소가 모두 나온다).
  */
 public class MockOpinetDataSource {
 
@@ -40,6 +46,9 @@ public class MockOpinetDataSource {
     private static final double AREA_RADIUS_METERS = 5000;
 
     private static final String DETAIL_DIR = "mock/detail";
+    private static final String NATIONAL_AVERAGE_FILE = "mock/avg_all.json";
+    private static final String SIDO_AVERAGE_FILE = "mock/avg_sido.json";
+    private static final String RECENT_AVERAGE_FILE = "mock/avg_recent.json";
 
     private final Context appContext;
 
@@ -101,6 +110,29 @@ public class MockOpinetDataSource {
             }
         }
         return filterByName(all, keyword);
+    }
+
+    public List<AveragePrice> fetchNationalAverages() throws IOException, OpinetException {
+        fakeDelay();
+        return OpinetAverageResponse.parseNational(readAsset(NATIONAL_AVERAGE_FILE));
+    }
+
+    public List<AveragePrice> fetchSidoAverages() throws IOException, OpinetException {
+        fakeDelay();
+        return OpinetAverageResponse.parseSido(readAsset(SIDO_AVERAGE_FILE));
+    }
+
+    public List<DailyAveragePrice> fetchRecentAverages() throws IOException, OpinetException {
+        fakeDelay();
+        return OpinetAverageResponse.parseRecent(readAsset(RECENT_AVERAGE_FILE));
+    }
+
+    private static void fakeDelay() {
+        try {
+            Thread.sleep(FAKE_DELAY_MS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** 상호에 검색어가 들어간 주유소. 띄어쓰기와 영문 대소문자는 무시한다. */

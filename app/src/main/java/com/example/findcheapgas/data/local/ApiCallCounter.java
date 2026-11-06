@@ -30,6 +30,10 @@ public class ApiCallCounter {
         void save(String date, int count);
     }
 
+    // 주변 조회, 상세, 이름 검색, 평균가 Repository가 각자 인스턴스를 만들고 서로 다른 스레드에서 부른다.
+    // 같은 횟수를 읽고 쓰므로 인스턴스가 달라도 한 번에 하나만 세도록 잠금을 같이 쓴다.
+    private static final Object LOCK = new Object();
+
     private final Storage storage;
     private final Supplier<String> today;
 
@@ -46,20 +50,24 @@ public class ApiCallCounter {
      * 호출 1회를 기록하고 오늘 누적 횟수를 돌려준다.
      * 오늘 이미 하루 한도만큼 불렀으면 기록하지 않고 DailyLimitReachedException을 던진다.
      */
-    public synchronized int acquire() throws DailyLimitReachedException {
-        int count = getTodayCount();
-        if (count >= DAILY_LIMIT) {
-            throw new DailyLimitReachedException(count);
+    public int acquire() throws DailyLimitReachedException {
+        synchronized (LOCK) {
+            int count = getTodayCount();
+            if (count >= DAILY_LIMIT) {
+                throw new DailyLimitReachedException(count);
+            }
+            storage.save(today.get(), count + 1);
+            return count + 1;
         }
-        storage.save(today.get(), count + 1);
-        return count + 1;
     }
 
-    public synchronized int getTodayCount() {
-        if (!today.get().equals(storage.getDate())) {
-            return 0;
+    public int getTodayCount() {
+        synchronized (LOCK) {
+            if (!today.get().equals(storage.getDate())) {
+                return 0;
+            }
+            return storage.getCount();
         }
-        return storage.getCount();
     }
 
     private static String today() {
