@@ -1,5 +1,6 @@
 package com.example.findcheapgas.util;
 
+import com.example.findcheapgas.model.ApiUsage;
 import com.example.findcheapgas.model.AverageComparison;
 import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 예상 총비용과 차이, 가격을 가져온 시각, 거리, 연비·주유량, 계산 기준(위젯용 짧은 문구 포함), 위젯 갱신 시각, 가격 기준 일시, 평균가 비교, 7일 추이 요약·짧은 날짜 표시 형식 */
+/** 가격, 계산 금액, 예상 이득, 할인·내 브랜드 요약, 예상 총비용과 차이, 가격을 가져온 시각, 오늘 오피넷 사용량, 거리, 연비·주유량, 계산 기준(위젯용 짧은 문구 포함), 위젯 갱신 시각, 가격 기준 일시, 평균가 비교, 7일 추이 요약·짧은 날짜 표시 형식 */
 public final class FormatUtil {
 
     private FormatUtil() {
@@ -106,6 +107,27 @@ public final class FormatUtil {
             return "약 " + minutes + "분 전 가격";
         }
         return "약 " + Math.round(minutes / 60.0) + "시간 전 가격";
+    }
+
+    /** 설정 탭 오늘 오피넷 사용량. "오늘 12회 / 300회" */
+    public static String formatApiUsageCount(ApiUsage usage) {
+        NumberFormat number = NumberFormat.getNumberInstance(Locale.KOREA);
+        return "오늘 " + number.format(usage.getCount()) + "회 / " + number.format(usage.getLimit()) + "회";
+    }
+
+    /**
+     * 설정 탭 오늘 오피넷 사용량의 상태 문구. 250회부터 "한도에 가까워졌습니다",
+     * 300회면 "오늘 한도에 도달했습니다. 저장된 결과만 볼 수 있습니다", 그 아래는 null
+     */
+    public static String formatApiUsageStatus(ApiUsage usage) {
+        switch (usage.getLevel()) {
+            case LIMIT_REACHED:
+                return "오늘 한도에 도달했습니다. 저장된 결과만 볼 수 있습니다";
+            case NEAR_LIMIT:
+                return "한도에 가까워졌습니다";
+            default:
+                return null;
+        }
     }
 
     /** 1234.5(m) → "1.2km" */

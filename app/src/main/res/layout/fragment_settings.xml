@@ -4,7 +4,9 @@
     - 내 차 정보: 연비, 평소 주유량, 기본값 사용 여부 (누르면 수정 화면), 기본값으로 되돌리기
     - 내 브랜드: 할인·선호·숨김 요약 (누르면 내 브랜드 화면)
     - 집·회사 위치: 등록한 장소 이름 또는 "등록 안 함" (누르면 집·회사 위치 화면)
-    - 다른 설정: 아직 준비 중인 항목 (코드에서 채운다)
+    - 기본 유종·반경: 지도 탭이 기억하는 마지막 유종·반경 (누르면 고르는 창)
+    - 화면 테마: 시스템 설정 따르기 / 밝게 / 어둡게 (누르면 고르는 창)
+    - 오늘 오피넷 사용량: 오늘 호출 횟수와 진행 막대, 한도 경고, 안내
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -212,12 +214,186 @@
             style="@style/Widget.FindCheapGas.SettingsSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_other" />
+            android:text="@string/settings_default_filter" />
 
-        <LinearLayout
-            android:id="@+id/settings_coming_soon_list"
+        <!-- 기본 유종·반경: 지도 탭이 기억하는 마지막 유종·반경과 같은 값. 누르면 고르는 창 -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/settings_fuel_type_row"
+                    style="@style/Widget.FindCheapGas.SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_fuel_type"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                    <TextView
+                        android:id="@+id/settings_fuel_type"
+                        style="@style/Widget.FindCheapGas.SettingsRowValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="휘발유" />
+                </LinearLayout>
+
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp" />
+
+                <LinearLayout
+                    android:id="@+id/settings_radius_row"
+                    style="@style/Widget.FindCheapGas.SettingsRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/settings_radius"
+                        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                    <TextView
+                        android:id="@+id/settings_radius"
+                        style="@style/Widget.FindCheapGas.SettingsRowValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="3km" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_default_filter_helper"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            style="@style/Widget.FindCheapGas.SettingsSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_display" />
+
+        <!-- 화면 테마: 시스템 설정 따르기 / 밝게 / 어둡게. 누르면 고르는 창 -->
+        <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/settings_theme_row"
+                style="@style/Widget.FindCheapGas.SettingsRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/settings_theme"
+                    android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <TextView
+                    android:id="@+id/settings_theme"
+                    style="@style/Widget.FindCheapGas.SettingsRowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="시스템 설정 따르기" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_theme_helper"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <TextView
+            style="@style/Widget.FindCheapGas.SettingsSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_api_usage" />
+
+        <!-- 오늘 오피넷 사용량: "오늘 12회 / 300회", 진행 막대, 경고, 초기화·세는 범위 안내, 가짜 데이터 모드 안내 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/settings_api_usage_card"
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/settings_api_usage_count"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    tools:text="오늘 12회 / 300회" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/settings_api_usage_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:importantForAccessibility="no"
+                    android:max="100"
+                    app:trackCornerRadius="2dp"
+                    tools:progress="4" />
+
+                <TextView
+                    android:id="@+id/settings_api_usage_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorError"
+                    android:visibility="gone"
+                    tools:text="한도에 가까워졌습니다"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/settings_api_usage_note"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <TextView
+                    android:id="@+id/settings_api_usage_mock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/settings_api_usage_mock"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>

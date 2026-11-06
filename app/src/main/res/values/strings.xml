@@ -223,7 +223,6 @@
     <string name="settings_car_info_description">내 차 정보: 연비 %1$s, 평소 주유량 %2$s, %3$s. 눌러서 수정</string>
     <string name="settings_car_info_reset">기본값으로 되돌리기</string>
     <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸습니다</string>
-    <string name="settings_other">다른 설정</string>
     <string name="settings_brand">내 브랜드</string>
     <string name="settings_brand_description">내 브랜드: %1$s. 눌러서 수정</string>
 
@@ -256,9 +255,18 @@
     <string name="brand_edit_error_integer">원 단위 정수로 입력해 주세요</string>
     <string name="settings_places">집·회사 위치</string>
     <string name="settings_default_filter">기본 유종·반경</string>
-    <string name="settings_dark_mode">다크 모드</string>
-    <string name="settings_api_usage">오늘 API 사용량</string>
-    <string name="settings_coming_soon">준비 중</string>
+    <string name="settings_fuel_type">기본 유종</string>
+    <string name="settings_radius">기본 반경</string>
+    <string name="settings_default_filter_helper">지도 탭에서 마지막으로 고른 유종·반경과 같은 값입니다. 여기서 바꾸면 지도 탭과 집·회사 비교, 위젯에도 바로 반영됩니다.</string>
+    <string name="settings_row_description">%1$s: %2$s. 눌러서 바꾸기</string>
+    <string name="settings_display">화면</string>
+    <string name="settings_theme">화면 테마</string>
+    <string name="settings_theme_helper">홈 화면 위젯은 이 설정이 아니라 휴대폰의 다크 모드 설정을 따릅니다.</string>
+    <string name="settings_api_usage">오늘 오피넷 사용량</string>
+    <string name="settings_api_usage_note">자정에 0회로 초기화됩니다. 오피넷 호출만 셉니다.</string>
+    <string name="settings_api_usage_mock">가짜 데이터 모드라 오피넷을 호출하지 않습니다</string>
+    <string name="settings_api_usage_description">%1$s, 하루 한도 %2$d회. %3$s</string>
+    <string name="settings_choice_cancel">취소</string>
 
     <!-- 즐겨찾기 -->
     <string name="station_favorite">즐겨찾기</string>

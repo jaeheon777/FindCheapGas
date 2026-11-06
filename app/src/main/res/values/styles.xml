@@ -48,7 +48,26 @@
         <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
-    <!-- 설정 탭의 구역 제목 (내 차 정보, 다른 설정) -->
+    <!-- 설정 탭 카드 안의 누를 수 있는 한 줄 (이름, 오른쪽에 지금 값) -->
+    <style name="Widget.FindCheapGas.SettingsRow" parent="">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 설정 탭 한 줄의 지금 값 (휘발유, 3km, 시스템 설정 따르기) -->
+    <style name="Widget.FindCheapGas.SettingsRowValue" parent="">
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
+    <!-- 설정 탭의 구역 제목 (내 차 정보, 기본 유종·반경, 화면 테마) -->
     <style name="Widget.FindCheapGas.SettingsSectionTitle" parent="">
         <item name="android:layout_marginTop">24dp</item>
         <item name="android:layout_marginBottom">8dp</item>
