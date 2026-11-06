@@ -964,6 +964,13 @@ public class MapFragment extends Fragment {
 
         // 입력 중에는 검색하지 않는다. 검색 버튼이나 키보드의 검색 키를 눌렀을 때만 검색한다.
         searchButton.setOnClickListener(v -> submitSearch());
+        // 키보드는 화면 아래를 덮으므로, 검색창을 누를 때 시트가 올라가 있으면 내려서 지도와 검색창만 보이게 한다.
+        searchInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && sheetBehavior != null
+                    && sheetBehavior.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
         searchInput.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 submitSearch();
