@@ -308,7 +308,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/space_xxs"
                                 android:ellipsize="end"
-                                android:maxLines="1"
+                                android:maxLines="2"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="SK에너지 · 1.2km · 1,579원" />
