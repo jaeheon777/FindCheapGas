@@ -5,7 +5,7 @@
     - 예상 이득 계산 내역 (지도 탭에서 넘겨받아 바로 표시)
     - 상세 조회 상태: 불러오는 중, 오류와 다시 시도
     - 상세 정보: 주소, 전화, 유종별 가격, 부가시설 (상세 조회 결과가 오면 표시)
-    - 나중에 들어갈 자리 (지금은 숨김)
+    - 평균가 대비 (전국·지역 평균과 비교), 7일 가격 추이 (최근 7일 전국 평균 그래프). 상세 조회와 따로 불러온다.
     - 아래 버튼 줄: 즐겨찾기, 지도에서 보기 (즐겨찾기 탭에서 열었을 때), 길찾기
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -289,35 +289,110 @@
             </LinearLayout>
 
             <!--
-                4단계: 평균가 대비 차이, 7일 가격 추이 (지금은 숨김)
-                전국·지역 평균가와 비교, 최근 7일 전국 평균가 그래프
+                평균가 대비: 지금 고른 유종의 표시 가격(할인 전)을 전국 평균, 지역(시도) 평균과 비교한다.
+                상세 조회와 따로 불러오고, 못 불러오면 이 구역만 짧은 안내로 바뀐다.
+                비교 줄은 코드에서 한 줄씩 넣는다 (item_average_row).
             -->
             <LinearLayout
                 android:id="@+id/detail_average_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/Widget.FindCheapGas.DetailSectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/detail_average_title" />
+
+                <TextView
+                    android:id="@+id/detail_average_basis"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:visibility="gone"
+                    tools:text="휘발유 1,671원 · 표시 가격 기준 (할인 전)"
+                    tools:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/detail_average_rows"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/detail_average_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="@string/detail_average_loading" />
+
+                <TextView
+                    android:id="@+id/detail_average_note"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/detail_average_note"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
             </LinearLayout>
 
+            <!--
+                7일 가격 추이: 최근 7일 전국 평균가 꺾은선 그래프와 지난 변화 한 줄.
+                점이 2개 미만이거나 못 불러오면 그래프 대신 안내 문구를 보여준다.
+            -->
             <LinearLayout
                 android:id="@+id/detail_trend_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/Widget.FindCheapGas.DetailSectionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/detail_trend_title" />
+
+                <TextView
+                    android:id="@+id/detail_trend_heading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    tools:text="최근 7일 전국 평균 (휘발유)" />
+
+                <com.example.findcheapgas.ui.detail.PriceTrendView
+                    android:id="@+id/detail_trend_chart"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/trend_chart_height"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/detail_trend_summary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:visibility="gone"
+                    tools:text="6일 전(10/31)보다 약 12원 올랐습니다"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/detail_trend_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="@string/detail_trend_loading" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

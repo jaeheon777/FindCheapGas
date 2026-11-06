@@ -21,4 +21,8 @@
     <dimen name="widget_text_message">14sp</dimen>
     <dimen name="widget_small_text_name">14sp</dimen>
     <dimen name="widget_small_text_price">13sp</dimen>
+    <!-- 상세 화면 7일 가격 추이 그래프 -->
+    <dimen name="trend_chart_height">180dp</dimen>
+    <dimen name="trend_value_text">12sp</dimen>
+    <dimen name="trend_axis_text">11sp</dimen>
 </resources>

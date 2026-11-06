@@ -20,8 +20,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.findcheapgas.R;
+import com.example.findcheapgas.model.AverageComparison;
 import com.example.findcheapgas.model.Brand;
 import com.example.findcheapgas.model.CarInfo;
+import com.example.findcheapgas.model.DailyAveragePrice;
 import com.example.findcheapgas.model.DiscountRule;
 import com.example.findcheapgas.model.FavoriteItem;
 import com.example.findcheapgas.model.FavoritePrice;
@@ -34,7 +36,9 @@ import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
+import com.example.findcheapgas.util.PriceTrend;
 import com.example.findcheapgas.viewmodel.DetailViewModel;
+import com.example.findcheapgas.viewmodel.SectionState;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -53,6 +57,8 @@ import java.util.List;
  * 즐겨찾기 탭에서도 열린다 (createFavoriteIntent). 이때는 "지도에서 보기" 버튼이 보이고, 누르면 결과로 알려서
  * 지도 탭이 그 주유소 위치를 조회 위치로 주변을 조회하고 그 주유소를 선택한다.
  * 아래 즐겨찾기 버튼(북마크)으로 즐겨찾기를 추가하거나 삭제한다.
+ * 평균가 대비(전국·지역 평균과 표시 가격 비교)와 7일 가격 추이(최근 7일 전국 평균 그래프)는 상세 조회와 따로 불러오고,
+ * 못 불러오면 그 구역만 짧은 안내로 바꾼다.
  */
 public class StationDetailActivity extends AppCompatActivity {
 
@@ -96,6 +102,14 @@ public class StationDetailActivity extends AppCompatActivity {
     private ChipGroup facilityGroup;
     private View facilitiesEmpty;
     private View selfNote;
+    private TextView averageBasis;
+    private LinearLayout averageRows;
+    private TextView averageStatus;
+    private View averageNote;
+    private TextView trendHeading;
+    private PriceTrendView trendChart;
+    private TextView trendSummary;
+    private TextView trendStatus;
 
     /**
      * 목록의 주유소 정보, 예상 이득 계산 결과, 지금 고른 유종으로 상세 화면을 여는 Intent
@@ -214,8 +228,11 @@ public class StationDetailActivity extends AppCompatActivity {
         });
         viewModel.getLoading().observe(this, loading -> renderStatus());
         viewModel.getError().observe(this, error -> renderStatus());
-        // 화면을 회전해도 ViewModel이 남아 있으므로 다시 조회하지 않는다.
-        viewModel.start(stationId);
+        viewModel.getAverageSection().observe(this, this::renderAverageSection);
+        viewModel.getTrendSection().observe(this, this::renderTrendSection);
+        // 화면을 회전해도 ViewModel이 남아 있으므로 다시 조회하지 않는다 (상세정보, 평균가, 7일 추이).
+        viewModel.start(stationId, selectedFuelType, intent.getIntExtra(EXTRA_PRICE, 0),
+                intent.getStringExtra(EXTRA_ADDRESS));
         setUpActions(intent, stationId);
         viewModel.isFavorite().observe(this, this::renderFavoriteButton);
         viewModel.getFavoriteMessage().observe(this, this::showFavoriteMessage);
@@ -316,6 +333,14 @@ public class StationDetailActivity extends AppCompatActivity {
         facilityGroup = findViewById(R.id.detail_facilities);
         facilitiesEmpty = findViewById(R.id.detail_facilities_empty);
         selfNote = findViewById(R.id.detail_self_note);
+        averageBasis = findViewById(R.id.detail_average_basis);
+        averageRows = findViewById(R.id.detail_average_rows);
+        averageStatus = findViewById(R.id.detail_average_status);
+        averageNote = findViewById(R.id.detail_average_note);
+        trendHeading = findViewById(R.id.detail_trend_heading);
+        trendChart = findViewById(R.id.detail_trend_chart);
+        trendSummary = findViewById(R.id.detail_trend_summary);
+        trendStatus = findViewById(R.id.detail_trend_status);
 
         retryButton.setOnClickListener(v -> viewModel.retry());
     }
@@ -581,6 +606,104 @@ public class StationDetailActivity extends AppCompatActivity {
         chip.setFocusable(false);
         chip.setEnsureMinTouchTargetSize(false);
         facilityGroup.addView(chip);
+    }
+
+    /**
+     * 평균가 대비 구역. 지금 고른 유종의 표시 가격(할인 전)과 전국·지역 평균의 차이, 내 주유량 환산.
+     * 불러오는 중, 못 불러옴(한도 도달 / 연결 없음 / 그 밖), 팔지 않는 유종은 짧은 안내 한 줄로 바꾼다.
+     */
+    private void renderAverageSection(SectionState<AverageComparison> state) {
+        averageRows.removeAllViews();
+        averageBasis.setVisibility(View.GONE);
+        averageNote.setVisibility(View.GONE);
+
+        String message = null;
+        if (state.getStatus() == SectionState.Status.LOADING) {
+            message = getString(R.string.detail_average_loading);
+        } else if (state.getStatus() == SectionState.Status.ERROR) {
+            message = getString(errorMessage(state.getError(), R.string.detail_average_error_daily_limit,
+                    R.string.detail_average_error_network, R.string.detail_average_error));
+        } else {
+            AverageComparison comparison = state.getData();
+            if (comparison == null || comparison.getStatus() == AverageComparison.Status.NO_PRICE) {
+                message = getString(R.string.detail_average_no_price);
+            } else if (comparison.getStatus() == AverageComparison.Status.NOT_SOLD) {
+                message = getString(R.string.detail_average_not_sold);
+            } else if (comparison.getStatus() == AverageComparison.Status.NO_AVERAGE) {
+                message = getString(R.string.detail_average_no_average);
+            } else {
+                showAverageLines(comparison);
+            }
+        }
+        averageStatus.setText(message);
+        averageStatus.setVisibility(message != null ? View.VISIBLE : View.GONE);
+    }
+
+    private void showAverageLines(AverageComparison comparison) {
+        averageBasis.setText(getString(R.string.detail_average_basis, comparison.getFuelType().getLabel(),
+                FormatUtil.formatPrice(comparison.getStationPrice())));
+        averageBasis.setVisibility(View.VISIBLE);
+        LayoutInflater inflater = getLayoutInflater();
+        for (AverageComparison.Line line : comparison.getLines()) {
+            View row = inflater.inflate(R.layout.item_average_row, averageRows, false);
+            TextView text = row.findViewById(R.id.average_row_text);
+            text.setText(FormatUtil.formatAverageComparison(line));
+            if (line.getDifferencePerLiter() < 0) {
+                text.setTextColor(ContextCompat.getColor(this, R.color.saving_gain_text));
+            } else if (line.getDifferencePerLiter() > 0) {
+                text.setTextColor(ContextCompat.getColor(this, R.color.saving_loss_text));
+            }
+            setOptionalText(row.findViewById(R.id.average_row_note), FormatUtil.formatAverageForFuelAmount(line));
+            averageRows.addView(row);
+        }
+        averageNote.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * 7일 가격 추이 구역. 그래프 위에 유종, 아래에 지난 변화 한 줄 (예측 문구는 쓰지 않는다).
+     * 점이 2개 미만이거나 못 불러오면 그래프 대신 안내 문구를 보여준다.
+     */
+    private void renderTrendSection(SectionState<List<DailyAveragePrice>> state) {
+        trendHeading.setText(getString(R.string.detail_trend_heading, selectedFuelType.getLabel()));
+        List<DailyAveragePrice> points = state.getData();
+        PriceTrend.Summary summary = points != null ? PriceTrend.summarize(points) : null;
+
+        String message = null;
+        if (state.getStatus() == SectionState.Status.LOADING) {
+            message = getString(R.string.detail_trend_loading);
+        } else if (state.getStatus() == SectionState.Status.ERROR) {
+            message = getString(errorMessage(state.getError(), R.string.detail_trend_error_daily_limit,
+                    R.string.detail_trend_error_network, R.string.detail_trend_error));
+        } else if (summary == null) {
+            message = getString(R.string.detail_trend_not_enough);
+        }
+
+        if (message != null) {
+            trendChart.setVisibility(View.GONE);
+            trendSummary.setVisibility(View.GONE);
+            trendStatus.setText(message);
+            trendStatus.setVisibility(View.VISIBLE);
+            return;
+        }
+        trendChart.setPoints(points);
+        trendChart.setContentDescription(FormatUtil.formatTrendDescription(selectedFuelType, summary));
+        trendChart.setVisibility(View.VISIBLE);
+        trendSummary.setText(FormatUtil.formatTrendChange(summary));
+        trendSummary.setVisibility(View.VISIBLE);
+        trendStatus.setVisibility(View.GONE);
+    }
+
+    /** 평균가·추이 안내: 한도 도달, 연결 없음, 그 밖에는 "가져오지 못함" */
+    @StringRes
+    private static int errorMessage(@Nullable StationError error, @StringRes int dailyLimit,
+                                    @StringRes int network, @StringRes int other) {
+        if (error == StationError.DAILY_LIMIT) {
+            return dailyLimit;
+        }
+        if (error == StationError.NETWORK) {
+            return network;
+        }
+        return other;
     }
 
     /** 전화 앱의 다이얼 화면만 연다 (전화 권한이 필요 없다). */

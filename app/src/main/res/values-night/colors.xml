@@ -9,4 +9,10 @@
     <color name="badge_discount">#FFD7AEFB</color>
     <color name="preferred_star">#FFFDD663</color>
     <color name="favorite_bookmark">#FF8AB4F8</color>
+    <color name="trend_line">#FF8AB4F8</color>
+    <color name="trend_point">#FF8AB4F8</color>
+    <color name="trend_point_hole">#FF202124</color>
+    <color name="trend_baseline">#FF3C4043</color>
+    <color name="trend_value_text">#FFE8EAED</color>
+    <color name="trend_axis_text">#FF9AA0A6</color>
 </resources>

@@ -158,6 +158,23 @@
     <!-- 나중에 만들 기능 자리 (지금은 숨김) -->
     <string name="detail_average_title">평균가 대비</string>
     <string name="detail_trend_title">7일 가격 추이</string>
+    <!-- 평균가 대비: 지금 고른 유종의 표시 가격(할인 전)을 전국·지역 평균가와 비교 -->
+    <string name="detail_average_basis">%1$s %2$s · 표시 가격 기준 (할인 전)</string>
+    <string name="detail_average_note">평균가도 할인 전 표시 가격이라 내 브랜드 할인은 넣지 않고 비교합니다. 평균가는 오피넷이 발표한 현재 평균입니다.</string>
+    <string name="detail_average_loading">평균가를 불러오는 중입니다</string>
+    <string name="detail_average_not_sold">이 유종을 팔지 않습니다</string>
+    <string name="detail_average_no_price">이 주유소의 가격 정보가 없어 평균가와 비교할 수 없습니다</string>
+    <string name="detail_average_no_average">이 유종의 평균가 정보가 없습니다</string>
+    <string name="detail_average_error_daily_limit">오늘 조회 한도(300회)에 도달해 평균가를 불러오지 못했습니다</string>
+    <string name="detail_average_error_network">인터넷에 연결할 수 없어 평균가를 불러오지 못했습니다</string>
+    <string name="detail_average_error">평균가를 불러오지 못했습니다</string>
+    <!-- 7일 가격 추이: 최근 7일 전국 평균가. 지난 값만 보여주고 앞으로의 가격은 말하지 않는다. -->
+    <string name="detail_trend_heading">최근 7일 전국 평균 (%1$s)</string>
+    <string name="detail_trend_loading">가격 추이를 불러오는 중입니다</string>
+    <string name="detail_trend_not_enough">가격 추이를 그릴 만큼 정보가 없습니다</string>
+    <string name="detail_trend_error_daily_limit">오늘 조회 한도(300회)에 도달해 가격 추이를 불러오지 못했습니다</string>
+    <string name="detail_trend_error_network">인터넷에 연결할 수 없어 가격 추이를 불러오지 못했습니다</string>
+    <string name="detail_trend_error">가격 추이를 불러오지 못했습니다</string>
     <string name="detail_route">길찾기</string>
     <string name="detail_route_description">길찾기. 카카오맵이나 티맵을 열고 이 주유소를 목적지로 넣습니다</string>
     <string name="route_app_title">길찾기 앱 선택</string>
