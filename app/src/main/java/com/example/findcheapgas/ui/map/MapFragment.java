@@ -548,7 +548,7 @@ public class MapFragment extends Fragment {
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         // 밝은 지도 위에서도 테두리가 보이도록 옅은 그림자
-        paint.setColor(0x33000000);
+        paint.setColor(ContextCompat.getColor(requireContext(), R.color.my_location_shadow));
         canvas.drawCircle(radius, radius, radius, paint);
         paint.setColor(ContextCompat.getColor(requireContext(), R.color.my_location_border));
         canvas.drawCircle(radius, radius, radius - shadow, paint);

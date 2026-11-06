@@ -90,7 +90,7 @@ final class WidgetRenderer {
             views.setTextViewText(R.id.widget_station_name, content.getStationName());
             views.setTextViewText(R.id.widget_price, FormatUtil.formatPrice(content.getPrice()));
             views.setTextViewText(R.id.widget_saving, content.getSavingText());
-            views.setTextColor(R.id.widget_saving, color(context, savingColor(content)));
+            setTextColor(context, views, R.id.widget_saving, savingColor(content));
         } else {
             views.setTextViewText(R.id.widget_message, message(context, content));
         }
@@ -133,7 +133,7 @@ final class WidgetRenderer {
             }
         }
         views.setTextViewText(R.id.widget_status, status != null ? status : "");
-        views.setTextColor(R.id.widget_status, color(context, statusColor));
+        setTextColor(context, views, R.id.widget_status, statusColor);
     }
 
     private static String message(Context context, @Nullable WidgetContent content) {
@@ -184,8 +184,19 @@ final class WidgetRenderer {
         }
     }
 
-    private static int color(Context context, @ColorRes int res) {
-        return ContextCompat.getColor(context, res);
+    /**
+     * 글자 색을 바꾼다. 위젯은 앱 테마가 아니라 휴대폰 시스템의 다크 모드를 따른다.
+     * Android 12 이상은 색 리소스를 넘겨서 런처가 그릴 때 시스템 테마에 맞는 색(values / values-night)을 고르게 한다.
+     * 그래서 앱이 따로 어두운 테마를 쓰거나, 위젯을 그린 뒤 시스템 테마가 바뀌어도 위젯 배경과 글자 색이 맞는다.
+     * 그 아래 버전은 그리는 시점의 시스템 테마 색 값을 넣는다. 위젯 구성 화면(Activity)에서 불러도 앱 테마가 섞이지 않게
+     * Application의 Context로 읽는다.
+     */
+    private static void setTextColor(Context context, RemoteViews views, int viewId, @ColorRes int res) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            views.setColor(viewId, "setTextColor", res);
+        } else {
+            views.setTextColor(viewId, ContextCompat.getColor(context.getApplicationContext(), res));
+        }
     }
 
     private static PendingIntent openIntent(Context context, int widgetId, SavedPlace.Kind kind,

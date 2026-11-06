@@ -1,8 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.FindCheapGas" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!--
+            지도 탭 밖의 화면(상세, 내 차 정보, 내 브랜드, 집·회사 위치, 위젯 구성)은 상태 표시줄을 화면 배경색으로 칠한다.
+            기본값(보라 계열)은 어두운 테마에서 밝은 보라 위에 흰 아이콘이 되어 잘 보이지 않는다.
+            아이콘 색은 밝은 테마는 어둡게, 어두운 테마(values-night)는 밝게 한다.
+        -->
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.FindCheapGas" parent="Base.Theme.FindCheapGas" />
