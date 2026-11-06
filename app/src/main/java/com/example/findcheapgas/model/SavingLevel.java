@@ -2,7 +2,7 @@ package com.example.findcheapgas.model;
 
 /**
  * 예상 이득 구간. 지도 마커 색과 목록의 이득 글자 색에 쓴다.
- * 기준 주유소 대비 1,000원 이상 이득이면 GAIN(초록), 1,000원 이상 손해면 LOSS(빨강), 그 사이는 SIMILAR(노랑).
+ * 기준 주유소 대비 1,000원 이상 이득이면 GAIN(초록), 1,000원 이상 손해면 LOSS(빨강), 그 사이는 SIMILAR(회색).
  * 기준 주유소 자신은 이득 0원이라 SIMILAR이다.
  */
 public enum SavingLevel {

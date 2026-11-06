@@ -22,7 +22,7 @@
     <string name="map_legend_similar">비슷</string>
     <string name="map_legend_loss">손해</string>
     <string name="map_legend_threshold">기준 ±1,000원</string>
-    <string name="map_legend_description">마커 색: 초록은 가장 가까운 곳보다 1,000원 이상 이득, 노랑은 차이 1,000원 미만, 빨강은 1,000원 이상 손해</string>
+    <string name="map_legend_description">마커 색: 초록은 가장 가까운 곳보다 1,000원 이상 이득, 회색은 차이 1,000원 미만, 빨강은 1,000원 이상 손해</string>
 
     <!-- 지도 위 검색창 -->
     <string name="search_mode_place">장소</string>

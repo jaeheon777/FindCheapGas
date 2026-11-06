@@ -32,7 +32,7 @@ import com.example.findcheapgas.model.FuelPrice;
 import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationDetail;
-import com.example.findcheapgas.model.SavingLevel;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
@@ -434,11 +434,7 @@ public class StationDetailActivity extends AppCompatActivity {
                             FormatUtil.formatWon(saving.getBaselineTotalCost()),
                             FormatUtil.formatWon(saving.getTotalCost())), null);
             difference.setTypeface(null, Typeface.BOLD);
-            if (saving.getLevel() == SavingLevel.GAIN) {
-                difference.setTextColor(ContextCompat.getColor(this, R.color.saving_gain_text));
-            } else if (saving.getLevel() == SavingLevel.LOSS) {
-                difference.setTextColor(ContextCompat.getColor(this, R.color.saving_loss_text));
-            }
+            difference.setTextColor(ContextCompat.getColor(this, SavingColors.textColorOf(saving.getLevel())));
         }
         section.setVisibility(View.VISIBLE);
     }

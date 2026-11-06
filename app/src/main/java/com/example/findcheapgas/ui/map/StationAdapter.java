@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
-import com.example.findcheapgas.model.SavingLevel;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 
@@ -130,19 +130,12 @@ public class StationAdapter extends RecyclerView.Adapter<StationAdapter.ViewHold
         holder.itemView.setOnClickListener(v -> clickListener.onStationClick(saving));
     }
 
-    /** 이득은 초록, 손해는 빨강, 비슷하거나 기준이면 보조 글자색 */
+    /** 이득은 초록, 비슷은 회색, 손해는 빨강, 기준이면 보조 글자색 */
     private static int savingTextColor(Context context, StationSaving saving, int defaultColor) {
         if (saving.isBaseline()) {
             return defaultColor;
         }
-        SavingLevel level = saving.getLevel();
-        if (level == SavingLevel.GAIN) {
-            return ContextCompat.getColor(context, R.color.saving_gain_text);
-        }
-        if (level == SavingLevel.LOSS) {
-            return ContextCompat.getColor(context, R.color.saving_loss_text);
-        }
-        return defaultColor;
+        return ContextCompat.getColor(context, SavingColors.textColorOf(saving.getLevel()));
     }
 
     @Override
