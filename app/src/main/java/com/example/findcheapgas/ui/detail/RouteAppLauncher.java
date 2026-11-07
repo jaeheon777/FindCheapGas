@@ -42,7 +42,7 @@ public final class RouteAppLauncher {
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.route_app_title)
                 .setView(content)
-                .setNegativeButton(android.R.string.cancel, null)
+                .setNegativeButton(R.string.route_app_cancel, null)
                 .create();
         bindRow(activity, dialog, content, R.id.route_app_kakao, R.id.route_app_kakao_status,
                 R.string.route_app_kakao_map, RouteLinks.App.KAKAO_MAP, name, latitude, longitude);

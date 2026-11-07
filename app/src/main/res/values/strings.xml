@@ -40,18 +40,25 @@
     <!-- 검색 결과 시트 -->
     <string name="search_results_title_place">장소 검색: %1$s</string>
     <string name="search_results_title_station">주유소 이름 검색: %1$s</string>
-    <string name="search_results_note_place">고르면 그 장소에서 출발한다고 보고 주변 주유소와 예상 이득을 계산합니다.</string>
-    <string name="search_results_note_station">고르면 그 주유소 위치에서 출발한다고 보고 주변 주유소와 예상 이득을 계산합니다. 가격은 고른 뒤 목록에서 볼 수 있습니다.</string>
-    <string name="search_results_truncated">검색 결과가 많아 %1$d곳까지만 보여줍니다. 이름을 더 자세히 입력해 보세요.</string>
-    <string name="search_loading">검색하는 중입니다</string>
-    <string name="search_empty_place">검색 결과가 없습니다.\n다른 이름이나 주소로 검색해 주세요.</string>
-    <string name="search_empty_station">이름이 맞는 주유소가 없습니다.\n다른 이름으로 검색해 주세요.</string>
-    <string name="search_empty_station_hidden">검색한 주유소가 모두 숨긴 브랜드입니다.\n설정 탭의 내 브랜드에서 숨기기를 끌 수 있습니다.</string>
-    <string name="search_error_kakao_auth">장소 검색을 사용할 수 없습니다. 카카오 REST API 키를 확인해 주세요</string>
-    <string name="search_error_kakao">장소 검색 중 오류가 났습니다.\n잠시 후 다시 시도해 주세요.</string>
-    <string name="search_error_network">인터넷에 연결할 수 없습니다.\n연결 상태를 확인해 주세요.</string>
-    <string name="search_error_daily_limit">오늘 조회 한도(300회)에 도달해 주유소 이름 검색을 할 수 없습니다.\n내일 다시 시도해 주세요.</string>
-    <string name="search_error_opinet">주유소를 검색하지 못했습니다.\n오피넷 서버에 문제가 있을 수 있습니다.</string>
+    <string name="search_results_note_place">고르면 그 장소에서 출발한다고 보고 주변 주유소와 예상 이득을 계산해요</string>
+    <string name="search_results_note_station">고르면 그 주유소 위치에서 출발한다고 보고 계산해요. 가격은 고른 뒤 목록에서 볼 수 있어요</string>
+    <string name="search_results_truncated">검색 결과가 많아 %1$d곳까지만 보여줘요. 이름을 더 자세히 넣으면 찾기 쉬워요</string>
+    <string name="search_loading">검색하고 있어요</string>
+    <string name="search_empty_place">검색 결과가 없어요.
+다른 이름이나 주소로 검색해 주세요.</string>
+    <string name="search_empty_station">이름이 맞는 주유소가 없어요.
+다른 이름으로 검색해 주세요.</string>
+    <string name="search_empty_station_hidden">검색한 주유소가 모두 숨긴 브랜드예요.
+설정 탭의 내 브랜드에서 숨기기를 끌 수 있어요.</string>
+    <string name="search_error_kakao_auth">장소 검색을 쓸 수 없어요. 카카오 REST API 키를 확인해 주세요</string>
+    <string name="search_error_kakao">장소 검색 중 오류가 났어요.
+잠시 후 다시 시도해 주세요.</string>
+    <string name="search_error_network">인터넷에 연결할 수 없어요.
+연결 상태를 확인해 주세요.</string>
+    <string name="search_error_daily_limit">오늘 조회 한도(300회)에 도달해 주유소 이름 검색을 할 수 없어요.
+장소로 검색하거나 내일 다시 시도해 주세요.</string>
+    <string name="search_error_opinet">주유소를 검색하지 못했어요. 오피넷 서버에 문제가 있을 수 있어요.
+잠시 후 다시 시도해 주세요.</string>
     <string name="search_retry">다시 시도</string>
     <string name="search_result_description">%1$s, %2$s, %3$s. 눌러서 이 위치 기준으로 보기</string>
 
@@ -162,7 +169,7 @@
     <string name="detail_saving_discount_cap_applied">리터당 %1$s · 할인 %2$s (1회 한도 %3$s 적용)</string>
     <string name="detail_saving_discount_cap_not_reached">리터당 %1$s · 할인 %2$s (1회 한도 %3$s 이내)</string>
     <string name="detail_saving_discount_no_cap">리터당 %1$s · 할인 %2$s (한도 미적용)</string>
-    <string name="detail_saving_discount_no_cap_warning">한도가 있다면 실제 할인은 이보다 적을 수 있습니다</string>
+    <string name="detail_saving_discount_no_cap_warning">한도가 있다면 실제 할인은 이보다 적을 수 있어요</string>
     <string name="detail_saving_road_distance">추정 도로 거리</string>
     <string name="detail_saving_road_distance_note">직선 %1$s × 1.4 (추정, 편도)</string>
     <string name="detail_saving_travel_cost">이동 비용</string>
@@ -204,6 +211,7 @@
     <string name="route_app_row_description">%1$s, %2$s</string>
     <string name="route_app_note">길안내는 고른 앱에서 해요. 설치되지 않은 앱을 고르면 설치 페이지로 이동해요.</string>
     <string name="route_app_open_failed">길찾기 앱이나 설치 페이지를 열 수 없어요</string>
+    <string name="route_app_cancel">취소</string>
 
     <!-- 내 차 정보 입력 (처음 실행, 수정) -->
     <string name="onboarding_heading">내 차 정보를 알려주세요</string>
@@ -381,7 +389,7 @@
 
     <!-- 홈 화면 위젯 -->
     <string name="widget_name">주변 이득 1위 주유소</string>
-    <string name="widget_description">집이나 회사 근처에서 예상 이득이 가장 큰 주유소와 가격을 보여줍니다.</string>
+    <string name="widget_description">집이나 회사 근처에서 예상 이득이 가장 큰 주유소와 가격을 보여줘요</string>
     <string name="widget_title_home">집 근처</string>
     <string name="widget_title_work">회사 근처</string>
     <string name="widget_detail">%1$s · %2$s</string>
@@ -391,16 +399,16 @@
     <string name="widget_update_failed">갱신 실패</string>
     <string name="widget_update_failed_daily_limit">갱신 실패 · 한도 도달</string>
     <string name="widget_update_failed_network">갱신 실패 · 연결 없음</string>
-    <string name="widget_not_registered_home">앱에서 집 위치를 등록하세요</string>
-    <string name="widget_not_registered_work">앱에서 회사 위치를 등록하세요</string>
-    <string name="widget_loading">가격을 가져오는 중입니다</string>
-    <string name="widget_outside_mock">가짜 데이터는 강남역 주변에만 있습니다</string>
-    <string name="widget_empty_radius">반경 %1$s 안에 주유소가 없습니다</string>
-    <string name="widget_empty_hidden">주변 주유소가 모두 숨긴 브랜드입니다</string>
-    <string name="widget_empty_filter">브랜드 필터에 맞는 주유소가 없습니다</string>
-    <string name="widget_error_daily_limit">오늘 조회 한도(300회)에 도달했습니다</string>
-    <string name="widget_error_network">인터넷에 연결할 수 없습니다</string>
-    <string name="widget_error_opinet">가격을 가져오지 못했습니다</string>
+    <string name="widget_not_registered_home">앱에서 집 위치를 등록해 주세요</string>
+    <string name="widget_not_registered_work">앱에서 회사 위치를 등록해 주세요</string>
+    <string name="widget_loading">가격을 가져오는 중이에요</string>
+    <string name="widget_outside_mock">가짜 데이터는 강남역 주변에만 있어요</string>
+    <string name="widget_empty_radius">반경 %1$s 안에 주유소가 없어요</string>
+    <string name="widget_empty_hidden">주변 주유소가 모두 숨긴 브랜드예요</string>
+    <string name="widget_empty_filter">브랜드 필터에 맞는 주유소가 없어요</string>
+    <string name="widget_error_daily_limit">오늘 조회 한도에 도달했어요. 내일 다시 가져와요</string>
+    <string name="widget_error_network">인터넷에 연결할 수 없어요. 연결되면 다시 가져와요</string>
+    <string name="widget_error_opinet">가격을 가져오지 못했어요. 새로고침을 눌러 주세요</string>
     <string name="widget_preview_station">강남 셀프주유소</string>
     <string name="widget_preview_price">1,659원</string>
     <string name="widget_preview_saving">약 1,547원 이득</string>
@@ -408,10 +416,10 @@
     <string name="widget_preview_footer">12km/L · 40L (기본값) · 오후 3:20 갱신</string>
     <!-- 위젯 구성 화면 -->
     <string name="widget_config_title">위젯 위치 선택</string>
-    <string name="widget_config_description">이 위젯에서 어느 위치 근처의 이득 1위 주유소를 볼지 고르세요. 위젯에는 주소 대신 "집 근처", "회사 근처"로만 표시합니다.</string>
+    <string name="widget_config_description">이 위젯에서 어느 위치 근처의 이득 1위 주유소를 볼지 골라 주세요. 위젯에는 주소 대신 \"집 근처\", \"회사 근처\"로만 표시해요</string>
     <string name="widget_config_home">집 근처</string>
     <string name="widget_config_work">회사 근처</string>
     <string name="widget_config_registered">등록됨</string>
-    <string name="widget_config_not_registered">아직 등록하지 않았습니다. 고르면 위젯에서 등록 화면을 열 수 있습니다.</string>
+    <string name="widget_config_not_registered">아직 등록하지 않았어요. 고르면 위젯에서 등록 화면을 열 수 있어요</string>
     <string name="widget_config_cancel">취소</string>
 </resources>
