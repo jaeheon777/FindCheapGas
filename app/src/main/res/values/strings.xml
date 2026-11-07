@@ -13,11 +13,10 @@
     <string name="permission_open_settings">설정 열기</string>
     <string name="location_disabled">기기 위치가 꺼져 있어요. 위치를 켜면 내 주변 주유소를 볼 수 있어요</string>
     <string name="location_open_settings">위치 켜기</string>
-    <string name="map_unavailable">이 기기에서는 지도를 표시할 수 없어요</string>
-    <string name="map_auth_failed">카카오맵 인증에 실패했어요.
-앱 키와 키 해시 등록을 확인해 주세요.</string>
-    <string name="map_error">지도를 불러오지 못했어요.
-잠시 후 다시 시도해 주세요.</string>
+    <string name="map_unavailable">지도를 불러오지 못했어요.\n이 기기에서는 지도를 표시할 수 없어요. 아래 목록은 그대로 쓸 수 있어요</string>
+    <string name="map_auth_failed">지도를 불러오지 못했어요.\n카카오맵 인증에 실패했어요. 네이티브 앱 키와 키 해시 등록을 확인해 주세요</string>
+    <string name="map_error">지도를 불러오지 못했어요.\n잠시 후 앱을 다시 열어 주세요</string>
+    <string name="map_key_missing">지도를 불러오지 못했어요.\n카카오 네이티브 앱 키가 설정되지 않았어요. local.properties에 키를 넣고 앱을 다시 빌드해 주세요</string>
 
     <!-- 마커 색 범례 -->
     <string name="map_legend_gain">초록: 약 1,000원 이상 아낄 수 있어요</string>
@@ -59,6 +58,7 @@
 장소로 검색하거나 내일 다시 시도해 주세요.</string>
     <string name="search_error_opinet">주유소를 검색하지 못했어요. 오피넷 서버에 문제가 있을 수 있어요.
 잠시 후 다시 시도해 주세요.</string>
+    <string name="search_error_opinet_key">오피넷 API 키가 설정되지 않아 주유소 이름 검색을 할 수 없어요. local.properties에 키를 넣고 앱을 다시 빌드해 주세요</string>
     <string name="search_retry">다시 시도</string>
     <string name="search_result_description">%1$s, %2$s, %3$s. 눌러서 이 위치 기준으로 보기</string>
 
@@ -108,6 +108,8 @@
     <string name="station_error_network">인터넷에 연결할 수 없어요. 연결 상태를 확인해 주세요</string>
     <string name="station_error_opinet">유가 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요</string>
     <string name="station_error_daily_limit">오늘 조회 한도(300회)에 도달했어요. 저장된 결과만 볼 수 있어요</string>
+    <string name="opinet_key_missing">오피넷 API 키가 설정되지 않았어요. local.properties에 키를 넣고 앱을 다시 빌드해 주세요</string>
+    <string name="opinet_key_missing_section">오피넷 API 키가 설정되지 않아 불러올 수 없어요</string>
     <string name="station_retry">다시 시도</string>
     <!-- 시트를 내린 상태의 이득 1위 카드 -->
     <string name="best_card_label">이득 1위</string>
@@ -377,6 +379,7 @@
     <string name="favorite_daily_limit">오늘 한도에 도달했어요</string>
     <string name="favorite_network_error">연결을 확인해 주세요</string>
     <string name="favorite_opinet_error">가져오지 못했어요</string>
+    <string name="favorite_api_key_error">API 키가 설정되지 않았어요</string>
     <string name="favorite_too_far">5km 밖이라 계산 안 해요</string>
     <string name="favorite_no_baseline">비교할 곳이 없어요</string>
     <string name="favorite_no_origin">위치 확인 중이에요</string>
@@ -403,6 +406,7 @@
     <string name="widget_update_failed">갱신 실패</string>
     <string name="widget_update_failed_daily_limit">갱신 실패 · 한도 도달</string>
     <string name="widget_update_failed_network">갱신 실패 · 연결 없음</string>
+    <string name="widget_update_failed_api_key">갱신 실패 · API 키 없음</string>
     <string name="widget_not_registered_home">앱에서 집 위치를 등록해 주세요</string>
     <string name="widget_not_registered_work">앱에서 회사 위치를 등록해 주세요</string>
     <string name="widget_loading">가격을 가져오는 중이에요</string>
@@ -413,6 +417,7 @@
     <string name="widget_error_daily_limit">오늘 조회 한도에 도달했어요. 내일 다시 가져와요</string>
     <string name="widget_error_network">인터넷에 연결할 수 없어요. 연결되면 다시 가져와요</string>
     <string name="widget_error_opinet">가격을 가져오지 못했어요. 새로고침을 눌러 주세요</string>
+    <string name="widget_error_api_key">오피넷 API 키가 설정되지 않아 가격을 가져올 수 없어요</string>
     <string name="widget_preview_station">강남 셀프주유소</string>
     <string name="widget_preview_price">1,659원</string>
     <string name="widget_preview_saving">약 1,547원 이득</string>

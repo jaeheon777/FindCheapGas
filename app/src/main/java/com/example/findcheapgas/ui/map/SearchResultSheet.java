@@ -138,8 +138,9 @@ public class SearchResultSheet extends BottomSheetDialogFragment {
         } else if (current == SearchViewModel.Status.ERROR) {
             SearchError error = searchViewModel.getError().getValue();
             message = getString(errorMessage(error));
-            // 키가 틀렸거나 오늘 한도에 도달했으면 다시 시도해도 같은 결과다.
-            showRetry = error != SearchError.KAKAO_AUTH && error != SearchError.DAILY_LIMIT;
+            // 키가 틀렸거나 없거나 오늘 한도에 도달했으면 다시 시도해도 같은 결과다.
+            showRetry = error != SearchError.KAKAO_AUTH && error != SearchError.DAILY_LIMIT
+                    && error != SearchError.OPINET_KEY;
         }
 
         if (message == null) {
@@ -166,6 +167,8 @@ public class SearchResultSheet extends BottomSheetDialogFragment {
                 return R.string.search_error_network;
             case DAILY_LIMIT:
                 return R.string.search_error_daily_limit;
+            case OPINET_KEY:
+                return R.string.search_error_opinet_key;
             default:
                 return R.string.search_error_opinet;
         }

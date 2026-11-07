@@ -163,6 +163,9 @@ final class PlaceCompareCardView {
         if (error == StationError.NETWORK) {
             return R.string.compare_error_network;
         }
+        if (error == StationError.API_KEY) {
+            return R.string.opinet_key_missing;
+        }
         return R.string.compare_error_opinet;
     }
 }

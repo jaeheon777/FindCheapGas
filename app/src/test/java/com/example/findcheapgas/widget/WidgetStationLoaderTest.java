@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.example.findcheapgas.data.local.DailyLimitReachedException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.model.BrandFilter;
 import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
@@ -161,6 +162,20 @@ public class WidgetStationLoaderTest {
         PlaceCompareCard card = card(result.get(SavedPlace.Kind.HOME));
         assertEquals(PlaceCompareCard.Status.ERROR, card.getStatus());
         assertEquals(StationError.DAILY_LIMIT, card.getError());
+    }
+
+    @Test
+    public void missingApiKey_becomesKeyError() {
+        FakeSource source = new FakeSource(0);
+        source.failure = new OpinetKeyMissingException();
+
+        Map<SavedPlace.Kind, PlaceCompareBuilder.Source> result = load(
+                Collections.singletonList(SavedPlace.Kind.HOME), new SavedPlaces(HOME, null),
+                WidgetRefreshMode.REFRESH, source);
+
+        PlaceCompareCard card = card(result.get(SavedPlace.Kind.HOME));
+        assertEquals(PlaceCompareCard.Status.ERROR, card.getStatus());
+        assertEquals(StationError.API_KEY, card.getError());
     }
 
     @Test

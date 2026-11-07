@@ -128,6 +128,8 @@ final class WidgetRenderer {
                 status = context.getString(R.string.widget_update_failed_daily_limit);
             } else if (error == StationError.NETWORK) {
                 status = context.getString(R.string.widget_update_failed_network);
+            } else if (error == StationError.API_KEY) {
+                status = context.getString(R.string.widget_update_failed_api_key);
             } else {
                 status = context.getString(R.string.widget_update_failed);
             }
@@ -162,6 +164,9 @@ final class WidgetRenderer {
                 }
                 if (content.getError() == StationError.NETWORK) {
                     return context.getString(R.string.widget_error_network);
+                }
+                if (content.getError() == StationError.API_KEY) {
+                    return context.getString(R.string.widget_error_api_key);
                 }
                 return context.getString(R.string.widget_error_opinet);
             default:

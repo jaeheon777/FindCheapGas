@@ -14,6 +14,7 @@ public final class FavoritePrice {
         NOT_FOUND,    // 오피넷에서 주유소를 찾을 수 없음 (폐업 등)
         DAILY_LIMIT,  // 오늘 호출 한도에 도달해서 조회하지 않음
         NETWORK,      // 인터넷 연결 실패
+        API_KEY,      // 오피넷 API 키가 설정되지 않음
         OPINET        // 오피넷 오류
     }
 

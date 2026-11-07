@@ -53,10 +53,6 @@ public class OpinetRemoteDataSource {
                 .create(OpinetApi.class);
     }
 
-    public static boolean hasApiKey() {
-        return !BuildConfig.OPINET_API_KEY.isEmpty();
-    }
-
     /**
      * @throws IOException     네트워크 연결 실패, 시간 초과
      * @throws OpinetException 오피넷 오류 응답

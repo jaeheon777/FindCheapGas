@@ -16,6 +16,7 @@ import com.example.findcheapgas.data.local.StationCacheEntity;
 import com.example.findcheapgas.data.mock.MockOpinetDataSource;
 import com.example.findcheapgas.data.remote.OpinetAroundResponse;
 import com.example.findcheapgas.data.remote.OpinetException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.data.remote.OpinetRemoteDataSource;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.StationError;
@@ -179,9 +180,7 @@ public class StationRepository {
             oils = mockDataSource.fetchAround(query, katec);
             Log.d(TAG, "가짜 데이터 사용 (" + oils.size() + "곳)");
         } else {
-            if (!OpinetRemoteDataSource.hasApiKey()) {
-                throw new OpinetException("local.properties에 OPINET_API_KEY가 없습니다.");
-            }
+            OpinetKeyMissingException.requireKey(BuildConfig.OPINET_API_KEY);
             // 오늘 300회를 이미 불렀으면 여기서 멈추고 호출하지 않는다 (캐시와 가짜 데이터는 영향 없음).
             int count = callCounter.acquire();
             Log.i(TAG, "오피넷 API 호출: 오늘 " + count + "회 / " + ApiCallCounter.DAILY_LIMIT + "회");

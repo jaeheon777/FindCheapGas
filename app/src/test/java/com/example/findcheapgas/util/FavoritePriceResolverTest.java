@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.example.findcheapgas.data.local.DailyLimitReachedException;
 import com.example.findcheapgas.data.remote.OpinetException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.data.remote.StationNotFoundException;
 import com.example.findcheapgas.model.AroundStations;
 import com.example.findcheapgas.model.FavoritePrice;
@@ -178,6 +179,10 @@ public class FavoritePriceResolverTest {
 
         source.fetchError = new OpinetException("HTTP 500");
         assertEquals(FavoritePrice.Status.OPINET,
+                FavoritePriceResolver.resolve(FAVORITE, FuelType.GASOLINE, null, false, source, null).getStatus());
+
+        source.fetchError = new OpinetKeyMissingException();
+        assertEquals(FavoritePrice.Status.API_KEY,
                 FavoritePriceResolver.resolve(FAVORITE, FuelType.GASOLINE, null, false, source, null).getStatus());
     }
 }

@@ -566,6 +566,8 @@ public class StationDetailActivity extends AppCompatActivity {
                 message = R.string.detail_error_daily_limit;
             } else if (error == StationError.NOT_FOUND) {
                 message = R.string.detail_error_not_found;
+            } else if (error == StationError.API_KEY) {
+                message = R.string.opinet_key_missing;
             } else {
                 message = R.string.detail_error_opinet;
             }
@@ -576,8 +578,9 @@ public class StationDetailActivity extends AppCompatActivity {
         }
         statusText.setText(message);
         statusProgress.setVisibility(loading ? View.VISIBLE : View.GONE);
-        // 하루 한도에 도달했으면 다시 시도해도 오늘은 조회할 수 없다.
-        retryButton.setVisibility(loading || error == StationError.DAILY_LIMIT ? View.GONE : View.VISIBLE);
+        // 하루 한도에 도달했거나 API 키가 없으면 다시 시도해도 같은 결과다.
+        retryButton.setVisibility(loading || error == StationError.DAILY_LIMIT || error == StationError.API_KEY
+                ? View.GONE : View.VISIBLE);
         status.setVisibility(View.VISIBLE);
     }
 
@@ -748,7 +751,7 @@ public class StationDetailActivity extends AppCompatActivity {
         trendStatus.setVisibility(View.GONE);
     }
 
-    /** 평균가·추이 안내: 한도 도달, 연결 없음, 그 밖에는 "가져오지 못함" */
+    /** 평균가·추이 안내: 한도 도달, 연결 없음, API 키 없음, 그 밖에는 "가져오지 못함" */
     @StringRes
     private static int errorMessage(@Nullable StationError error, @StringRes int dailyLimit,
                                     @StringRes int network, @StringRes int other) {
@@ -757,6 +760,9 @@ public class StationDetailActivity extends AppCompatActivity {
         }
         if (error == StationError.NETWORK) {
             return network;
+        }
+        if (error == StationError.API_KEY) {
+            return R.string.opinet_key_missing_section;
         }
         return other;
     }

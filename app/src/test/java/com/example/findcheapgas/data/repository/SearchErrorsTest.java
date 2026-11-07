@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.findcheapgas.data.local.DailyLimitReachedException;
 import com.example.findcheapgas.data.remote.OpinetException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.data.remote.kakao.KakaoException;
 import com.example.findcheapgas.model.SearchError;
 
@@ -32,6 +33,7 @@ public class SearchErrorsTest {
         assertEquals(SearchError.NETWORK, SearchErrors.from(new SocketTimeoutException()));
         assertEquals(SearchError.DAILY_LIMIT, SearchErrors.from(new DailyLimitReachedException(300)));
         assertEquals(SearchError.OPINET, SearchErrors.from(new OpinetException("HTTP 500")));
+        assertEquals(SearchError.OPINET_KEY, SearchErrors.from(new OpinetKeyMissingException()));
         assertEquals(SearchError.OPINET, SearchErrors.from(new IllegalStateException()));
     }
 }

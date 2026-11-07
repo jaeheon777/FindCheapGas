@@ -296,9 +296,11 @@ flowchart TD
 
 평균가 API 세 개는 유종(`prodcd`)과 시도(`sido`), 날짜(`date`)를 넣지 않고 부릅니다. 이렇게 부르면 전국 평균은 모든 유종, 시도별 평균은 모든 시도의 모든 유종, 최근 7일 평균은 7일 동안의 모든 유종이 한 번에 오기 때문에, 유종마다 따로 부르지 않고 한 번 받은 결과를 4개 유종에 같이 씁니다. 실내등유처럼 앱이 다루지 않는 유종은 뺍니다. 시도는 상세정보 주소의 첫 단어(예: 서울특별시, 충청북도, 강원특별자치도)로 정하고 오피넷 시도 이름(서울, 충북, 강원)과 맞춥니다.
 
+`local.properties`에 `OPINET_API_KEY`가 없으면 오피넷을 부르지 않고, 지도 탭, 상세 화면(평균가, 7일 추이 포함), 주유소 이름 검색, 즐겨찾기, 집·회사 비교, 위젯에 "오피넷 API 키가 설정되지 않았어요"처럼 키 문제라는 것을 보여줍니다. 다시 시도해도 같은 결과라 다시 시도 버튼은 두지 않습니다. 키가 틀린 경우의 응답 형식은 확인할 수 있는 자료가 없어서 다른 오피넷 오류와 같이 "유가 정보를 불러오지 못했어요"로 보여줍니다.
+
 ### 카카오맵 Android SDK
 
-지도 표시, 마커 표시, 현재 위치 표시에 사용합니다.
+지도 표시, 마커 표시, 현재 위치 표시에 사용합니다. 네이티브 앱 키가 없거나 인증에 실패하면(키 해시 미등록 등) 지도 자리에 "지도를 불러오지 못했어요"와 확인할 내용을 보여주고, 이득 1위 카드와 주유소 목록은 지도 없이도 그대로 씁니다.
 
 ### 카카오 로컬 API
 
@@ -339,7 +341,7 @@ flowchart TD
 
 ```
 app/src/main/java/com/example/findcheapgas/
-├── FindCheapGasApp.java          Application 클래스 (첫 화면 전에 화면 테마 적용, 카카오맵 SDK 초기화, 지도 사용 가능 여부, 위젯 설정 변경 감시 시작, 디버그 키 해시 출력)
+├── FindCheapGasApp.java          Application 클래스 (첫 화면 전에 화면 테마 적용, 카카오맵 SDK 초기화, 지도 키 설정 여부, 지도 사용 가능 여부, 위젯 설정 변경 감시 시작, 디버그 키 해시 출력)
 ├── MainActivity.java             메인 화면 (로딩 화면, 처음 실행이면 내 차 정보 입력 화면으로 이동, 하단 탭 3개 전환, 지도 탭으로 바꾸기, 위젯을 눌러 열면 지도 탭에서 그 위치 기준으로 이득 1위 선택)
 ├── ui/                           화면 (Fragment)
 │   ├── OriginLabels.java         조회 위치 이름 (검색한 장소, 지도 중심의 동 이름 또는 "지도 중심", 내 위치, 서울시청). 지도 탭과 즐겨찾기 탭이 같이 씀
@@ -393,6 +395,7 @@ app/src/main/java/com/example/findcheapgas/
 │   │   ├── OpinetJson.java       오피넷 응답을 한 칸씩 꺼내 읽는 도구 (상세정보, 상호 검색, 평균가가 같이 씀)
 │   │   ├── OpinetRemoteDataSource.java 실제 API 호출 (요청 URL은 로그에 남기지 않음, 디버그 빌드에서 상세·상호 검색·평균가 응답 본문만 로그)
 │   │   ├── OpinetException.java  오피넷 오류 응답 (한도 초과, 형식 오류 등)
+│   │   ├── OpinetKeyMissingException.java 오피넷 API 키가 설정되지 않아 호출하지 않음 (실제 호출 전에 키 확인)
 │   │   ├── StationNotFoundException.java 상세정보에 그 주유소가 없음 (폐업 등)
 │   │   └── kakao/                카카오 로컬 API 통신 (오피넷과 Retrofit 설정을 따로 둠)
 │   │       ├── KakaoLocalApi.java 키워드 검색, 주소 검색, 좌표 → 행정구역 요청 정의
@@ -425,14 +428,14 @@ app/src/main/java/com/example/findcheapgas/
 │       ├── StationRepository.java 주유소 데이터 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 5km 안 전체 목록 반환, 집·회사 비교와 위젯용으로 캐시 나이를 정해서 조회하고 가져온 시각도 반환, 위젯 작업용 바로 조회, 조회 위치·캐시 키는 로그에 남기지 않음
 │       ├── StationDetailRepository.java 상세정보 출처 결정 (캐시 → 가짜 데이터 또는 실제 API), 즐겨찾기 가격 조회, 앱 전체에서 하나
 │       ├── AveragePriceRepository.java 평균가 출처 결정 (캐시 → 가짜 데이터 또는 실제 API, 전국·시도 3시간, 7일 추이는 하루 한 번, 실제 호출은 하루 한도 확인, 시도별만 실패하면 전국만), 앱 전체에서 하나
-│       ├── StationErrors.java    조회 중 난 예외 → 실패 원인 (하루 한도, 네트워크, 찾을 수 없음, 오피넷), 주변·상세·평균가 조회가 같이 씀
+│       ├── StationErrors.java    조회 중 난 예외 → 실패 원인 (하루 한도, 네트워크(시간 초과 포함), 찾을 수 없음, API 키 없음, 오피넷), 주변·상세·평균가 조회가 같이 씀
 │       ├── FavoriteRepository.java 즐겨찾기 저장소 (Room, 목록과 즐겨찾기 ID를 LiveData로, 추가(최대 20곳) / 삭제 / 되돌리기는 백그라운드 스레드), 앱 전체에서 하나
 │       ├── SavedPlaceRepository.java 집·회사 위치 저장소 (Room, LiveData로 제공, 저장 / 삭제는 백그라운드 스레드, Activity·Fragment에 의존하지 않아 위젯에서도 씀(위젯 작업은 백그라운드에서 바로 읽음), 이름·주소·좌표는 로그에 남기지 않음), 앱 전체에서 하나
 │       ├── PlaceSearchRepository.java 장소 검색 (카카오 로컬 API, 가짜 데이터 모드에서도 실제 API)
 │       ├── RegionNameRepository.java 지도 중심의 동 이름 (카카오 로컬 좌표 → 행정구역, 실패하면 null, 가짜 데이터 모드에서도 실제 API)
 │       ├── StationSearchRepository.java 주유소 이름 검색 출처 결정 (캐시 → 가짜 데이터 또는 실제 API, 실제 호출은 하루 한도 확인)
 │       ├── StationNameSearch.java 주유소 이름 검색 규칙 (두 글자 이상, 같은 검색어 30분 캐시)
-│       ├── SearchErrors.java     검색 중 난 예외 → 실패 원인 (카카오 키 오류, 카카오, 네트워크, 하루 한도, 오피넷)
+│       ├── SearchErrors.java     검색 중 난 예외 → 실패 원인 (카카오 키 오류, 카카오, 네트워크(시간 초과 포함), 하루 한도, 오피넷 키 없음, 오피넷)
 │       ├── CarInfoRepository.java 지금 계산에 쓰는 내 차 정보를 LiveData로 제공, 앱 전체에서 하나
 │       └── BrandSettingsRepository.java 지금 계산에 쓰는 내 브랜드 설정을 LiveData로 제공, 앱 전체에서 하나
 ├── model/
@@ -443,7 +446,7 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── SearchOrigin.java         조회 위치 (내 위치, 검색한 장소, 지도 중심 중 하나, 이름, 좌표)
 │   ├── Place.java                장소 검색 결과 (이름, 주소, 분류, 좌표)
 │   ├── StationSearchResult.java  주유소 이름 검색 결과 (ID, 브랜드, 상호, 주소, 좌표. 가격 없음)
-│   ├── SearchError.java          검색 실패 원인 (카카오 키 오류, 카카오, 네트워크, 하루 한도, 오피넷)
+│   ├── SearchError.java          검색 실패 원인 (카카오 키 오류, 카카오, 네트워크, 하루 한도, 오피넷 키 없음, 오피넷)
 │   ├── CarInfo.java              내 차 정보 (연비, 평소 주유량, 기본값 여부, 입력 범위)
 │   ├── LocationPermissionState.java 위치 권한 상태
 │   ├── ThemeMode.java            화면 테마 (시스템 설정 따르기 / 밝게 / 어둡게, 저장 값, AppCompat·시스템 다크 모드 값)
@@ -463,9 +466,9 @@ app/src/main/java/com/example/findcheapgas/
 │   ├── DailyAveragePrice.java    최근 7일 전국 일일 평균가 한 줄 (날짜, 유종, 가격)
 │   ├── AverageComparison.java    평균가 비교 결과 (상태: 비교 가능, 팔지 않음, 가격 없음, 평균가 없음, 전국·지역 줄마다 평균가, 리터당 차이, 내 주유량 환산)
 │   ├── StationQuery.java         주변 주유소 조회 조건 (조회 위치, 유종). 반경은 항상 5km
-│   ├── StationError.java         조회 실패 원인 (네트워크, 하루 한도 도달, 찾을 수 없음, 오피넷)
+│   ├── StationError.java         조회 실패 원인 (네트워크, 하루 한도 도달, 찾을 수 없음, API 키 없음, 오피넷)
 │   ├── FavoriteStation.java      즐겨찾기 주유소 (ID, 상호, 브랜드, 주소, 좌표, 저장한 시각, 최대 20곳 확인)
-│   ├── FavoritePrice.java        즐겨찾기 가격 (가격 또는 판매 안 함·찾을 수 없음·한도 도달 등, 출처: 주변 목록 / 캐시 / 새로 조회)
+│   ├── FavoritePrice.java        즐겨찾기 가격 (가격 또는 판매 안 함·찾을 수 없음·한도 도달·API 키 없음 등, 출처: 주변 목록 / 캐시 / 새로 조회)
 │   ├── FavoriteItem.java         즐겨찾기 탭 한 줄 (가격, 조회 위치에서 거리, 예상 이득 또는 계산하지 않는 이유)
 │   ├── AroundStations.java       지도 탭의 마지막 주변 조회 결과 (조회 위치, 유종, 5km 안 목록, 화면 목록, 조회 실패 여부)
 │   ├── FuelType.java             유종 코드 (휘발유, 경유, 고급휘발유, LPG)

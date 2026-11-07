@@ -45,6 +45,11 @@ public class FindCheapGasApp extends Application {
         }
     }
 
+    /** local.properties에 카카오 네이티브 앱 키가 있는지. 없으면 지도를 띄우지 않고 지도 자리에 이유를 보여준다. */
+    public static boolean hasMapKey() {
+        return !BuildConfig.KAKAO_NATIVE_APP_KEY.trim().isEmpty();
+    }
+
     public static boolean isMapAvailable() {
         return mapAvailable;
     }

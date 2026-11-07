@@ -186,6 +186,8 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
                 return context.getString(R.string.favorite_daily_limit);
             case NETWORK:
                 return context.getString(R.string.favorite_network_error);
+            case API_KEY:
+                return context.getString(R.string.favorite_api_key_error);
             default:
                 return context.getString(R.string.favorite_opinet_error);
         }

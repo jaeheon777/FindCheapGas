@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.findcheapgas.data.local.DailyLimitReachedException;
 import com.example.findcheapgas.data.remote.OpinetException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.model.StationError;
 
 import org.junit.Test;
@@ -23,6 +24,17 @@ public class StationErrorsTest {
     public void network() {
         assertEquals(StationError.NETWORK, StationErrors.from(new IOException("연결 없음")));
         assertEquals(StationError.NETWORK, StationErrors.from(new SocketTimeoutException()));
+    }
+
+    @Test
+    public void missingApiKey_isKeyProblem_notGenericOpinetError() {
+        try {
+            OpinetKeyMissingException.requireKey("");
+        } catch (OpinetKeyMissingException e) {
+            assertEquals(StationError.API_KEY, StationErrors.from(e));
+            return;
+        }
+        throw new AssertionError("빈 키인데 예외가 나지 않음");
     }
 
     @Test

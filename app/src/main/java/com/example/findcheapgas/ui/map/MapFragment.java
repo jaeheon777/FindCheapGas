@@ -222,7 +222,10 @@ public class MapFragment extends Fragment {
         setUpFilters(view);
         setUpKeyboardWatcher(view);
 
-        if (FindCheapGasApp.isMapAvailable()) {
+        // 지도를 띄울 수 없어도 이득 1위 카드와 목록은 그대로 쓴다 (마커와 카메라 이동은 지도가 없으면 건너뜀).
+        if (!FindCheapGasApp.hasMapKey()) {
+            showMapMessage(R.string.map_key_missing);
+        } else if (FindCheapGasApp.isMapAvailable()) {
             startMap(view.findViewById(R.id.map_container));
         } else {
             showMapMessage(R.string.map_unavailable);
@@ -974,9 +977,10 @@ public class MapFragment extends Fragment {
         if (loading) {
             showCardStatus(getString(R.string.station_loading), true, 0, null);
         } else if (error != null) {
-            // 하루 한도에 도달했으면 다시 시도해도 오늘은 조회할 수 없다.
+            // 하루 한도에 도달했거나 API 키가 없으면 다시 시도해도 같은 결과라 다시 시도 버튼을 두지 않는다.
+            boolean retryable = error != StationError.DAILY_LIMIT && error != StationError.API_KEY;
             showCardStatus(getString(errorMessage(error)), false,
-                    error != StationError.DAILY_LIMIT ? R.string.station_retry : 0, viewModel::retryStations);
+                    retryable ? R.string.station_retry : 0, viewModel::retryStations);
         } else if (locationNotice != null) {
             showCardStatus(getString(locationNotice[0]), false, locationNotice[1], this::requestLocationAccess);
         } else if (stations == null) {
@@ -1063,6 +1067,8 @@ public class MapFragment extends Fragment {
                 return R.string.station_error_network;
             case DAILY_LIMIT:
                 return R.string.station_error_daily_limit;
+            case API_KEY:
+                return R.string.opinet_key_missing;
             default:
                 return R.string.station_error_opinet;
         }

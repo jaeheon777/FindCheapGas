@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 
 import com.example.findcheapgas.data.local.DailyLimitReachedException;
 import com.example.findcheapgas.data.remote.OpinetException;
+import com.example.findcheapgas.data.remote.OpinetKeyMissingException;
 import com.example.findcheapgas.data.remote.StationNotFoundException;
 import com.example.findcheapgas.model.AroundStations;
 import com.example.findcheapgas.model.FavoritePrice;
@@ -90,6 +91,8 @@ public final class FavoritePriceResolver {
             return FavoritePrice.failed(FavoritePrice.Status.DAILY_LIMIT, fuelType);
         } catch (IOException e) {
             return FavoritePrice.failed(FavoritePrice.Status.NETWORK, fuelType);
+        } catch (OpinetKeyMissingException e) {
+            return FavoritePrice.failed(FavoritePrice.Status.API_KEY, fuelType);
         } catch (OpinetException | RuntimeException e) {
             return FavoritePrice.failed(FavoritePrice.Status.OPINET, fuelType);
         }
