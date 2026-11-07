@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +33,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -158,6 +161,8 @@ public class MapFragment extends Fragment {
     private StationAdapter stationAdapter;
     // 지도 아래 여백으로 쓴 시트 peek 높이. 이득 1위 카드 높이가 바뀌면 둘 다 다시 맞춘다.
     private int appliedPeekHeight;
+    // 검색창에 입력하는 동안(키보드가 보이는 동안) 시트를 숨겼는지
+    private boolean sheetHiddenForKeyboard = false;
 
     // 시트를 내린 상태의 이득 1위 카드
     private View bestCard;
@@ -214,6 +219,7 @@ public class MapFragment extends Fragment {
         setUpBestCard(view);
         setUpSearch(view);
         setUpFilters(view);
+        setUpKeyboardWatcher(view);
 
         if (FindCheapGasApp.isMapAvailable()) {
             startMap(view.findViewById(R.id.map_container));
@@ -338,6 +344,7 @@ public class MapFragment extends Fragment {
         mapRunning = false;
         stationSheet = null;
         sheetBehavior = null;
+        sheetHiddenForKeyboard = false;
         stationList = null;
         stationLayoutManager = null;
         stationAdapter = null;
@@ -443,8 +450,7 @@ public class MapFragment extends Fragment {
                     }
                     kakaoMap = map;
                     // 아래 시트(손잡이 + 이득 1위 카드)에 가리는 만큼 지도 중심을 위로 올린다.
-                    map.setPadding(0, 0, 0, appliedPeekHeight > 0 ? appliedPeekHeight
-                            : getResources().getDimensionPixelSize(R.dimen.station_sheet_peek_height));
+                    applyMapBottomPadding();
                     map.setOnLabelClickListener((clickedMap, layer, label) -> {
                         String stationId = stationMarkers != null ? stationMarkers.stationIdOf(layer, label) : null;
                         if (stationId == null) {
@@ -683,6 +689,11 @@ public class MapFragment extends Fragment {
                 || mapMessage.getVisibility() == View.VISIBLE) {
             return;
         }
+        // 키보드 때문에 시트를 숨긴 동안은 버튼이 시트를 따라 화면 아래(키보드 뒤)로 내려가므로 숨긴다.
+        if (sheetHiddenForKeyboard) {
+            myLocationButton.hide();
+            return;
+        }
         // 버튼 아래 끝은 시트 위쪽 끝에 붙어 있다.
         int buttonTop = stationSheet.getTop() - myLocationButton.getHeight();
         int limit = topBar.getTop() + filterScroll.getBottom();
@@ -723,9 +734,79 @@ public class MapFragment extends Fragment {
         }
         appliedPeekHeight = peek;
         sheetBehavior.setPeekHeight(peek, sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED);
-        if (kakaoMap != null) {
-            kakaoMap.setPadding(0, 0, 0, peek);
+        applyMapBottomPadding();
+    }
+
+    /** 지도 아래 여백: 시트를 내린 상태의 높이(peek), 키보드 때문에 시트를 숨긴 동안은 0. */
+    private void applyMapBottomPadding() {
+        if (kakaoMap == null) {
+            return;
         }
+        int bottom;
+        if (sheetHiddenForKeyboard) {
+            bottom = 0;
+        } else if (appliedPeekHeight > 0) {
+            bottom = appliedPeekHeight;
+        } else {
+            bottom = getResources().getDimensionPixelSize(R.dimen.station_sheet_peek_height);
+        }
+        kakaoMap.setPadding(0, 0, 0, bottom);
+    }
+
+    // ---------- 키보드가 보이는 동안 시트 숨기기 ----------
+
+    /**
+     * 검색창에 입력하는 동안에는 키보드가 이득 1위 카드를 덮기만 해서 카드가 반쯤 가려 보이므로, 시트를 아래로 숨기고
+     * 키보드가 내려가면 내린 상태로 다시 보여준다.
+     * 키보드가 보이는지는 검색창 포커스가 아니라 IME 표시 여부로 판단한다 (뒤로 가기로 키보드만 내리면 포커스는 그대로라서).
+     * 시트를 다시 보여줄 때는 위치만 돌리고 ViewModel에 있는 결과로 그린 카드를 그대로 쓰므로 API를 부르지 않는다.
+     * 화면이 adjustNothing이라 Android 10 이하에서는 IME 표시 여부를 알 수 없어서 지금처럼 키보드가 카드를 덮는다.
+     */
+    private void setUpKeyboardWatcher(View view) {
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            boolean imeVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                    && insets.isVisible(WindowInsetsCompat.Type.ime());
+            v.post(() -> onKeyboardVisibilityChanged(imeVisible));
+            return insets;
+        });
+    }
+
+    private void onKeyboardVisibilityChanged(boolean imeVisible) {
+        if (sheetBehavior == null || getView() == null) {
+            return;
+        }
+        // 검색 결과 시트가 열려 있는 동안은 아래 시트를 건드리지 않는다.
+        boolean resultSheetOpen = getChildFragmentManager().findFragmentByTag(SearchResultSheet.TAG) != null;
+        if (imeVisible && !resultSheetOpen) {
+            hideSheetForKeyboard();
+        } else if (!imeVisible) {
+            restoreSheetAfterKeyboard();
+        }
+    }
+
+    private void hideSheetForKeyboard() {
+        if (sheetHiddenForKeyboard) {
+            return;
+        }
+        sheetHiddenForKeyboard = true;
+        sheetBehavior.setHideable(true);
+        sheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        applyMapBottomPadding();
+        renderMyLocationButton();
+    }
+
+    private void restoreSheetAfterKeyboard() {
+        // 화면 회전으로 숨긴 상태가 복원된 경우에도 다시 보여준다.
+        if (!sheetHiddenForKeyboard && sheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+            return;
+        }
+        sheetHiddenForKeyboard = false;
+        // 검색창을 누르면 시트를 내리므로, 키보드가 내려가면 항상 내린 상태(이득 1위 카드)로 보여준다.
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        // 다시 아래로 끌어 숨길 수 없게 되돌린다 (setState 뒤라 상태는 내린 상태로 움직이는 중).
+        sheetBehavior.setHideable(false);
+        applyMapBottomPadding();
+        renderMyLocationButton();
     }
 
     /** 시트에서 부모 아래로 잘려 나간 높이만큼 목록 아래 여백을 준다. */
