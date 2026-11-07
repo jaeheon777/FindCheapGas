@@ -34,6 +34,7 @@ import com.example.findcheapgas.model.FuelType;
 import com.example.findcheapgas.model.PlaceCompareCard;
 import com.example.findcheapgas.model.SavedPlace;
 import com.example.findcheapgas.model.SavedPlaces;
+import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.SearchOrigin;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.ui.OriginLabels;
@@ -42,6 +43,7 @@ import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.ui.place.PlaceSettingsActivity;
 import com.example.findcheapgas.util.FavoritePriceResolver;
 import com.example.findcheapgas.util.FormatUtil;
+import com.example.findcheapgas.util.PlaceCompareBuilder;
 import com.example.findcheapgas.viewmodel.FavoriteViewModel;
 import com.example.findcheapgas.viewmodel.MapViewModel;
 import com.example.findcheapgas.viewmodel.PlaceCompareViewModel;
@@ -282,6 +284,16 @@ public class FavoriteFragment extends Fragment {
             } else if (card.getStatus() == PlaceCompareCard.Status.NOT_REGISTERED) {
                 unregistered = true;
             }
+        }
+        if (cheapest != null && PlaceCompareBuilder.allSimilarToCheapest(cards)) {
+            // 모두 1,000원 미만 차이: 결론은 "어디서 넣어도 비슷해요", 큰 숫자는 가장 저렴한 곳의 예상 총비용 그대로
+            heroTitle.setText(R.string.compare_hero_similar);
+            heroAmount.setText(FormatUtil.formatApproxWon(cheapest.getBest().getTotalCost()));
+            heroCaption.setText(getString(R.string.compare_hero_similar_caption,
+                    slotName(cheapest.getSlot()), FormatUtil.formatWon(SavingLevel.THRESHOLD_WON)));
+            heroAmount.setVisibility(View.VISIBLE);
+            heroCaption.setVisibility(View.VISIBLE);
+            return;
         }
         if (cheapest != null) {
             heroTitle.setText(getString(R.string.compare_hero_cheapest, slotName(cheapest.getSlot())));

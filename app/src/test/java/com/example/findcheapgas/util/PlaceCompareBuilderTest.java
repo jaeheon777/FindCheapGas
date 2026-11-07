@@ -13,6 +13,7 @@ import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.PlaceCompareCard;
 import com.example.findcheapgas.model.PlaceCompareCard.Slot;
 import com.example.findcheapgas.model.PlaceCompareCard.Status;
+import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.util.PlaceCompareBuilder.Source;
@@ -204,5 +205,69 @@ public class PlaceCompareBuilderTest {
     public void findBest_nullOrEmpty() {
         assertNull(PlaceCompareBuilder.findBest(null));
         assertNull(PlaceCompareBuilder.findBest(Collections.emptyList()));
+    }
+
+    // 회사 근처 w1(65,696원)과 비슷한 곳: 65,800 + 0.7 ÷ 12 × 1,645 = 65,895.96 → 65,896원 (200원 차이)
+    private static final List<GasStation> NEAR_WORK = Collections.singletonList(
+            station("n1", "SOL", 1645, 500));
+
+    @Test
+    public void withinThreshold_similarToCheapest_andHeroSaysSimilar() {
+        List<PlaceCompareCard> cards = build(Source.of(Slot.CURRENT, Status.WAITING),
+                Source.loaded(Slot.HOME, NEAR_WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+
+        // "가장 저렴" 판정과 차이 금액은 그대로
+        assertTrue(cards.get(2).isCheapest());
+        assertFalse(cards.get(2).isSimilarToCheapest());
+        assertFalse(cards.get(1).isCheapest());
+        assertEquals(200, cards.get(1).getExtraCostWon());
+        assertTrue(cards.get(1).isSimilarToCheapest());
+        assertTrue(PlaceCompareBuilder.allSimilarToCheapest(cards));
+    }
+
+    @Test
+    public void overThreshold_notSimilar_andHeroKeepsCheapest() {
+        // 지금 조회 위치 1,918원, 회사 1,229원 더 듦 → 둘 다 1,000원 이상이라 "더 들어요"
+        List<PlaceCompareCard> cards = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.loaded(Slot.HOME, HOME, 0), Source.loaded(Slot.WORK, WORK, 0));
+
+        assertFalse(cards.get(0).isSimilarToCheapest());
+        assertFalse(cards.get(2).isSimilarToCheapest());
+        assertFalse(PlaceCompareBuilder.allSimilarToCheapest(cards));
+    }
+
+    @Test
+    public void threeCardsAllWithin_similar_butOneOver_cheapest() {
+        // 회사 65,696 가장 저렴, 집 65,896(200원 차이, 비슷), 지금 조회 위치 66,385(689원 차이, 비슷)
+        List<PlaceCompareCard> similar = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.loaded(Slot.HOME, NEAR_WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+        assertTrue(similar.get(0).isSimilarToCheapest());
+        assertTrue(PlaceCompareBuilder.allSimilarToCheapest(similar));
+
+        // 집 64,467 가장 저렴, 회사 1,229원(손해 구간), 지금 조회 위치 없음 → 하나라도 1,000원 이상이면 결론은 "가장 저렴"
+        List<PlaceCompareCard> notSimilar = build(Source.of(Slot.CURRENT, Status.WAITING),
+                Source.loaded(Slot.HOME, HOME, 0), Source.loaded(Slot.WORK, WORK, 0));
+        assertFalse(PlaceCompareBuilder.allSimilarToCheapest(notSimilar));
+    }
+
+    @Test
+    public void threshold_isSavingLevelBoundary() {
+        // 지도 탭과 같은 기준: 999원 차이는 비슷, 1,000원 차이부터는 "더 들어요"
+        assertTrue(card(999).isSimilarToCheapest());
+        assertFalse(card(SavingLevel.THRESHOLD_WON).isSimilarToCheapest());
+        assertFalse(card(0).isSimilarToCheapest());
+    }
+
+    @Test
+    public void allSimilar_needsTwoReadyCards() {
+        List<PlaceCompareCard> cards = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.of(Slot.HOME, Status.NOT_REGISTERED), Source.of(Slot.WORK, Status.NOT_REGISTERED));
+        assertFalse(PlaceCompareBuilder.allSimilarToCheapest(cards));
+        assertFalse(PlaceCompareBuilder.allSimilarToCheapest(null));
+    }
+
+    private static PlaceCompareCard card(long extra) {
+        return new PlaceCompareCard(Slot.HOME, Status.READY, null, StationListBuilder.EmptyReason.NONE, null, 0,
+                extra == 0, extra);
     }
 }

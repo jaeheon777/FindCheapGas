@@ -642,6 +642,11 @@ public class MapFragment extends Fragment {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
                     renderSheetHandle();
                 }
+                // 시트를 내리면 목록을 맨 위로 되돌려서, 다시 올렸을 때 1번부터 보이게 한다.
+                if (newState == BottomSheetBehavior.STATE_COLLAPSED && stationList != null) {
+                    stationList.stopScroll();
+                    stationLayoutManager.scrollToPosition(0);
+                }
             }
 
             @Override

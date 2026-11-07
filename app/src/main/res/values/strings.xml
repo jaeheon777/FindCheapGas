@@ -319,6 +319,8 @@
     <string name="compare_note">금액은 각 위치에서 출발해서 넣을 때의 예상 총비용이에요</string>
     <string name="compare_hero_cheapest">%1$s에서 넣으면 가장 저렴해요</string>
     <string name="compare_hero_caption">%1$s에서 넣을 때 예상 총비용이에요</string>
+    <string name="compare_hero_similar">어디서 넣어도 비슷해요</string>
+    <string name="compare_hero_similar_caption">가장 저렴한 %1$s의 예상 총비용이에요. 다른 곳과 %2$s 미만 차이예요</string>
     <string name="compare_hero_loading">가격을 가져오는 중이에요</string>
     <string name="compare_hero_need_place">집이나 회사 위치를 등록하면 어디서 넣는 게 가장 저렴한지 비교해 줘요</string>
     <string name="compare_hero_unavailable">지금은 두 곳 이상을 비교할 수 없어요. 아래 카드에서 이유를 확인해 주세요</string>
@@ -329,6 +331,8 @@
     <string name="compare_slot_home_empty">집 근처</string>
     <string name="compare_slot_work_empty">회사 근처</string>
     <string name="compare_cheapest">가장 저렴</string>
+    <string name="compare_similar">비슷해요</string>
+    <string name="compare_similar_description">가장 저렴한 곳과 비슷해요, 약 %1$s 차이</string>
     <string name="compare_register">%1$s 위치 등록하기</string>
     <string name="compare_waiting">지도 탭에서 주변을 조회하면 보여줘요</string>
     <string name="compare_loading">가격을 가져오는 중이에요</string>

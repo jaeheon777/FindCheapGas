@@ -76,6 +76,27 @@ public final class PlaceCompareBuilder {
         return Collections.unmodifiableList(compareTotals(cards));
     }
 
+    /**
+     * 비교한 카드(READY 두 장 이상)가 모두 가장 저렴한 카드와 "비슷" 구간(SavingLevel, ±1,000원) 안인지.
+     * 즐겨찾기 탭 맨 위 결론을 "어디서 넣어도 비슷해요"로 바꿀 때 쓴다. "가장 저렴" 판정은 그대로다.
+     */
+    public static boolean allSimilarToCheapest(@Nullable List<PlaceCompareCard> cards) {
+        if (cards == null) {
+            return false;
+        }
+        int ready = 0;
+        for (PlaceCompareCard card : cards) {
+            if (card.getStatus() != PlaceCompareCard.Status.READY) {
+                continue;
+            }
+            ready++;
+            if (!card.isCheapest() && !card.isSimilarToCheapest()) {
+                return false;
+            }
+        }
+        return ready >= 2;
+    }
+
     /** 화면 목록에서 이득 1위 주유소. 없으면 null */
     @Nullable
     public static StationSaving findBest(@Nullable List<StationSaving> displayed) {

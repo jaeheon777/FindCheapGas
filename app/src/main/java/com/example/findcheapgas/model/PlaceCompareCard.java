@@ -95,4 +95,12 @@ public final class PlaceCompareCard {
     public long getExtraCostWon() {
         return extraCostWon;
     }
+
+    /**
+     * 가장 저렴한 카드보다 더 들지만 그 차이가 지도 탭의 "비슷" 구간(SavingLevel, ±1,000원) 안인지.
+     * 가장 저렴한 카드 자신과 비교하지 않은 카드는 false
+     */
+    public boolean isSimilarToCheapest() {
+        return extraCostWon > 0 && SavingLevel.of(-extraCostWon) == SavingLevel.SIMILAR;
+    }
 }

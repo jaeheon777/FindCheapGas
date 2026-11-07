@@ -5,12 +5,15 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.StringRes;
+import androidx.core.content.ContextCompat;
 
 import com.example.findcheapgas.R;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.PlaceCompareCard;
+import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.util.FormatUtil;
 
 import java.util.ArrayList;
@@ -97,11 +100,21 @@ final class PlaceCompareCardView {
             }
             detail.setText(join(parts));
             total.setText(FormatUtil.formatApproxWon(best.getTotalCost()));
-            extra.setText(FormatUtil.formatExtraCost(compareCard.getExtraCostWon()));
+            // 가장 저렴한 곳과 1,000원 미만 차이면 지도 탭의 "비슷"과 같이 회색 "비슷해요", 그보다 크면 빨강
+            boolean similar = compareCard.isSimilarToCheapest();
+            extra.setText(similar ? context.getString(R.string.compare_similar)
+                    : FormatUtil.formatExtraCost(compareCard.getExtraCostWon()));
+            extra.setTextColor(ContextCompat.getColor(context,
+                    SavingColors.textColorOf(similar ? SavingLevel.SIMILAR : SavingLevel.LOSS)));
             summary = gasStation.getName() + ", " + detail.getText() + ", "
                     + context.getString(R.string.compare_card_total, total.getText())
                     + (compareCard.isCheapest() ? ", " + cheapest.getText() : "")
-                    + (compareCard.getExtraCostWon() > 0 ? ", " + extra.getText() : "");
+                    + (compareCard.getExtraCostWon() > 0
+                    ? ", " + (compareCard.isSimilarToCheapest()
+                    ? context.getString(R.string.compare_similar_description,
+                    FormatUtil.formatWon(compareCard.getExtraCostWon()))
+                    : extra.getText())
+                    : "");
         } else {
             message.setText(messageFor(context, compareCard, radiusLabel));
             summary = message.getText().toString();
