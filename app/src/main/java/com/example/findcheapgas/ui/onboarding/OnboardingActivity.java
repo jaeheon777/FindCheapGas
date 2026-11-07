@@ -7,6 +7,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
 
@@ -33,7 +34,8 @@ import com.google.android.material.textfield.TextInputLayout;
  * 내 차 정보 입력 화면.
  * - 처음 실행: MainActivity가 로딩 화면 다음에 한 번만 연다. 저장하거나 건너뛰면 완료로 저장하고 지도 화면으로 간다.
  *   주로 넣는 유종도 여기서 고르고, 지도 탭의 유종 선택값으로 저장한다.
- * - 수정: 지도 탭의 계산 기준 문구나 설정 탭의 내 차 정보에서 연다. 건너뛰기 대신 취소가 있고 유종 선택은 없다.
+ * - 수정: 지도 탭의 계산 기준 문구나 설정 탭의 내 차 정보에서 연다. 같은 화면에 제목만 바뀌고,
+ *   건너뛰기 대신 취소가 있고 유종 선택은 없다.
  * 저장한 값은 CarInfoRepository의 LiveData로 퍼지므로 결과를 따로 돌려주지 않는다.
  */
 public class OnboardingActivity extends AppCompatActivity {
@@ -78,7 +80,12 @@ public class OnboardingActivity extends AppCompatActivity {
             MaterialToolbar toolbar = findViewById(R.id.onboarding_toolbar);
             toolbar.setVisibility(View.VISIBLE);
             toolbar.setNavigationOnClickListener(v -> finish());
-            findViewById(R.id.onboarding_heading).setVisibility(View.GONE);
+            // 같은 화면을 쓰고 제목만 바꾼다. 툴바 바로 아래라 위쪽 여백을 줄인다.
+            TextView heading = findViewById(R.id.onboarding_heading);
+            heading.setText(R.string.car_info_edit_title);
+            ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) heading.getLayoutParams();
+            params.topMargin = getResources().getDimensionPixelSize(R.dimen.space_s);
+            heading.setLayoutParams(params);
             ((TextView) findViewById(R.id.onboarding_description)).setText(R.string.car_info_edit_description);
             findViewById(R.id.onboarding_fuel_type_section).setVisibility(View.GONE);
             primaryButton.setText(R.string.car_info_save);

@@ -206,23 +206,23 @@
     <string name="route_app_open_failed">길찾기 앱이나 설치 페이지를 열 수 없어요</string>
 
     <!-- 내 차 정보 입력 (처음 실행, 수정) -->
-    <string name="onboarding_heading">내 차 정보를 알려 주세요</string>
-    <string name="onboarding_description">연비와 평소 주유량을 알면 주유소까지 가는 연료비까지 더해서, 예상 총비용이 가장 낮은 주유소를 찾아 드립니다.</string>
+    <string name="onboarding_heading">내 차 정보를 알려주세요</string>
+    <string name="onboarding_description">주유소까지 가는 연료비까지 더해서 예상 총비용을 계산해요</string>
     <string name="car_info_edit_title">내 차 정보 수정</string>
-    <string name="car_info_edit_description">입력한 값으로 주유소까지 가는 연료비와 예상 총비용을 계산합니다.</string>
+    <string name="car_info_edit_description">바꾼 값으로 바로 예상 총비용을 다시 계산해요</string>
     <string name="car_info_back">취소</string>
     <string name="car_info_fuel_efficiency">연비</string>
     <string name="car_info_fuel_efficiency_placeholder">12.0</string>
     <string name="car_info_fuel_efficiency_unit">km/L</string>
-    <string name="car_info_fuel_efficiency_helper">3~40km/L, 소수점 한 자리까지. 모르면 계기판의 평균 연비나 차량 제원표의 복합 연비를 참고하세요.</string>
+    <string name="car_info_fuel_efficiency_helper">3~40km/L, 소수점 한 자리까지. 모르면 계기판의 평균 연비를 넣으면 돼요</string>
     <string name="car_info_fuel_amount">평소 주유량</string>
     <string name="car_info_fuel_amount_placeholder">40</string>
     <string name="car_info_fuel_amount_unit">L</string>
-    <string name="car_info_fuel_amount_helper">한 번에 보통 넣는 양, 5~150L</string>
+    <string name="car_info_fuel_amount_helper">한 번에 보통 넣는 양이에요. 5~150L</string>
     <string name="car_info_fuel_type">주로 넣는 유종</string>
-    <string name="car_info_fuel_type_helper">지도에서 처음 보여줄 유종입니다. 지도 위에서 언제든 바꿀 수 있습니다.</string>
-    <string name="onboarding_skip_note">건너뛰면 연비 12km/L, 주유량 40L 기본값으로 계산합니다. 설정 탭에서 언제든 바꿀 수 있습니다.</string>
-    <string name="onboarding_save">저장하고 시작</string>
+    <string name="car_info_fuel_type_helper">지도에서 처음 보여줄 유종이에요. 지도에서 언제든 바꿀 수 있어요</string>
+    <string name="onboarding_skip_note">건너뛰면 연비 12km/L, 주유량 40L 기본값으로 계산해요. 설정 탭에서 언제든 바꿀 수 있어요</string>
+    <string name="onboarding_save">저장하고 시작하기</string>
     <string name="onboarding_skip">건너뛰기</string>
     <string name="car_info_save">저장</string>
     <string name="car_info_cancel">취소</string>
@@ -254,24 +254,24 @@
     <!-- 내 브랜드 화면 -->
     <string name="brand_settings_title">내 브랜드</string>
     <string name="brand_settings_back">뒤로</string>
-    <string name="brand_settings_description">브랜드마다 카드·멤버십 할인, 선호, 숨기기를 정합니다. 할인은 예상 이득 계산에 반영되고, 선호 브랜드는 예상 이득순에서 위로 올라가며, 숨긴 브랜드는 지도와 목록에 나오지 않습니다.</string>
+    <string name="brand_settings_description">할인은 예상 이득 계산에 반영되고, 선호 브랜드는 예상 이득순에서 위로 올라가요. 숨긴 브랜드는 지도와 목록에 나오지 않아요</string>
     <string name="brand_settings_preferred">★ 선호</string>
     <string name="brand_settings_hidden">숨김</string>
-    <string name="brand_settings_item_description">%1$s, %2$s. 눌러서 수정</string>
+    <string name="brand_settings_item_description">%1$s, %2$s. 누르면 바꿀 수 있어요</string>
     <!-- 내 브랜드 수정 시트 -->
     <string name="brand_edit_per_liter">리터당 할인</string>
     <string name="brand_edit_per_liter_unit">원/L</string>
     <string name="brand_edit_per_liter_placeholder">0</string>
-    <string name="brand_edit_per_liter_helper">0~500원. 비우면 할인 없음</string>
+    <string name="brand_edit_per_liter_helper">0~500원. 비우면 할인 없음으로 계산해요</string>
     <string name="brand_edit_cap">1회 할인 한도</string>
     <string name="brand_edit_cap_unit">원</string>
     <string name="brand_edit_cap_placeholder">한도 미적용</string>
-    <string name="brand_edit_cap_helper">0~100,000원. 카드사 앱에서 1회 또는 월 할인 한도를 확인해 입력하세요.</string>
-    <string name="brand_edit_conditions_note">리터당 할인과 1회 할인 한도만 계산에 반영합니다. 전월 실적, 월 누적 한도 같은 카드사 조건은 반영하지 않습니다.</string>
+    <string name="brand_edit_cap_helper">0~100,000원. 카드사 앱에서 1회 할인 한도를 확인해 넣어 주세요</string>
+    <string name="brand_edit_conditions_note">리터당 할인과 1회 할인 한도만 계산에 반영해요. 전월 실적, 월 누적 한도 같은 카드사 조건은 반영하지 않아요</string>
     <string name="brand_edit_preferred">선호 브랜드</string>
-    <string name="brand_edit_preferred_helper">예상 이득순에서 위로 올립니다. 표시되는 이득 금액은 바뀌지 않습니다.</string>
+    <string name="brand_edit_preferred_helper">예상 이득순에서 위로 올려요. 보이는 이득 금액은 그대로예요</string>
     <string name="brand_edit_hidden">숨기기</string>
-    <string name="brand_edit_hidden_helper">지도와 목록에 나오지 않고 계산에서도 빠집니다. 선호와 함께 켤 수 없습니다.</string>
+    <string name="brand_edit_hidden_helper">지도와 목록에 나오지 않고 계산에서도 빠져요. 선호와 함께 켤 수 없어요</string>
     <string name="brand_edit_save">저장</string>
     <string name="brand_edit_cancel">취소</string>
     <string name="brand_edit_clear_discount">할인 지우기</string>
@@ -337,8 +337,8 @@
     <!-- 집·회사 위치 화면 -->
     <string name="place_settings_title">집·회사 위치</string>
     <string name="place_settings_back">뒤로</string>
-    <string name="place_settings_description">등록하면 즐겨찾기 탭에서 지금 조회 위치, 집 근처, 회사 근처 중 어디서 넣는 게 예상 총비용이 가장 낮은지 비교합니다.</string>
-    <string name="place_settings_privacy">집·회사 위치는 이 기기에만 저장되고 백업에도 포함되지 않습니다. 위치를 검색할 때는 검색어를 카카오에, 주변 주유소를 찾을 때는 좌표만 오피넷에 보냅니다. 정확한 집 주소 대신 근처 역이나 건물을 등록해도 됩니다.</string>
+    <string name="place_settings_description">등록하면 즐겨찾기 탭에서 지금 조회 위치, 집 근처, 회사 근처 중 어디서 넣는 게 가장 저렴한지 비교해요</string>
+    <string name="place_settings_privacy">집·회사 위치는 이 기기에만 저장되고 백업에도 들어가지 않아요. 검색할 때는 검색어를 카카오에, 주변 주유소를 찾을 때는 좌표만 오피넷에 보내요. 집 주소 대신 근처 역이나 건물을 등록해도 돼요</string>
     <string name="place_kind_home">집</string>
     <string name="place_kind_work">회사</string>
     <string name="place_not_registered">등록 안 함</string>
@@ -348,11 +348,11 @@
     <string name="place_register_description">%1$s 위치 등록</string>
     <string name="place_change_description">%1$s 위치 바꾸기</string>
     <string name="place_remove_description">%1$s 위치 지우기</string>
-    <string name="place_saved">%1$s 위치를 저장했습니다</string>
-    <string name="place_removed">%1$s 위치를 지웠습니다</string>
+    <string name="place_saved">%1$s 위치를 저장했어요</string>
+    <string name="place_removed">%1$s 위치를 지웠어요</string>
     <string name="place_search_title">%1$s 위치 검색</string>
     <string name="place_search_hint">역, 건물, 주소로 검색</string>
-    <string name="place_search_result_description">%1$s, %2$s, %3$s. 눌러서 이 위치로 저장</string>
+    <string name="place_search_result_description">%1$s, %2$s, %3$s. 누르면 이 위치로 저장해요</string>
     <string name="favorite_empty">아직 저장한 주유소가 없어요</string>
     <string name="favorite_empty_hint">주유소 상세 화면에서 북마크를 누르면 여기에 모여요</string>
     <string name="favorite_find_on_map">지도에서 주유소 찾기</string>
