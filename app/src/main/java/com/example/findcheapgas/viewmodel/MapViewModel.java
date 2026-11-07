@@ -76,6 +76,9 @@ public class MapViewModel extends AndroidViewModel {
     private final MutableLiveData<SearchOrigin> origin = new MutableLiveData<>();
     // 가짜 데이터 모드에서 강남역에서 먼 곳을 골랐을 때 한 번 보여줄 안내. 보여주면 false로 되돌린다.
     private final MutableLiveData<Boolean> mockAreaNotice = new MutableLiveData<>(false);
+    // 기기 위치가 꺼져 있어 마지막으로 확인한 위치로 조회했을 때 한 번 보여줄 안내. 보여주면 false로 되돌린다.
+    // (기본 위치 서울시청으로 조회했을 때는 이득 1위 카드 자리에 안내가 나온다.)
+    private final MutableLiveData<Boolean> lastKnownLocationNotice = new MutableLiveData<>(false);
     // 주유소 이름 검색에서 고른 주유소가 지금 목록에 없을 때(그 유종을 안 팔거나 필터에 걸림) 한 번 보여줄 상호.
     // 보여주면 null로 되돌린다.
     private final MutableLiveData<String> searchedStationMissing = new MutableLiveData<>();
@@ -162,6 +165,14 @@ public class MapViewModel extends AndroidViewModel {
 
     public void onMockAreaNoticeShown() {
         mockAreaNotice.setValue(false);
+    }
+
+    public LiveData<Boolean> getLastKnownLocationNotice() {
+        return lastKnownLocationNotice;
+    }
+
+    public void onLastKnownLocationNoticeShown() {
+        lastKnownLocationNotice.setValue(false);
     }
 
     public LiveData<String> getSearchedStationMissing() {
@@ -416,6 +427,11 @@ public class MapViewModel extends AndroidViewModel {
         SearchOrigin changed = originState.onMyLocation(result, returnToMyLocation);
         if (changed != null) {
             setOrigin(changed);
+            // 기기 위치가 꺼져 있어 지금 위치가 아니라 마지막 위치로 조회했다면 그 사실을 알린다.
+            if (result.getSource() == UserLocation.Source.LAST_KNOWN
+                    && Boolean.FALSE.equals(locationEnabled.getValue())) {
+                lastKnownLocationNotice.setValue(true);
+            }
         }
     }
 

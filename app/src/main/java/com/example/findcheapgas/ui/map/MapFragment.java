@@ -250,6 +250,15 @@ public class MapFragment extends Fragment {
                 viewModel.onMockAreaNoticeShown();
             }
         });
+        viewModel.getLastKnownLocationNotice().observe(getViewLifecycleOwner(), show -> {
+            if (Boolean.TRUE.equals(show)) {
+                Snackbar.make(view, R.string.location_disabled_last_known, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.location_open_settings,
+                                v -> openSettings(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
+                        .show();
+                viewModel.onLastKnownLocationNoticeShown();
+            }
+        });
         viewModel.getSearchedStationMissing().observe(getViewLifecycleOwner(), name -> {
             if (name != null) {
                 Snackbar.make(view, getString(R.string.searched_station_missing, name), Snackbar.LENGTH_LONG).show();
@@ -388,9 +397,12 @@ public class MapFragment extends Fragment {
             return null;
         }
         LocationPermissionState state = viewModel.getPermissionState().getValue();
-        if (state == LocationPermissionState.DENIED || state == LocationPermissionState.PERMANENTLY_DENIED) {
-            return new int[]{R.string.permission_rationale, state == LocationPermissionState.PERMANENTLY_DENIED
-                    ? R.string.permission_open_settings : R.string.permission_request};
+        if (state == LocationPermissionState.PERMANENTLY_DENIED) {
+            // "다시 묻지 않음"이라 권한 창을 띄울 수 없다. 앱 설정 화면을 열고, 돌아왔을 때 허용됐으면 바로 내 위치로 조회한다.
+            return new int[]{R.string.permission_denied_permanently, R.string.permission_open_settings};
+        }
+        if (state == LocationPermissionState.DENIED) {
+            return new int[]{R.string.permission_rationale, R.string.permission_request};
         }
         if (state == LocationPermissionState.GRANTED
                 && Boolean.FALSE.equals(viewModel.getLocationEnabled().getValue())) {
