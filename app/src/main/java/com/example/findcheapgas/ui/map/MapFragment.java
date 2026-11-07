@@ -155,6 +155,7 @@ public class MapFragment extends Fragment {
 
     private View stationSheet;
     private BottomSheetBehavior<View> sheetBehavior;
+    private View sheetHandle;
     private TextView sheetTitle;
     private RecyclerView stationList;
     private LinearLayoutManager stationLayoutManager;
@@ -344,6 +345,7 @@ public class MapFragment extends Fragment {
         mapRunning = false;
         stationSheet = null;
         sheetBehavior = null;
+        sheetHandle = null;
         sheetHiddenForKeyboard = false;
         stationList = null;
         stationLayoutManager = null;
@@ -618,6 +620,9 @@ public class MapFragment extends Fragment {
         sheetBehavior = BottomSheetBehavior.from(stationSheet);
         sheetTitle = view.findViewById(R.id.station_sheet_title);
         stationList = view.findViewById(R.id.station_list);
+        // 시트는 내림 / 올림 두 단계다. 손잡이를 누르면 둘 사이를 바꾼다.
+        sheetHandle = view.findViewById(R.id.station_sheet_handle);
+        sheetHandle.setOnClickListener(v -> toggleSheet());
         view.findViewById(R.id.btn_legend).setOnClickListener(v -> showLegend());
 
         stationAdapter = new StationAdapter(this::onStationItemClick);
@@ -635,6 +640,7 @@ public class MapFragment extends Fragment {
                 if (newState != BottomSheetBehavior.STATE_DRAGGING
                         && newState != BottomSheetBehavior.STATE_SETTLING) {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
+                    renderSheetHandle();
                 }
             }
 
@@ -644,14 +650,45 @@ public class MapFragment extends Fragment {
                 renderMyLocationButton();
             }
         });
+        // 시트 높이를 화면 높이에서 위쪽(검색창, 필터 줄) 여백을 뺀 만큼으로 맞춘다. fitToContents라서 시트 전체가 보이는 곳이
+        // 올린 상태가 되고, 가운데 단계 없이 내림 / 올림 두 단계만 남는다.
+        int expandedOffset = getResources().getDimensionPixelSize(R.dimen.station_sheet_expanded_offset);
+        view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int height = Math.max(0, (bottom - top) - expandedOffset);
+            ViewGroup.LayoutParams params = sheet.getLayoutParams();
+            if (height > 0 && params.height != height) {
+                params.height = height;
+                v.post(() -> sheet.setLayoutParams(params));
+            }
+        });
         // 처음 배치, 화면 회전, 카드 내용·글꼴 크기 변화로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 바꾸지 않도록 post한다.
         sheet.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
                 v.post(() -> {
                     fitListToVisibleSheet(sheet, baseBottomPadding);
                     fitPeekToBestCard();
+                    renderSheetHandle();
                     renderResearchButton();
                     renderMyLocationButton();
                 }));
+    }
+
+    /** 손잡이를 누르면 올린 상태는 내리고, 그 밖(내림)은 올린다. */
+    private void toggleSheet() {
+        if (sheetBehavior == null || sheetHiddenForKeyboard) {
+            return;
+        }
+        sheetBehavior.setState(sheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
+                ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    /** 손잡이의 접근성 설명: 올린 상태면 "목록 접기", 아니면 "목록 펼치기". */
+    private void renderSheetHandle() {
+        if (sheetHandle == null || sheetBehavior == null) {
+            return;
+        }
+        boolean expanded = sheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED;
+        sheetHandle.setContentDescription(getString(expanded
+                ? R.string.sheet_handle_collapse : R.string.sheet_handle_expand));
     }
 
     /**

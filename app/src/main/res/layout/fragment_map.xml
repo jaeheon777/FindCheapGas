@@ -181,6 +181,8 @@
         주변 주유소 시트. 회색 바탕 위에 위에서부터 손잡이, 이득 1위 카드, 목록 머리줄, 목록 카드를 쌓는다.
         - 접힌 상태(peek)에서는 손잡이와 이득 1위 카드만 보인다. peek 높이와 지도 아래 여백은 코드에서 카드 높이를 재서 맞춘다.
         - 시트를 올리면 카드는 맨 위에 그대로 있고 그 아래로 목록이 이어진다.
+        - 내림 / 올림 두 단계만 둔다 (fitToContents라 가운데 단계 없음). 시트 높이는 코드에서 화면 높이 - station_sheet_expanded_offset으로
+          맞춰서, 끝까지 올리면 검색창과 필터 줄 아래에서 멈춘다. 손잡이를 누르면 내림 ↔ 올림이 바뀐다.
     -->
     <LinearLayout
         android:id="@+id/station_sheet"
@@ -189,20 +191,23 @@
         android:background="@drawable/bg_station_sheet"
         android:elevation="@dimen/elevation_sheet"
         android:orientation="vertical"
-        app:behavior_expandedOffset="@dimen/station_sheet_expanded_offset"
-        app:behavior_fitToContents="false"
-        app:behavior_halfExpandedRatio="0.5"
+        app:behavior_fitToContents="true"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/station_sheet_peek_height"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        <!-- 손잡이: 끌어서 올리고 내리거나, 누르면 내림 ↔ 올림. 접근성 설명은 코드에서 "목록 펼치기" / "목록 접기"로 바꾼다. -->
+        <ImageView
             android:id="@+id/station_sheet_handle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:contentDescription="@string/sheet_handle_expand"
             android:minHeight="@dimen/drag_handle_min_height"
             android:paddingTop="@dimen/space_s"
-            android:paddingBottom="@dimen/space_s" />
+            android:paddingBottom="@dimen/space_s"
+            android:scaleType="center"
+            android:src="@drawable/bg_sheet_handle" />
 
         <!--
             이득 1위 카드. 실제 예상 이득 1위(선호 브랜드 정렬 보너스 없이)를 보여주고, 마커를 누르면 그 주유소로 바뀐다.

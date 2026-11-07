@@ -82,6 +82,8 @@
     <string name="brand_filter_hidden_note">숨긴 브랜드 %1$d곳은 여기에 나오지 않아요. 설정 탭의 내 브랜드에서 바꿀 수 있어요.</string>
 
     <!-- 주변 주유소 목록 -->
+    <string name="sheet_handle_expand">목록 펼치기</string>
+    <string name="sheet_handle_collapse">목록 접기</string>
     <string name="station_sheet_title">주변 주유소 · %1$s 기준</string>
     <string name="station_sheet_title_count">주변 %1$d곳 · %2$s 기준</string>
     <string name="station_sort_description">정렬 %1$s, 눌러서 변경</string>

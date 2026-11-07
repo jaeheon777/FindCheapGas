@@ -56,6 +56,9 @@
     <dimen name="list_row_min_height">56dp</dimen>
     <dimen name="list_row_min_height_large">64dp</dimen>
     <dimen name="drag_handle_min_height">24dp</dimen>
+    <!-- 지도 시트 손잡이 막대 -->
+    <dimen name="sheet_handle_width">32dp</dimen>
+    <dimen name="sheet_handle_height">4dp</dimen>
     <dimen name="progress_size_small">24dp</dimen>
     <dimen name="progress_size">32dp</dimen>
     <dimen name="progress_track_corner">2dp</dimen>
