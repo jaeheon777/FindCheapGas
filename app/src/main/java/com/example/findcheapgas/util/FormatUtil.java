@@ -163,15 +163,15 @@ public final class FormatUtil {
     }
 
     /**
-     * 설정 탭 오늘 오피넷 사용량의 상태 문구. 250회부터 "한도에 가까워졌습니다",
-     * 300회면 "오늘 한도에 도달했습니다. 저장된 결과만 볼 수 있습니다", 그 아래는 null
+     * 설정 탭 오늘 오피넷 사용량의 상태 문구. 250회부터 "한도에 가까워졌어요",
+     * 300회면 "오늘 한도에 도달했어요. 저장된 결과만 볼 수 있어요", 그 아래는 null
      */
     public static String formatApiUsageStatus(ApiUsage usage) {
         switch (usage.getLevel()) {
             case LIMIT_REACHED:
-                return "오늘 한도에 도달했습니다. 저장된 결과만 볼 수 있습니다";
+                return "오늘 한도에 도달했어요. 저장된 결과만 볼 수 있어요";
             case NEAR_LIMIT:
-                return "한도에 가까워졌습니다";
+                return "한도에 가까워졌어요";
             default:
                 return null;
         }

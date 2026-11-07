@@ -29,6 +29,8 @@
     <dimen name="card_padding">@dimen/space_l</dimen>
     <!-- 텍스트 버튼의 글자를 왼쪽 글자 줄에 맞출 때 버튼 안쪽 여백만큼 당긴다. -->
     <dimen name="text_button_align_offset">-12dp</dimen>
+    <!-- 설정 탭 카드 아래 텍스트 버튼: 안내 글자(카드 안 글자 줄, space_l)에 버튼 글자를 맞추려고 버튼 안쪽 여백(12dp)을 뺀 값 -->
+    <dimen name="settings_footer_button_margin">4dp</dimen>
 
     <!-- 모서리. 칩과 검색창처럼 완전히 둥근 것은 styles.xml의 ShapeAppearance.FindCheapGas.Pill(50%)을 쓴다. -->
     <dimen name="corner_xs">4dp</dimen>

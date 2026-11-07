@@ -44,7 +44,7 @@ public class ApiUsageTest {
     public void warningFrom250() {
         ApiUsage usage = new ApiUsage(250, LIMIT, false);
         assertEquals(ApiUsage.Level.NEAR_LIMIT, usage.getLevel());
-        assertEquals("한도에 가까워졌습니다", FormatUtil.formatApiUsageStatus(usage));
+        assertEquals("한도에 가까워졌어요", FormatUtil.formatApiUsageStatus(usage));
         assertEquals(ApiUsage.Level.NEAR_LIMIT, new ApiUsage(299, LIMIT, false).getLevel());
     }
 
@@ -53,7 +53,7 @@ public class ApiUsageTest {
         ApiUsage usage = new ApiUsage(300, LIMIT, false);
         assertEquals(ApiUsage.Level.LIMIT_REACHED, usage.getLevel());
         assertEquals("오늘 300회 / 300회", FormatUtil.formatApiUsageCount(usage));
-        assertEquals("오늘 한도에 도달했습니다. 저장된 결과만 볼 수 있습니다", FormatUtil.formatApiUsageStatus(usage));
+        assertEquals("오늘 한도에 도달했어요. 저장된 결과만 볼 수 있어요", FormatUtil.formatApiUsageStatus(usage));
         assertEquals(100, usage.getProgressPercent());
     }
 
@@ -65,7 +65,7 @@ public class ApiUsageTest {
         assertEquals("오늘 0회 / 300회", FormatUtil.formatApiUsageCount(usage));
         // 가짜 데이터 모드로 바꾸기 전에 실제로 부른 횟수가 있으면 그대로 보여준다.
         ApiUsage before = new ApiUsage(260, LIMIT, true);
-        assertEquals("한도에 가까워졌습니다", FormatUtil.formatApiUsageStatus(before));
+        assertEquals("한도에 가까워졌어요", FormatUtil.formatApiUsageStatus(before));
     }
 
     @Test

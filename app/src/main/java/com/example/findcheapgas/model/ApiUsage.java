@@ -6,7 +6,7 @@ package com.example.findcheapgas.model;
  */
 public final class ApiUsage {
 
-    /** 이 횟수부터 "한도에 가까워졌습니다"로 경고한다. */
+    /** 이 횟수부터 "한도에 가까워졌어요"로 경고한다. */
     public static final int WARNING_THRESHOLD = 250;
 
     public enum Level {

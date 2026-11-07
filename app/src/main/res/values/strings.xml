@@ -236,14 +236,20 @@
 
     <!-- 설정 탭 -->
     <string name="settings_title">설정</string>
+    <string name="settings_group_car">내 차</string>
+    <string name="settings_group_brand">할인과 브랜드</string>
+    <string name="settings_group_places">위치</string>
+    <string name="settings_group_map">지도 기본값</string>
+    <string name="settings_group_usage">사용량</string>
     <string name="settings_car_info">내 차 정보</string>
-    <string name="settings_car_info_default">기본값 사용 중</string>
-    <string name="settings_car_info_user_entered">직접 입력한 값으로 계산 중</string>
-    <string name="settings_car_info_description">내 차 정보: 연비 %1$s, 평소 주유량 %2$s, %3$s. 눌러서 수정</string>
+    <string name="settings_car_info_value">연비 %1$s · %2$s</string>
+    <string name="settings_car_info_default">기본값(연비 12km/L, 40L)으로 계산하고 있어요</string>
+    <string name="settings_car_info_user_entered">직접 입력한 값으로 계산하고 있어요</string>
+    <string name="settings_car_info_description">내 차 정보, 연비 %1$s, 평소 주유량 %2$s. %3$s. 누르면 바꿀 수 있어요</string>
     <string name="settings_car_info_reset">기본값으로 되돌리기</string>
-    <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸습니다</string>
+    <string name="settings_car_info_reset_done">연비 12km/L, 40L 기본값으로 되돌렸어요</string>
     <string name="settings_brand">내 브랜드</string>
-    <string name="settings_brand_description">내 브랜드: %1$s. 눌러서 수정</string>
+    <string name="settings_brand_helper">카드·멤버십 할인, 선호, 숨기기를 브랜드마다 정해요</string>
 
     <!-- 내 브랜드 화면 -->
     <string name="brand_settings_title">내 브랜드</string>
@@ -272,18 +278,17 @@
     <string name="brand_edit_error_per_liter_range">0~500원 사이로 입력해 주세요</string>
     <string name="brand_edit_error_cap_range">0~100,000원 사이로 입력해 주세요</string>
     <string name="brand_edit_error_integer">원 단위 정수로 입력해 주세요</string>
-    <string name="settings_places">집·회사 위치</string>
-    <string name="settings_default_filter">기본 유종·반경</string>
+    <string name="settings_places_helper">즐겨찾기 탭에서 어디서 넣는 게 저렴한지 비교할 때 써요. 이 기기에만 저장돼요</string>
     <string name="settings_fuel_type">기본 유종</string>
     <string name="settings_radius">기본 반경</string>
-    <string name="settings_default_filter_helper">지도 탭에서 마지막으로 고른 유종·반경과 같은 값입니다. 여기서 바꾸면 지도 탭과 집·회사 비교, 위젯에도 바로 반영됩니다.</string>
-    <string name="settings_row_description">%1$s: %2$s. 눌러서 바꾸기</string>
+    <string name="settings_default_filter_helper">지도 탭에서 마지막으로 고른 값이에요. 바꾸면 지도 탭, 집·회사 비교, 위젯에 바로 반영돼요</string>
+    <string name="settings_row_description">%1$s, %2$s. 누르면 바꿀 수 있어요</string>
     <string name="settings_display">화면</string>
     <string name="settings_theme">화면 테마</string>
-    <string name="settings_theme_helper">홈 화면 위젯은 이 설정이 아니라 휴대폰의 다크 모드 설정을 따릅니다.</string>
+    <string name="settings_theme_helper">홈 화면 위젯은 이 설정이 아니라 휴대폰의 다크 모드 설정을 따라요</string>
     <string name="settings_api_usage">오늘 오피넷 사용량</string>
-    <string name="settings_api_usage_note">자정에 0회로 초기화됩니다. 오피넷 호출만 셉니다.</string>
-    <string name="settings_api_usage_mock">가짜 데이터 모드라 오피넷을 호출하지 않습니다</string>
+    <string name="settings_api_usage_note">자정에 0회로 초기화돼요. 오피넷 호출만 세요</string>
+    <string name="settings_api_usage_mock">지금은 가짜 데이터 모드라 오피넷을 호출하지 않아요</string>
     <string name="settings_api_usage_description">%1$s, 하루 한도 %2$d회. %3$s</string>
     <string name="settings_choice_cancel">취소</string>
 
@@ -348,8 +353,6 @@
     <string name="place_search_title">%1$s 위치 검색</string>
     <string name="place_search_hint">역, 건물, 주소로 검색</string>
     <string name="place_search_result_description">%1$s, %2$s, %3$s. 눌러서 이 위치로 저장</string>
-    <string name="settings_place_line">%1$s · %2$s</string>
-    <string name="settings_places_description">집·회사 위치. %1$s, %2$s. 눌러서 수정</string>
     <string name="favorite_empty">아직 저장한 주유소가 없어요</string>
     <string name="favorite_empty_hint">주유소 상세 화면에서 북마크를 누르면 여기에 모여요</string>
     <string name="favorite_find_on_map">지도에서 주유소 찾기</string>

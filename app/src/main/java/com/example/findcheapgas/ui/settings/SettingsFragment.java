@@ -34,9 +34,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * 설정 탭. 내 차 정보, 내 브랜드, 집·회사 위치, 기본 유종·반경, 화면 테마, 오늘 오피넷 사용량.
+ * 설정 탭. 회색 바탕에 흰 카드로 묶은 목록이고, 한 줄은 왼쪽 이름, 오른쪽 지금 값 + 화살표(item_settings_row)다.
+ * 묶음: 내 차(내 차 정보) / 할인과 브랜드(내 브랜드) / 위치(집, 회사) / 지도 기본값(기본 유종, 기본 반경) /
+ * 화면(화면 테마) / 사용량(오늘 오피넷 사용량).
  * 내 차 정보를 누르면 수정 화면(OnboardingActivity 수정 모드)이, 내 브랜드를 누르면 내 브랜드 화면이,
- * 집·회사 위치를 누르면 집·회사 위치 화면(PlaceSettingsActivity)이 열린다.
+ * 집·회사를 누르면 집·회사 위치 화면(PlaceSettingsActivity)이 열린다.
  * 값은 각 Repository의 LiveData를 보고 그리므로 수정 화면에서 저장하고 돌아오면 바로 바뀐다.
  * 기본 유종·반경은 지도 탭이 기억하는 값 그대로이고, Activity 범위의 MapViewModel로 바꿔서 지도 탭에도 바로 반영된다.
  * 오늘 오피넷 사용량은 탭이 보일 때마다 다시 읽는다.
@@ -46,22 +48,15 @@ public class SettingsFragment extends Fragment {
     private SettingsViewModel viewModel;
     private MapViewModel mapViewModel;
 
-    private View carInfoCard;
-    private TextView fuelEfficiencyText;
-    private TextView fuelAmountText;
+    private SettingsRow carInfoRow;
     private TextView carInfoStatus;
     private View resetButton;
-    private View brandCard;
-    private TextView brandSummary;
-    private View placesCard;
-    private TextView placesHome;
-    private TextView placesWork;
-    private View fuelTypeRow;
-    private TextView fuelTypeText;
-    private View radiusRow;
-    private TextView radiusText;
-    private View themeRow;
-    private TextView themeText;
+    private SettingsRow brandRow;
+    private SettingsRow homeRow;
+    private SettingsRow workRow;
+    private SettingsRow fuelTypeRow;
+    private SettingsRow radiusRow;
+    private SettingsRow themeRow;
     private View apiUsageCard;
     private TextView apiUsageCount;
     private LinearProgressIndicator apiUsageProgress;
@@ -76,16 +71,20 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+        // 지도 탭과 같은 MapViewModel (MainActivity 범위)
+        mapViewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
 
-        carInfoCard = view.findViewById(R.id.settings_car_info_card);
-        fuelEfficiencyText = view.findViewById(R.id.settings_fuel_efficiency);
-        fuelAmountText = view.findViewById(R.id.settings_fuel_amount);
+        carInfoRow = new SettingsRow(view.findViewById(R.id.settings_car_info_row), R.string.settings_car_info);
         carInfoStatus = view.findViewById(R.id.settings_car_info_status);
         resetButton = view.findViewById(R.id.settings_car_info_reset);
-        brandCard = view.findViewById(R.id.settings_brand_card);
-        brandSummary = view.findViewById(R.id.settings_brand_summary);
+        brandRow = new SettingsRow(view.findViewById(R.id.settings_brand_row), R.string.settings_brand);
+        homeRow = new SettingsRow(view.findViewById(R.id.settings_home_row), R.string.place_kind_home);
+        workRow = new SettingsRow(view.findViewById(R.id.settings_work_row), R.string.place_kind_work);
+        fuelTypeRow = new SettingsRow(view.findViewById(R.id.settings_fuel_type_row), R.string.settings_fuel_type);
+        radiusRow = new SettingsRow(view.findViewById(R.id.settings_radius_row), R.string.settings_radius);
+        themeRow = new SettingsRow(view.findViewById(R.id.settings_theme_row), R.string.settings_theme);
 
-        carInfoCard.setOnClickListener(v ->
+        carInfoRow.root.setOnClickListener(v ->
                 startActivity(OnboardingActivity.createEditIntent(requireContext())));
         resetButton.setOnClickListener(v -> {
             viewModel.resetCarInfoToDefault();
@@ -93,32 +92,19 @@ public class SettingsFragment extends Fragment {
                     .setAnchorView(requireActivity().findViewById(R.id.bottom_nav))
                     .show();
         });
-
-        brandCard.setOnClickListener(v ->
+        brandRow.root.setOnClickListener(v ->
                 startActivity(BrandSettingsActivity.createIntent(requireContext())));
-
-        placesCard = view.findViewById(R.id.settings_places_card);
-        placesHome = view.findViewById(R.id.settings_places_home);
-        placesWork = view.findViewById(R.id.settings_places_work);
-        placesCard.setOnClickListener(v ->
+        homeRow.root.setOnClickListener(v ->
                 startActivity(PlaceSettingsActivity.createIntent(requireContext())));
-
-        // 지도 탭과 같은 MapViewModel (MainActivity 범위)
-        mapViewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
-        fuelTypeRow = view.findViewById(R.id.settings_fuel_type_row);
-        fuelTypeText = view.findViewById(R.id.settings_fuel_type);
-        radiusRow = view.findViewById(R.id.settings_radius_row);
-        radiusText = view.findViewById(R.id.settings_radius);
-        fuelTypeRow.setOnClickListener(v -> showChoiceDialog(R.string.settings_fuel_type,
+        workRow.root.setOnClickListener(v ->
+                startActivity(PlaceSettingsActivity.createIntent(requireContext())));
+        fuelTypeRow.root.setOnClickListener(v -> showChoiceDialog(R.string.settings_fuel_type,
                 FuelType.values(), mapViewModel.getFuelType().getValue(), FuelType::getLabel,
                 mapViewModel::setFuelType));
-        radiusRow.setOnClickListener(v -> showChoiceDialog(R.string.settings_radius,
+        radiusRow.root.setOnClickListener(v -> showChoiceDialog(R.string.settings_radius,
                 SearchRadius.values(), mapViewModel.getRadius().getValue(), SearchRadius::getLabel,
                 mapViewModel::setRadius));
-
-        themeRow = view.findViewById(R.id.settings_theme_row);
-        themeText = view.findViewById(R.id.settings_theme);
-        themeRow.setOnClickListener(v -> showChoiceDialog(R.string.settings_theme,
+        themeRow.root.setOnClickListener(v -> showChoiceDialog(R.string.settings_theme,
                 ThemeMode.values(), viewModel.getThemeMode().getValue(), ThemeMode::getLabel,
                 viewModel::setThemeMode));
 
@@ -131,12 +117,9 @@ public class SettingsFragment extends Fragment {
         viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::showCarInfo);
         viewModel.getBrandSettings().observe(getViewLifecycleOwner(), this::showBrandSummary);
         viewModel.getPlaces().observe(getViewLifecycleOwner(), this::showPlaces);
-        mapViewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType ->
-                showRowValue(fuelTypeRow, fuelTypeText, R.string.settings_fuel_type, fuelType.getLabel()));
-        mapViewModel.getRadius().observe(getViewLifecycleOwner(), radius ->
-                showRowValue(radiusRow, radiusText, R.string.settings_radius, radius.getLabel()));
-        viewModel.getThemeMode().observe(getViewLifecycleOwner(), mode ->
-                showRowValue(themeRow, themeText, R.string.settings_theme, mode.getLabel()));
+        mapViewModel.getFuelType().observe(getViewLifecycleOwner(), fuelType -> fuelTypeRow.show(fuelType.getLabel()));
+        mapViewModel.getRadius().observe(getViewLifecycleOwner(), radius -> radiusRow.show(radius.getLabel()));
+        viewModel.getThemeMode().observe(getViewLifecycleOwner(), mode -> themeRow.show(mode.getLabel()));
         viewModel.getApiUsage().observe(getViewLifecycleOwner(), this::showApiUsage);
     }
 
@@ -158,11 +141,6 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private void showRowValue(View row, TextView valueText, @StringRes int title, String value) {
-        valueText.setText(value);
-        row.setContentDescription(getString(R.string.settings_row_description, getString(title), value));
-    }
-
     /** "오늘 12회 / 300회", 진행 막대, 250회부터 경고 색과 문구, 가짜 데이터 모드 안내 */
     private void showApiUsage(ApiUsage usage) {
         String count = FormatUtil.formatApiUsageCount(usage);
@@ -182,7 +160,7 @@ public class SettingsFragment extends Fragment {
         }
         notes.append(getString(R.string.settings_api_usage_note));
         if (usage.isMockData()) {
-            notes.append(' ').append(getString(R.string.settings_api_usage_mock));
+            notes.append(". ").append(getString(R.string.settings_api_usage_mock));
         }
         apiUsageCard.setContentDescription(getString(R.string.settings_api_usage_description,
                 count, usage.getLimit(), notes));
@@ -209,39 +187,53 @@ public class SettingsFragment extends Fragment {
                 .show();
     }
 
-    /** "집 · 선릉역", 등록하지 않았으면 "집 · 등록 안 함" */
+    /** 집 / 회사 줄의 값: 등록한 장소 이름, 없으면 "등록 안 함" */
     private void showPlaces(@Nullable SavedPlaces places) {
-        String home = placeLine(R.string.place_kind_home, places != null ? places.get(SavedPlace.Kind.HOME) : null);
-        String work = placeLine(R.string.place_kind_work, places != null ? places.get(SavedPlace.Kind.WORK) : null);
-        placesHome.setText(home);
-        placesWork.setText(work);
-        placesCard.setContentDescription(getString(R.string.settings_places_description, home, work));
+        homeRow.show(placeName(places != null ? places.get(SavedPlace.Kind.HOME) : null));
+        workRow.show(placeName(places != null ? places.get(SavedPlace.Kind.WORK) : null));
     }
 
-    private String placeLine(@StringRes int kindLabel, @Nullable SavedPlace place) {
-        return getString(R.string.settings_place_line, getString(kindLabel),
-                place != null ? place.getName() : getString(R.string.place_not_registered));
+    private String placeName(@Nullable SavedPlace place) {
+        return place != null ? place.getName() : getString(R.string.place_not_registered);
     }
 
     /** "할인 2곳 · 선호 1곳 · 숨김 1곳", 아무것도 없으면 "설정한 브랜드 없음" */
     private void showBrandSummary(BrandSettings settings) {
-        String summary = FormatUtil.formatBrandSummary(settings);
-        brandSummary.setText(summary);
-        brandCard.setContentDescription(getString(R.string.settings_brand_description, summary));
+        brandRow.show(FormatUtil.formatBrandSummary(settings));
     }
 
+    /** 줄 값 "연비 15km/L · 40L", 아래 안내 "직접 입력한 값으로 계산하고 있어요", 직접 입력했을 때만 되돌리기 버튼 */
     private void showCarInfo(CarInfo carInfo) {
         String efficiency = FormatUtil.formatFuelEfficiency(carInfo.getFuelEfficiencyTenths());
         String amount = FormatUtil.formatFuelAmount(carInfo.getFuelAmount());
         @StringRes int status = carInfo.isDefault()
                 ? R.string.settings_car_info_default
                 : R.string.settings_car_info_user_entered;
-        fuelEfficiencyText.setText(efficiency);
-        fuelAmountText.setText(amount);
+        carInfoRow.value.setText(getString(R.string.settings_car_info_value, efficiency, amount));
         carInfoStatus.setText(status);
-        carInfoCard.setContentDescription(getString(R.string.settings_car_info_description,
+        carInfoRow.root.setContentDescription(getString(R.string.settings_car_info_description,
                 efficiency, amount, getString(status)));
         // 이미 기본값이면 되돌릴 것이 없다.
         resetButton.setVisibility(carInfo.isDefault() ? View.GONE : View.VISIBLE);
+    }
+
+    /** 설정 카드 안의 한 줄 (item_settings_row): 이름, 지금 값 */
+    private final class SettingsRow {
+        final View root;
+        final TextView value;
+        final String title;
+
+        SettingsRow(View root, @StringRes int title) {
+            this.root = root;
+            this.title = getString(title);
+            value = root.findViewById(R.id.settings_row_value);
+            ((TextView) root.findViewById(R.id.settings_row_title)).setText(title);
+        }
+
+        /** 값을 쓰고 접근성 설명은 "이름, 값. 누르면 바꿀 수 있어요" */
+        void show(String text) {
+            value.setText(text);
+            root.setContentDescription(getString(R.string.settings_row_description, title, text));
+        }
     }
 }
