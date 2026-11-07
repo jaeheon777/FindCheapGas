@@ -302,6 +302,12 @@
         <item name="navigationIconTint">@color/text_primary</item>
     </style>
 
+    <!--
+        테마의 android:textViewStyle. Android 12 이하에는 줄바꿈 방식을 고를 수 없어 플랫폼 기본 그대로 둔다.
+        Android 13 이상은 values-v33/styles.xml에서 단어(어절) 단위 줄바꿈을 더한다.
+    -->
+    <style name="Widget.FindCheapGas.TextView" parent="android:Widget.Material.TextView" />
+
     <!-- ===== 목록 한 줄 (지도 탭 주유소 목록) ===== -->
     <!--
         목록 한 줄: 왼쪽(상호·보조 정보)과 오른쪽(금액·설명)으로 나눈다. layout/view_list_row_amount.xml 참고.

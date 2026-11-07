@@ -107,6 +107,8 @@
         <item name="textInputStyle">@style/Widget.FindCheapGas.TextInputLayout</item>
         <item name="textInputOutlinedStyle">@style/Widget.FindCheapGas.TextInputLayout</item>
         <item name="toolbarStyle">@style/Widget.FindCheapGas.Toolbar</item>
+        <!-- 모든 TextView의 기본 스타일. Android 13 이상에서는 단어(어절) 단위로 줄을 바꾼다 (values-v33/styles.xml). -->
+        <item name="android:textViewStyle">@style/Widget.FindCheapGas.TextView</item>
 
         <!--
             상태 표시줄은 화면 바탕색으로 칠하고, 아이콘 색은 밝은 테마는 어둡게, 어두운 테마는 밝게 한다
