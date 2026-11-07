@@ -131,9 +131,14 @@ public final class FormatUtil {
         return "예상 총비용 약 " + formatWon(totalCost);
     }
 
-    /** 집·회사 기준 비교에서 가장 저렴한 위치보다 더 드는 금액. 1200 → "약 1,200원 더 듦" */
+    /** 집·회사 기준 비교에서 가장 저렴한 위치보다 더 드는 금액. 1200 → "약 1,200원 더 들어요" (지도 탭 목록과 같은 말) */
     public static String formatExtraCost(long won) {
-        return "약 " + formatWon(won) + " 더 듦";
+        return "약 " + formatWon(won) + " 더 들어요";
+    }
+
+    /** 추정 금액. 66174.3 → "약 66,174원" (집·회사 기준 비교의 예상 총비용) */
+    public static String formatApproxWon(double amount) {
+        return "약 " + formatWon(amount);
     }
 
     /**

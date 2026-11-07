@@ -51,12 +51,16 @@ import java.util.List;
 
 /**
  * 즐겨찾기 탭.
- * - 위쪽: 집·회사 기준 비교 (지금 조회 위치 / 집 근처 / 회사 근처의 이득 1위 주유소와 예상 총비용, PlaceCompareViewModel).
- *   카드를 누르면 지도 탭으로 가서 그 위치 기준으로 이득 1위 주유소를 선택한다. 등록하지 않았으면 등록 버튼을 보여준다.
- * - 저장한 주유소를 최근에 저장한 순서로 보여준다: 상호, 브랜드, 주소, 지금 고른 유종 가격, 조회 위치에서 거리, 예상 이득
+ * - 맨 위 작은 글자 한 줄: 계산 기준 · 유종 · 반경 · 조회 위치 (누르면 내 차 정보 수정)
+ * - 주인공 카드: 집·회사 기준 비교의 결론. "가장 저렴" 카드가 있으면 "회사 근처에서 넣으면 가장 저렴해요"와
+ *   그 카드의 예상 총비용을 큰 숫자로, 없으면 (비교할 수 있는 카드가 두 장보다 적으면) 짧은 안내만 보여준다.
+ * - 비교 카드 세 장 (지금 조회 위치 / 집 근처 / 회사 근처의 이득 1위 주유소와 예상 총비용, PlaceCompareViewModel).
+ *   카드를 누르면 지도 탭으로 가서 그 위치 기준으로 이득 1위 주유소를 선택한다. 등록하지 않았으면 등록 버튼 하나만 보여준다.
+ * - 저장한 주유소를 최근에 저장한 순서로 보여준다: 상호, 브랜드 · 조회 위치에서 거리, 지금 고른 유종 가격, 예상 이득
+ *   (주소는 상세 화면에서만). 비어 있으면 안내와 "지도에서 주유소 찾기" 버튼
  * - 조회 위치, 유종, 기준 주유소는 지도 탭(MapViewModel, Activity 범위)의 마지막 주변 조회 결과를 쓴다.
  * - 가격은 탭이 보일 때 가져온다 (주변 목록 → 상세 캐시 → 조회). 당겨서 새로고침하면 30분이 지난 가격을 다시 가져온다.
- * - 왼쪽으로 밀거나 메뉴로 삭제하고, 삭제 직후 "실행 취소"를 보여준다.
+ * - 왼쪽으로 밀거나 길게 눌러 메뉴로 삭제하고, 삭제 직후 "실행 취소"를 보여준다.
  * - 항목을 누르면 상세 화면이 열리고, 상세 화면의 "지도에서 보기"를 누르면 지도 탭으로 가서 그 주유소를 보여준다.
  */
 public class FavoriteFragment extends Fragment {
@@ -66,17 +70,21 @@ public class FavoriteFragment extends Fragment {
     private MapViewModel mapViewModel;
     private FavoriteAdapter adapter;
 
-    private TextView compareCondition;
+    private TextView heroTitle;
+    private TextView heroAmount;
+    private TextView heroCaption;
     private PlaceCompareCardView compareCurrent;
     private PlaceCompareCardView compareHome;
     private PlaceCompareCardView compareWork;
 
     private TextView countText;
-    private TextView conditionText;
     private TextView basisText;
+    @Nullable
+    private CarInfo carInfo;
     private TextView noticeText;
     private SwipeRefreshLayout refreshLayout;
     private RecyclerView list;
+    private View listCard;
     private View emptyView;
 
     // 상세 화면에서 "지도에서 보기"를 누르고 돌아오면 지도 탭으로 간다.
@@ -97,18 +105,25 @@ public class FavoriteFragment extends Fragment {
         compareViewModel = new ViewModelProvider(this).get(PlaceCompareViewModel.class);
         mapViewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
 
-        compareCondition = view.findViewById(R.id.compare_condition);
+        heroTitle = view.findViewById(R.id.compare_hero_title);
+        heroAmount = view.findViewById(R.id.compare_hero_amount);
+        heroCaption = view.findViewById(R.id.compare_hero_caption);
         compareCurrent = new PlaceCompareCardView(view.findViewById(R.id.compare_current));
         compareHome = new PlaceCompareCardView(view.findViewById(R.id.compare_home));
         compareWork = new PlaceCompareCardView(view.findViewById(R.id.compare_work));
 
         countText = view.findViewById(R.id.favorite_count);
-        conditionText = view.findViewById(R.id.favorite_condition);
         basisText = view.findViewById(R.id.favorite_basis);
         noticeText = view.findViewById(R.id.favorite_notice);
         refreshLayout = view.findViewById(R.id.favorite_refresh);
         list = view.findViewById(R.id.favorite_list);
+        listCard = view.findViewById(R.id.favorite_list_card);
         emptyView = view.findViewById(R.id.favorite_empty);
+        view.findViewById(R.id.favorite_find_on_map).setOnClickListener(v -> {
+            if (requireActivity() instanceof MainActivity) {
+                ((MainActivity) requireActivity()).showMapTab();
+            }
+        });
 
         adapter = new FavoriteAdapter(new FavoriteAdapter.Listener() {
             @Override
@@ -146,7 +161,10 @@ public class FavoriteFragment extends Fragment {
         mapViewModel.getStationsError().observe(getViewLifecycleOwner(), error -> updateCompareMapState());
         mapViewModel.getOrigin().observe(getViewLifecycleOwner(), origin -> renderCompare());
         viewModel.getItems().observe(getViewLifecycleOwner(), this::showItems);
-        viewModel.getCarInfo().observe(getViewLifecycleOwner(), this::renderBasis);
+        viewModel.getCarInfo().observe(getViewLifecycleOwner(), info -> {
+            carInfo = info;
+            renderBasis();
+        });
         viewModel.getRefreshing().observe(getViewLifecycleOwner(), refreshing -> renderRefreshing());
         compareViewModel.getRefreshing().observe(getViewLifecycleOwner(), refreshing -> renderRefreshing());
         compareViewModel.getCards().observe(getViewLifecycleOwner(), cards -> renderCompare());
@@ -193,7 +211,7 @@ public class FavoriteFragment extends Fragment {
     private void onAroundChanged(@Nullable AroundStations around) {
         FuelType mapFuelType = mapViewModel.getFuelType().getValue();
         viewModel.setAround(around, mapFuelType != null ? mapFuelType : FuelType.GASOLINE);
-        renderCondition();
+        renderBasis();
         updateCompareMapState();
     }
 
@@ -215,19 +233,18 @@ public class FavoriteFragment extends Fragment {
                 || Boolean.TRUE.equals(compareViewModel.getRefreshing().getValue()));
     }
 
-    /** 집·회사 기준 비교: 조건 문구와 카드 세 장 */
+    /** 집·회사 기준 비교: 맨 위 기준 문구, 주인공 카드, 카드 세 장 */
     private void renderCompare() {
         if (getView() == null) {
             return;
         }
-        SearchRadius radius = mapViewModel.getRadius().getValue();
-        String radiusLabel = (radius != null ? radius : SearchRadius.KM_3).getLabel();
-        compareCondition.setText(getString(R.string.compare_condition, viewModel.getFuelType().getLabel(),
-                radiusLabel));
+        renderBasis();
+        String radiusLabel = radiusLabel();
         List<PlaceCompareCard> cards = compareViewModel.getCards().getValue();
         if (cards == null) {
             return;
         }
+        renderHero(cards);
         SavedPlaces places = compareViewModel.getPlaces().getValue();
         long now = System.currentTimeMillis();
         for (PlaceCompareCard card : cards) {
@@ -246,6 +263,56 @@ public class FavoriteFragment extends Fragment {
                     break;
             }
         }
+    }
+
+    /**
+     * 주인공 카드. "가장 저렴" 카드가 있으면 "회사 근처에서 넣으면 가장 저렴해요" + 그 카드의 예상 총비용,
+     * 없으면 큰 숫자 없이 짧은 안내 (가져오는 중 / 등록하면 비교 / 지금은 비교할 수 없음).
+     * "가장 저렴"은 READY 카드가 두 장 이상일 때만 정해진다 (PlaceCompareBuilder).
+     */
+    private void renderHero(List<PlaceCompareCard> cards) {
+        PlaceCompareCard cheapest = null;
+        boolean loading = false;
+        boolean unregistered = false;
+        for (PlaceCompareCard card : cards) {
+            if (card.getStatus() == PlaceCompareCard.Status.READY && card.isCheapest() && card.getBest() != null) {
+                cheapest = card;
+            } else if (card.getStatus() == PlaceCompareCard.Status.LOADING) {
+                loading = true;
+            } else if (card.getStatus() == PlaceCompareCard.Status.NOT_REGISTERED) {
+                unregistered = true;
+            }
+        }
+        if (cheapest != null) {
+            heroTitle.setText(getString(R.string.compare_hero_cheapest, slotName(cheapest.getSlot())));
+            heroAmount.setText(FormatUtil.formatApproxWon(cheapest.getBest().getTotalCost()));
+            heroCaption.setText(getString(R.string.compare_hero_caption,
+                    cheapest.getBest().getStation().getName()));
+            heroAmount.setVisibility(View.VISIBLE);
+            heroCaption.setVisibility(View.VISIBLE);
+            return;
+        }
+        heroTitle.setText(loading ? R.string.compare_hero_loading
+                : unregistered ? R.string.compare_hero_need_place : R.string.compare_hero_unavailable);
+        heroAmount.setVisibility(View.GONE);
+        heroCaption.setVisibility(View.GONE);
+    }
+
+    /** 주인공 카드의 위치 이름: "지금 조회 위치", "집 근처", "회사 근처" */
+    private String slotName(PlaceCompareCard.Slot slot) {
+        switch (slot) {
+            case CURRENT:
+                return getString(R.string.compare_slot_current_short);
+            case HOME:
+                return getString(R.string.compare_slot_home_empty);
+            default:
+                return getString(R.string.compare_slot_work_empty);
+        }
+    }
+
+    private String radiusLabel() {
+        SearchRadius radius = mapViewModel.getRadius().getValue();
+        return (radius != null ? radius : SearchRadius.KM_3).getLabel();
     }
 
     /** "집 근처 · 선릉역", 등록하지 않았으면 "집 근처" */
@@ -301,22 +368,20 @@ public class FavoriteFragment extends Fragment {
         adapter.submit(items, originLabel());
         countText.setText(getString(R.string.favorite_count, items.size(), FavoriteStation.MAX_COUNT));
         emptyView.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
-        list.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        listCard.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
         renderNotice(items);
-        renderCondition();
         renderCompare();
     }
 
-    /** 예: "휘발유 가격 · 강남역 기준 거리와 예상 이득" */
-    private void renderCondition() {
-        conditionText.setText(getString(R.string.favorite_condition,
-                viewModel.getFuelType().getLabel(), originLabel()));
-    }
-
-    private void renderBasis(CarInfo carInfo) {
-        String basis = FormatUtil.formatCalculationBasis(carInfo);
-        basisText.setText(basis);
-        basisText.setContentDescription(getString(R.string.station_basis_description, basis));
+    /** 맨 위 한 줄. 예: "내 차 기준 · 연비 15km/L · 40L · 휘발유 · 반경 3km · 내 위치 기준" */
+    private void renderBasis() {
+        if (getView() == null || carInfo == null) {
+            return;
+        }
+        String line = getString(R.string.favorite_basis_line, FormatUtil.formatCalculationBasis(carInfo),
+                viewModel.getFuelType().getLabel(), radiusLabel(), originLabel());
+        basisText.setText(line);
+        basisText.setContentDescription(getString(R.string.favorite_basis_description, line));
     }
 
     /** 오늘 한도에 도달했으면 한도 안내, 아니면 30분 넘은 가격이 있을 때 새로고침 안내 */

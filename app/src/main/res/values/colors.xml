@@ -73,9 +73,6 @@
     <color name="hero_saving_gain_text">#FF0B7D3E</color>
     <color name="hero_card_stroke">#00000000</color>
 
-    <!-- 집·회사 비교 카드의 "가장 저렴" 배지 (지도 탭 목록 배지는 테마 색으로 그린다) -->
-    <color name="badge_best_background">#FF0B7D3E</color>
-    <color name="badge_best_text">#FFFFFFFF</color>
     <!-- 목록의 선호 브랜드 ★ -->
     <color name="preferred_star">#FFB45309</color>
     <!-- 즐겨찾기 탭에서 왼쪽으로 밀 때 뒤 배경 -->

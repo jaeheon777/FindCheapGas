@@ -40,6 +40,9 @@
     <dimen name="stroke_thin">1dp</dimen>
     <!-- 주인공 카드의 테두리 (어두운 테마의 라임 테두리) -->
     <dimen name="stroke_emphasis">1.5dp</dimen>
+    <!-- 점선 테두리 (등록하지 않은 비교 자리) -->
+    <dimen name="dash_width">6dp</dimen>
+    <dimen name="dash_gap">4dp</dimen>
     <dimen name="elevation_floating">2dp</dimen>
     <dimen name="elevation_sheet">8dp</dimen>
 

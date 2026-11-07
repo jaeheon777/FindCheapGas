@@ -13,100 +13,115 @@ import com.example.findcheapgas.model.StationError;
 import com.example.findcheapgas.model.StationSaving;
 import com.example.findcheapgas.util.FormatUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 즐겨찾기 탭의 집·회사 기준 비교 카드 한 장 (item_place_compare.xml)을 그린다.
- * READY면 이득 1위 주유소의 상호 · 브랜드, 가격 · 거리, 예상 총비용, 가격을 가져온 시각과
- * "가장 저렴" 또는 "약 1,200원 더 듦"을 보여주고, 그 밖에는 이유(등록 안 함, 주유소 없음, 한도 도달 등)를 보여준다.
+ * - READY: 제목, 이득 1위 상호, 작은 보조 글자 한 줄(브랜드 · 거리 · 가격 · 가져온 시각),
+ *   오른쪽에 예상 총비용과 "가장 저렴" 배지 또는 "약 1,200원 더 들어요"
+ * - 등록 안 함: 카드 대신 점선 테두리 안에 "집 위치 등록하기" 버튼 하나
+ * - 그 밖: 제목과 이유 (가져오는 중, 주유소 없음, 한도 도달 등)
  */
 final class PlaceCompareCardView {
 
     interface Listener {
-        /** 카드를 눌렀을 때 (등록하지 않은 카드는 누를 수 없다) */
+        /** 카드를 눌렀을 때 (등록하지 않은 자리는 카드가 없다) */
         void onCardClick(PlaceCompareCard card);
 
-        /** 등록하지 않은 카드의 "등록" 버튼 */
+        /** 등록하지 않은 자리의 "집 위치 등록하기" 버튼 */
         void onRegisterClick(PlaceCompareCard card);
     }
 
-    private final View root;
+    private final View card;
     private final TextView title;
+    private final View row;
+    private final TextView station;
+    private final TextView detail;
+    private final TextView total;
     private final TextView cheapest;
     private final TextView extra;
-    private final TextView station;
-    private final TextView price;
-    private final TextView total;
-    private final TextView age;
     private final TextView message;
-    private final View register;
+    private final View registerBox;
+    private final TextView register;
 
     PlaceCompareCardView(View root) {
-        this.root = root;
+        card = root.findViewById(R.id.compare_card);
         title = root.findViewById(R.id.compare_title);
+        row = root.findViewById(R.id.compare_row);
+        station = root.findViewById(R.id.compare_station);
+        detail = root.findViewById(R.id.compare_detail);
+        total = root.findViewById(R.id.compare_total);
         cheapest = root.findViewById(R.id.compare_cheapest);
         extra = root.findViewById(R.id.compare_extra);
-        station = root.findViewById(R.id.compare_station);
-        price = root.findViewById(R.id.compare_price);
-        total = root.findViewById(R.id.compare_total);
-        age = root.findViewById(R.id.compare_age);
         message = root.findViewById(R.id.compare_message);
+        registerBox = root.findViewById(R.id.compare_register_box);
         register = root.findViewById(R.id.compare_register);
     }
 
     /**
      * @param titleText   예: "집 근처 · 선릉역"
-     * @param kindLabel   등록 안내에 넣을 이름 ("집", "회사"). 지금 조회 위치 카드면 쓰지 않는다.
+     * @param kindLabel   등록 버튼에 넣을 이름 ("집", "회사"). 지금 조회 위치 카드면 쓰지 않는다.
      * @param radiusLabel 지금 반경 (예: "3km")
      */
-    void bind(PlaceCompareCard card, String titleText, String kindLabel, String radiusLabel, long now,
+    void bind(PlaceCompareCard compareCard, String titleText, String kindLabel, String radiusLabel, long now,
               Listener listener) {
-        Context context = root.getContext();
-        title.setText(titleText);
-        StationSaving best = card.getBest();
-        boolean ready = card.getStatus() == PlaceCompareCard.Status.READY && best != null;
+        Context context = card.getContext();
+        boolean notRegistered = compareCard.getStatus() == PlaceCompareCard.Status.NOT_REGISTERED;
+        card.setVisibility(notRegistered ? View.GONE : View.VISIBLE);
+        registerBox.setVisibility(notRegistered ? View.VISIBLE : View.GONE);
+        if (notRegistered) {
+            register.setText(context.getString(R.string.compare_register, kindLabel));
+            register.setOnClickListener(v -> listener.onRegisterClick(compareCard));
+            return;
+        }
 
-        station.setVisibility(ready ? View.VISIBLE : View.GONE);
-        price.setVisibility(ready ? View.VISIBLE : View.GONE);
-        total.setVisibility(ready ? View.VISIBLE : View.GONE);
-        cheapest.setVisibility(ready && card.isCheapest() ? View.VISIBLE : View.GONE);
-        extra.setVisibility(ready && card.getExtraCostWon() > 0 ? View.VISIBLE : View.GONE);
-        age.setVisibility(ready && card.getFetchedAt() > 0 ? View.VISIBLE : View.GONE);
+        title.setText(titleText);
+        StationSaving best = compareCard.getBest();
+        boolean ready = compareCard.getStatus() == PlaceCompareCard.Status.READY && best != null;
+        row.setVisibility(ready ? View.VISIBLE : View.GONE);
         message.setVisibility(ready ? View.GONE : View.VISIBLE);
-        register.setVisibility(card.getStatus() == PlaceCompareCard.Status.NOT_REGISTERED
-                ? View.VISIBLE : View.GONE);
+        cheapest.setVisibility(ready && compareCard.isCheapest() ? View.VISIBLE : View.GONE);
+        extra.setVisibility(ready && compareCard.getExtraCostWon() > 0 ? View.VISIBLE : View.GONE);
 
         String summary;
         if (ready) {
             GasStation gasStation = best.getStation();
-            station.setText(context.getString(R.string.compare_station_line,
-                    gasStation.getName(), gasStation.getBrandName()));
-            price.setText(context.getString(R.string.compare_price_line,
-                    FormatUtil.formatPrice(gasStation.getPrice()), FormatUtil.formatDistance(gasStation.getDistance())));
-            total.setText(FormatUtil.formatTotalCost(best.getTotalCost()));
-            extra.setText(FormatUtil.formatExtraCost(card.getExtraCostWon()));
-            age.setText(FormatUtil.formatPriceAge(card.getFetchedAt(), now));
-            summary = station.getText() + ", " + price.getText() + ", " + total.getText()
-                    + (card.isCheapest() ? ", " + cheapest.getText() : "")
-                    + (card.getExtraCostWon() > 0 ? ", " + extra.getText() : "");
+            station.setText(gasStation.getName());
+            List<String> parts = new ArrayList<>();
+            parts.add(gasStation.getBrandName());
+            parts.add(FormatUtil.formatDistance(gasStation.getDistance()));
+            parts.add(FormatUtil.formatPrice(gasStation.getPrice()));
+            if (compareCard.getFetchedAt() > 0) {
+                parts.add(FormatUtil.formatPriceAge(compareCard.getFetchedAt(), now));
+            }
+            detail.setText(join(parts));
+            total.setText(FormatUtil.formatApproxWon(best.getTotalCost()));
+            extra.setText(FormatUtil.formatExtraCost(compareCard.getExtraCostWon()));
+            summary = gasStation.getName() + ", " + detail.getText() + ", "
+                    + context.getString(R.string.compare_card_total, total.getText())
+                    + (compareCard.isCheapest() ? ", " + cheapest.getText() : "")
+                    + (compareCard.getExtraCostWon() > 0 ? ", " + extra.getText() : "");
         } else {
-            message.setText(messageFor(context, card, kindLabel, radiusLabel));
+            message.setText(messageFor(context, compareCard, radiusLabel));
             summary = message.getText().toString();
         }
 
-        boolean clickable = card.getStatus() != PlaceCompareCard.Status.NOT_REGISTERED;
-        root.setClickable(clickable);
-        root.setFocusable(clickable);
-        root.setOnClickListener(clickable ? v -> listener.onCardClick(card) : null);
-        root.setContentDescription(clickable
-                ? context.getString(R.string.compare_card_description, titleText, summary)
-                : titleText + ". " + summary);
-        register.setContentDescription(context.getString(R.string.compare_register_description, kindLabel));
-        register.setOnClickListener(v -> listener.onRegisterClick(card));
+        card.setOnClickListener(v -> listener.onCardClick(compareCard));
+        card.setContentDescription(context.getString(R.string.compare_card_description, titleText, summary));
     }
 
-    private static String messageFor(Context context, PlaceCompareCard card, String kindLabel, String radiusLabel) {
+    private static String join(List<String> parts) {
+        // String.join은 API 26부터라서 직접 잇는다.
+        StringBuilder text = new StringBuilder(parts.get(0));
+        for (int i = 1; i < parts.size(); i++) {
+            text.append(" · ").append(parts.get(i));
+        }
+        return text.toString();
+    }
+
+    private static String messageFor(Context context, PlaceCompareCard card, String radiusLabel) {
         switch (card.getStatus()) {
-            case NOT_REGISTERED:
-                return context.getString(R.string.compare_not_registered, kindLabel);
             case WAITING:
                 return context.getString(R.string.compare_waiting);
             case OUTSIDE_MOCK_AREA:

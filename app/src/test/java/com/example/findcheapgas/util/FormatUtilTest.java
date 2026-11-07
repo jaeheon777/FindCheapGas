@@ -140,7 +140,8 @@ public class FormatUtilTest {
     @Test
     public void compareTotalAndExtraCost() {
         assertEquals("예상 총비용 약 66,174원", FormatUtil.formatTotalCost(66174.3));
-        assertEquals("약 1,200원 더 듦", FormatUtil.formatExtraCost(1200));
+        assertEquals("약 1,200원 더 들어요", FormatUtil.formatExtraCost(1200));
+        assertEquals("약 66,174원", FormatUtil.formatApproxWon(66174.3));
     }
 
     @Test

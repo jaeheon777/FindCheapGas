@@ -39,8 +39,6 @@
     <color name="hero_saving_gain_text">#FFC5F04A</color>
     <color name="hero_card_stroke">#FFC5F04A</color>
 
-    <color name="badge_best_background">#FF3DD68C</color>
-    <color name="badge_best_text">#FF0D2B1A</color>
     <color name="preferred_star">#FFFFC94D</color>
 
     <!-- 홈 화면 위젯: 앱 설정이 아니라 휴대폰 시스템의 다크 모드를 따른다 (런처가 그림). -->

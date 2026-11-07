@@ -5,7 +5,7 @@
     - 공간이 모자라면 왼쪽 상호와 보조 정보가 말줄임(…)된다. 긴 상호, 큰 글꼴 설정에서도 줄이 깨지지 않는다.
     - 보조 정보 뒤에 배지 하나(list_row_badge)를 붙일 수 있다. 보조 정보가 먼저 줄어들고 배지는 그대로 남는다.
     - 고른 줄(activated)은 연한 라임 바탕이다 (ListRow 스타일의 bg_list_row).
-    지도 탭 주유소 목록이 이 조각을 쓴다.
+    지도 탭 주유소 목록과 즐겨찾기 목록(item_favorite.xml)이 이 조각을 쓴다.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
