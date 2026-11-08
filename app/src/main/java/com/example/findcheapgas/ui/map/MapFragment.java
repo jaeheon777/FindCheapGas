@@ -165,6 +165,9 @@ public class MapFragment extends Fragment {
     private int appliedPeekHeight;
     // 검색창에 입력하는 동안(키보드가 보이는 동안) 시트를 숨겼는지
     private boolean sheetHiddenForKeyboard = false;
+    // 시트를 내린 뒤에 열 메뉴 (필터 칩을 시트를 올린 상태에서 눌렀을 때). 시트가 다시 올라가면 버린다.
+    @Nullable
+    private Runnable afterSheetCollapsed;
 
     // 시트를 내린 상태의 이득 1위 카드
     private View bestCard;
@@ -361,6 +364,7 @@ public class MapFragment extends Fragment {
         sheetBehavior = null;
         sheetHandle = null;
         sheetHiddenForKeyboard = false;
+        afterSheetCollapsed = null;
         stationList = null;
         stationLayoutManager = null;
         stationAdapter = null;
@@ -664,6 +668,16 @@ public class MapFragment extends Fragment {
                     stationList.stopScroll();
                     stationLayoutManager.scrollToPosition(0);
                 }
+                // 필터 칩을 눌러 시트를 내리는 중이었으면 다 내린 뒤에 메뉴를 연다. 그 사이 다시 올렸으면 열지 않는다.
+                if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    Runnable pending = afterSheetCollapsed;
+                    afterSheetCollapsed = null;
+                    if (pending != null && getView() != null && !isStateSaved()) {
+                        pending.run();
+                    }
+                } else if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    afterSheetCollapsed = null;
+                }
             }
 
             @Override
@@ -743,6 +757,22 @@ public class MapFragment extends Fragment {
                 || sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
             return;
         }
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
+
+    /**
+     * 지도 위쪽 필터 칩의 메뉴를 열 때: 시트를 올린 상태면 내린 상태로 내린 뒤에 열어서 메뉴가 시트 위에 겹치지 않게 한다.
+     * 이미 내린 상태거나 키보드 때문에 숨긴 동안이면 바로 연다.
+     */
+    private void openAboveSheet(Runnable open) {
+        MapGestureGuard.SheetPosition position = sheetPosition();
+        if (position == MapGestureGuard.SheetPosition.COLLAPSED
+                || position == MapGestureGuard.SheetPosition.HIDDEN) {
+            afterSheetCollapsed = null;
+            open.run();
+            return;
+        }
+        afterSheetCollapsed = open;
         sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
@@ -1318,12 +1348,13 @@ public class MapFragment extends Fragment {
         sortButton = view.findViewById(R.id.btn_sort);
 
         // 칩의 ▼ 아이콘을 눌러도 칩을 누른 것과 같게 한다.
-        fuelTypeChip.setOnClickListener(this::showFuelTypeMenu);
-        fuelTypeChip.setOnCloseIconClickListener(v -> showFuelTypeMenu(fuelTypeChip));
-        radiusChip.setOnClickListener(this::showRadiusMenu);
-        radiusChip.setOnCloseIconClickListener(v -> showRadiusMenu(radiusChip));
-        brandChip.setOnClickListener(v -> showBrandFilter());
-        brandChip.setOnCloseIconClickListener(v -> showBrandFilter());
+        // 지도 위쪽 칩은 시트를 올린 상태면 내린 뒤에 메뉴를 연다. 정렬 메뉴는 시트 안에 있으므로 시트를 그대로 둔다.
+        fuelTypeChip.setOnClickListener(v -> openAboveSheet(() -> showFuelTypeMenu(fuelTypeChip)));
+        fuelTypeChip.setOnCloseIconClickListener(v -> openAboveSheet(() -> showFuelTypeMenu(fuelTypeChip)));
+        radiusChip.setOnClickListener(v -> openAboveSheet(() -> showRadiusMenu(radiusChip)));
+        radiusChip.setOnCloseIconClickListener(v -> openAboveSheet(() -> showRadiusMenu(radiusChip)));
+        brandChip.setOnClickListener(v -> openAboveSheet(this::showBrandFilter));
+        brandChip.setOnCloseIconClickListener(v -> openAboveSheet(this::showBrandFilter));
         sortButton.setOnClickListener(this::showSortMenu);
     }
 
