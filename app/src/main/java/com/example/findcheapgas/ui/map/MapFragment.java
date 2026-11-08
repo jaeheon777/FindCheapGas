@@ -1,6 +1,7 @@
 package com.example.findcheapgas.ui.map;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -217,6 +218,7 @@ public class MapFragment extends Fragment {
         filterScroll = view.findViewById(R.id.filter_scroll);
 
         setUpStationSheet(view);
+        setUpMapTouchGuard(view);
         setUpBestCard(view);
         setUpSearch(view);
         setUpFilters(view);
@@ -690,6 +692,58 @@ public class MapFragment extends Fragment {
                     renderResearchButton();
                     renderMyLocationButton();
                 }));
+    }
+
+    /**
+     * 시트를 올린 동안 시트 밖 지도를 누르면 시트만 내린다. 그 누름은 지도에 취소로 보내서 마커가 선택되거나
+     * 지도가 바뀌지 않는다. 지도를 끌면 시트를 내리고 지도는 손가락을 따라 움직인다 (MapGestureGuard).
+     * 시트 안(카드, 목록, 머리줄, 정렬 메뉴)을 누르면 시트가 받으므로 여기로 오지 않는다.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private void setUpMapTouchGuard(View view) {
+        // 시트 안의 누를 수 없는 곳(머리줄 글자, 카드 사이 여백)을 눌러도 아래 지도로 넘어가지 않게 시트가 받는다.
+        // 끌어서 올리고 내리는 것은 CoordinatorLayout이 먼저 가로채므로 그대로 된다.
+        stationSheet.setOnTouchListener((v, event) -> true);
+        MapTouchGuardLayout mapContainer = view.findViewById(R.id.map_container);
+        mapContainer.setCallback(new MapTouchGuardLayout.Callback() {
+            @NonNull
+            @Override
+            public MapGestureGuard.SheetPosition currentSheetPosition() {
+                return sheetPosition();
+            }
+
+            @Override
+            public void collapseSheetFromMap() {
+                collapseSheet();
+            }
+        });
+    }
+
+    @NonNull
+    private MapGestureGuard.SheetPosition sheetPosition() {
+        if (sheetBehavior == null || sheetHiddenForKeyboard) {
+            return MapGestureGuard.SheetPosition.HIDDEN;
+        }
+        switch (sheetBehavior.getState()) {
+            case BottomSheetBehavior.STATE_COLLAPSED:
+                return MapGestureGuard.SheetPosition.COLLAPSED;
+            case BottomSheetBehavior.STATE_HIDDEN:
+                return MapGestureGuard.SheetPosition.HIDDEN;
+            case BottomSheetBehavior.STATE_EXPANDED:
+            case BottomSheetBehavior.STATE_HALF_EXPANDED:
+                return MapGestureGuard.SheetPosition.EXPANDED;
+            default:
+                return MapGestureGuard.SheetPosition.MOVING;
+        }
+    }
+
+    /** 시트를 내린 상태로 부드럽게 내린다. 키보드 때문에 숨긴 동안이나 이미 내린 상태면 그대로 둔다. */
+    private void collapseSheet() {
+        if (sheetBehavior == null || sheetHiddenForKeyboard
+                || sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED) {
+            return;
+        }
+        sheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
     /** 손잡이를 누르면 올린 상태는 내리고, 그 밖(내림)은 올린다. */

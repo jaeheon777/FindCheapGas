@@ -5,8 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 카카오맵 MapView는 SDK 초기화에 성공했을 때만 코드에서 넣는다. -->
-    <FrameLayout
+    <!--
+        카카오맵 MapView는 SDK 초기화에 성공했을 때만 코드에서 넣는다.
+        아래 시트를 올린 동안 지도를 누르면 시트만 내리고 지도에는 누름을 넘기지 않는다 (MapTouchGuardLayout).
+    -->
+    <com.example.findcheapgas.ui.map.MapTouchGuardLayout
         android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
