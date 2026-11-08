@@ -688,15 +688,8 @@ public class MapFragment extends Fragment {
         });
         // 시트 높이를 화면 높이에서 위쪽(검색창, 필터 줄) 여백을 뺀 만큼으로 맞춘다. fitToContents라서 시트 전체가 보이는 곳이
         // 올린 상태가 되고, 가운데 단계 없이 내림 / 올림 두 단계만 남는다.
-        int expandedOffset = getResources().getDimensionPixelSize(R.dimen.station_sheet_expanded_offset);
-        view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-            int height = Math.max(0, (bottom - top) - expandedOffset);
-            ViewGroup.LayoutParams params = sheet.getLayoutParams();
-            if (height > 0 && params.height != height) {
-                params.height = height;
-                v.post(() -> sheet.setLayoutParams(params));
-            }
-        });
+        view.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                fitSheetHeight());
         // 처음 배치, 화면 회전, 카드 내용·글꼴 크기 변화로 크기가 바뀐 뒤에도 맞춘다. 배치 중에는 바꾸지 않도록 post한다.
         sheet.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
                 v.post(() -> {
@@ -876,6 +869,29 @@ public class MapFragment extends Fragment {
         appliedPeekHeight = peek;
         sheetBehavior.setPeekHeight(peek, sheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED);
         applyMapBottomPadding();
+        fitSheetHeight();
+    }
+
+    /**
+     * 시트 높이 = 화면 높이 - 위쪽 여백(station_sheet_expanded_offset, 가로 화면은 검색창 아래까지).
+     * 다만 가로 화면이나 큰 글꼴처럼 화면이 낮아서 그 높이가 내린 상태의 높이(peek)보다 작으면, fitToContents 시트는
+     * 시트 높이까지만 보여줘서 이득 1위 카드 아래가 잘리므로 화면 높이 안에서 peek 이상으로 키운다.
+     */
+    private void fitSheetHeight() {
+        View root = getView();
+        if (root == null || stationSheet == null || root.getHeight() == 0) {
+            return;
+        }
+        int parentHeight = root.getHeight();
+        int expandedOffset = getResources().getDimensionPixelSize(R.dimen.station_sheet_expanded_offset);
+        int height = Math.max(parentHeight - expandedOffset, Math.min(parentHeight, appliedPeekHeight));
+        View sheet = stationSheet;
+        ViewGroup.LayoutParams params = sheet.getLayoutParams();
+        if (height > 0 && params.height != height) {
+            params.height = height;
+            // 배치 중에 불릴 수 있으므로 다음 차례에 바꾼다.
+            sheet.post(() -> sheet.setLayoutParams(params));
+        }
     }
 
     /** 지도 아래 여백: 시트를 내린 상태의 높이(peek), 키보드 때문에 시트를 숨긴 동안은 0. */
