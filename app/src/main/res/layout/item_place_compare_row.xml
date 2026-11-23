@@ -3,7 +3,7 @@
     집·회사 기준 비교 카드 안의 한 줄 (지금 조회 위치 / 집 근처 / 회사 근처). 목록 한 줄 규칙(Widget.FindCheapGas.ListRow.*)과 같다.
     - 왼쪽: 위치 이름(작게), 이득 1위 상호, 보조 글자 한 줄(브랜드 · 거리 · 가격 · 가져온 시각). 상호와 보조 글자는 말줄임
     - 오른쪽: 예상 총비용과 그 아래 "가장 저렴" 배지(라임 바탕) / "약 1,200원 더 들어요"(빨강) / "비슷해요"(회색).
-      줄바꿈 없이 오른쪽 정렬하고 오른쪽이 먼저 폭을 차지한다.
+      줄바꿈 없이 오른쪽 정렬하고 오른쪽이 먼저 폭을 차지한다. 왼쪽 폭이 너무 좁아지면 금액 묶음을 왼쪽 아래로 내린다 (AmountRowLayout).
     - 이득 1위가 없으면 상호 자리에 짧은 이유 (가져오는 중, 주유소 없음, 한도 도달, 오류, 가짜 데이터 범위 밖)
     - 등록하지 않았으면 줄 전체를 "집 위치 등록하기" 버튼 하나로 바꾼다.
 -->
@@ -13,7 +13,7 @@
     android:layout_height="wrap_content"
     tools:ignore="MergeRootFrame">
 
-    <LinearLayout
+    <com.example.findcheapgas.ui.AmountRowLayout
         android:id="@+id/compare_row"
         style="@style/Widget.FindCheapGas.ListRow"
         android:layout_width="match_parent"
@@ -93,7 +93,7 @@
                 android:visibility="gone"
                 tools:text="약 1,200원 더 들어요" />
         </LinearLayout>
-    </LinearLayout>
+    </com.example.findcheapgas.ui.AmountRowLayout>
 
     <!-- 등록하지 않은 위치: 줄 안에 등록 버튼 하나 -->
     <com.google.android.material.button.MaterialButton
