@@ -6,6 +6,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
@@ -92,7 +93,15 @@ public class AmountRowLayout extends LinearLayout {
         endParams.topMargin = stack ? stackGap : 0;
         endParams.gravity = stack ? Gravity.START : Gravity.NO_GRAVITY;
         if (end instanceof LinearLayout) {
-            ((LinearLayout) end).setGravity(stack ? Gravity.START : Gravity.END);
+            LinearLayout endGroup = (LinearLayout) end;
+            endGroup.setGravity(stack ? Gravity.START : Gravity.END);
+            // 금액 묶음 안의 글자(작은 텍스트 버튼 포함)도 같은 쪽 끝에 맞춘다.
+            for (int i = 0; i < endGroup.getChildCount(); i++) {
+                View child = endGroup.getChildAt(i);
+                if (child instanceof TextView) {
+                    ((TextView) child).setGravity((stack ? Gravity.START : Gravity.END) | Gravity.CENTER_VERTICAL);
+                }
+            }
         }
     }
 }

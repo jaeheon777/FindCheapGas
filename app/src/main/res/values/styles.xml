@@ -388,6 +388,23 @@
         <item name="android:maxLines">1</item>
     </style>
 
+    <!--
+        오른쪽 금액 묶음 맨 아래 작은 텍스트 버튼 (저장한 주유소 "찾을 수 없어요" 아래 "삭제").
+        누르는 영역은 48dp로 두고, 글자 위 빈 부분은 설명 글자에 겹쳐서 줄 높이가 크게 늘지 않게 한다.
+        좌우 안쪽 여백이 없어서 글자가 위 설명과 같은 끝(쌓았을 때는 같은 시작)에 맞는다. 글자 정렬은 AmountRowLayout이 정한다.
+    -->
+    <style name="Widget.FindCheapGas.ListRow.Action" parent="Widget.FindCheapGas.Button.Text">
+        <item name="android:minWidth">@dimen/touch_target</item>
+        <item name="android:minHeight">@dimen/touch_target</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:gravity">end|center_vertical</item>
+        <item name="android:textAppearance">@style/TextAppearance.FindCheapGas.LabelMedium</item>
+        <item name="android:layout_marginTop">@dimen/list_row_action_overlap_top</item>
+    </style>
+
     <!-- 배지의 안쪽 여백 -->
     <style name="Widget.FindCheapGas.Badge" parent="">
         <item name="android:paddingStart">@dimen/badge_padding_horizontal</item>

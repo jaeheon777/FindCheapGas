@@ -32,7 +32,7 @@ import java.util.List;
  * - 오른쪽 위: 지금 고른 유종 가격. 가격이 없으면 비운다.
  * - 오른쪽 아래: 예상 이득 설명 ("약 2,583원 아껴요", 색은 지도 탭 목록과 같음), 또는 짧은 이유
  *   (5km 밖이라 계산 안 해요, 이 유종을 팔지 않아요, 찾을 수 없어요, 오늘 한도에 도달했어요 등)
- * - 오피넷에서 찾을 수 없으면 아래에 삭제 버튼. 길게 누르면 삭제 메뉴 (접근성 동작 "삭제"도 같음)
+ * - 오피넷에서 찾을 수 없으면 오른쪽 "찾을 수 없어요" 아래에 작은 "삭제" 버튼. 길게 누르면 삭제 메뉴 (접근성 동작 "삭제"도 같음)
  */
 public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHolder> {
 
@@ -90,6 +90,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
 
         boolean notFound = price != null && price.getStatus() == FavoritePrice.Status.NOT_FOUND;
         holder.delete.setVisibility(notFound ? View.VISIBLE : View.GONE);
+        holder.delete.setText(R.string.favorite_delete);
         holder.delete.setOnClickListener(v -> listener.onDeleteClick(item));
 
         // 접근성 설명: 상호, 브랜드 · 거리, 가격, 예상 이득 또는 이유, 오래된 가격
@@ -222,7 +223,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
         final TextView badge;
         final TextView price;
         final TextView note;
-        final View delete;
+        final TextView delete;
         final int secondaryColor;
         int deleteActionId = View.NO_ID;
 
@@ -234,7 +235,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.ViewHo
             badge = itemView.findViewById(R.id.list_row_badge);
             price = itemView.findViewById(R.id.list_row_amount);
             note = itemView.findViewById(R.id.list_row_amount_note);
-            delete = itemView.findViewById(R.id.favorite_delete);
+            delete = itemView.findViewById(R.id.list_row_action);
             secondaryColor = MaterialColors.getColor(itemView, com.google.android.material.R.attr.colorOnSurfaceVariant);
         }
     }

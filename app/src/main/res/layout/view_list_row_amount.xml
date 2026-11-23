@@ -5,6 +5,7 @@
     - 공간이 모자라면 왼쪽 상호와 보조 정보가 말줄임(…)된다. 긴 상호, 큰 글꼴 설정에서도 줄이 깨지지 않는다.
     - 금액 묶음 때문에 왼쪽 폭이 줄의 40%(list_row_stack_min_start_ratio)보다 좁아지면 그 줄만 금액 묶음을
       왼쪽 아래로 내려 세로로 쌓는다 (AmountRowLayout). 쌓아도 금액과 설명은 각각 한 줄이다.
+    - 오른쪽 설명 아래에 작은 텍스트 버튼 하나(list_row_action)를 둘 수 있다 (누르는 영역 48dp, 줄 높이는 거의 그대로).
     - 보조 정보 뒤에 배지 하나(list_row_badge)를 붙일 수 있다. 보조 정보가 먼저 줄어들고 배지는 그대로 남는다.
     - 고른 줄(activated)은 연한 라임 바탕이다 (ListRow 스타일의 bg_list_row).
     지도 탭 주유소 목록과 즐겨찾기 목록(item_favorite.xml)이 이 조각을 쓴다.
@@ -66,5 +67,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="약 2,583원 아껴요" />
+
+        <!-- 설명 아래 작은 텍스트 버튼 하나 (저장한 주유소의 "찾을 수 없어요" 줄의 "삭제"). 쓰지 않는 줄은 숨긴다. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/list_row_action"
+            style="@style/Widget.FindCheapGas.ListRow.Action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:text="삭제" />
     </LinearLayout>
 </com.example.findcheapgas.ui.AmountRowLayout>

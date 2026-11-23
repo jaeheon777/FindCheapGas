@@ -65,6 +65,12 @@
     <item name="list_row_stack_min_start_ratio" format="float" type="dimen">0.4</item>
     <!-- 세로로 쌓았을 때 왼쪽 묶음과 금액 묶음 사이 간격 -->
     <dimen name="list_row_stack_gap">@dimen/space_xs</dimen>
+    <!--
+        목록 한 줄 오른쪽 아래 작은 텍스트 버튼(Widget.FindCheapGas.ListRow.Action)의 48dp 누르는 영역 중
+        글자 위 빈 부분을 위 설명 글자에 겹쳐 줄 높이가 다른 줄과 크게 다르지 않게 한다.
+        아래쪽은 겹치지 않는다: 금액 묶음 밖으로 나간 부분은 누르기가 전달되지 않아 누르는 영역이 48dp보다 작아진다.
+    -->
+    <dimen name="list_row_action_overlap_top">-12dp</dimen>
     <dimen name="drag_handle_min_height">24dp</dimen>
     <!-- 지도 시트 손잡이 막대 -->
     <dimen name="sheet_handle_width">32dp</dimen>
