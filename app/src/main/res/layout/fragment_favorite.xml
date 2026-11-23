@@ -2,9 +2,8 @@
 <!--
     즐겨찾기 탭. 제목은 고정하고, 그 아래는 한 번에 스크롤한다 (당겨서 새로고침).
     - 맨 위 작은 글자 한 줄: 계산 기준 · 유종 · 반경 · 조회 위치 (누르면 내 차 정보 수정)
-    - 주인공 카드: 집·회사 기준 비교의 결론 ("회사 근처에서 넣으면 가장 저렴해요" + 그 카드의 예상 총비용).
-      가장 저렴한 카드를 고를 수 없으면 (비교할 카드가 두 장보다 적으면) 큰 숫자 없이 짧은 안내만
-    - 비교 카드 세 장 (지금 조회 위치 / 집 근처 / 회사 근처)과 금액 설명
+    - 집·회사 기준 비교 카드 한 장: 결론 문장과 주인공 숫자(가장 저렴한 곳이 두 번째보다 1,000원 이상 쌀 때 그 차이),
+      구분선 아래 세 위치(지금 조회 위치 / 집 근처 / 회사 근처)를 한 줄씩, 카드 아래 금액 설명
     - 저장한 주유소: 제목과 개수, 안내 (오늘 조회 한도 도달, 30분 이상 지난 가격), 목록 카드 (목록 한 줄 조각,
       왼쪽으로 밀거나 길게 눌러 삭제). 비어 있으면 가운데에 안내와 "지도에서 주유소 찾기" 버튼
 -->
@@ -61,9 +60,13 @@
                     app:drawableTint="?attr/colorOnSurfaceVariant"
                     tools:text="내 차 기준 · 연비 15km/L · 40L · 휘발유 · 반경 3km · 내 위치 기준" />
 
-                <!-- 주인공 카드: 집·회사 기준 비교의 결론 -->
+                <!--
+                    집·회사 기준 비교 카드 한 장 (화면의 주인공 카드).
+                    맨 위: 작은 올리브색 제목, 결론 문장, 주인공 숫자(가장 저렴한 곳과 두 번째로 저렴한 곳의 차이, 1,000원 이상일 때만)
+                    구분선 아래: 세 위치를 한 줄씩 (item_place_compare_row.xml)
+                -->
                 <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/compare_hero"
+                    android:id="@+id/compare_card"
                     style="@style/Widget.FindCheapGas.Card.Hero"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -72,54 +75,80 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/card_padding">
+                        android:orientation="vertical">
 
-                        <TextView
+                        <LinearLayout
+                            android:id="@+id/compare_header"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/compare_title"
-                            android:textAppearance="?attr/textAppearanceLabelMedium"
-                            android:textColor="?attr/colorPrimary" />
+                            android:orientation="vertical"
+                            android:padding="@dimen/card_padding">
 
-                        <TextView
-                            android:id="@+id/compare_hero_title"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_s"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            tools:text="회사 근처에서 넣으면 가장 저렴해요" />
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/compare_title"
+                                android:textAppearance="?attr/textAppearanceLabelMedium"
+                                android:textColor="?attr/colorPrimary" />
 
-                        <TextView
-                            android:id="@+id/compare_hero_amount"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_xxs"
-                            android:textAppearance="@style/TextAppearance.FindCheapGas.Number"
-                            tools:text="약 66,174원" />
+                            <TextView
+                                android:id="@+id/compare_conclusion"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/space_xs"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                tools:text="회사 근처에서 넣으면 가장 저렴해요" />
 
-                        <TextView
-                            android:id="@+id/compare_hero_caption"
+                            <!-- 주인공 숫자: "다른 곳보다 약 1,200원 아껴요" -->
+                            <TextView
+                                android:id="@+id/compare_saving"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/space_xxs"
+                                android:textAppearance="@style/TextAppearance.FindCheapGas.Number"
+                                android:visibility="gone"
+                                tools:text="다른 곳보다 약 1,229원 아껴요"
+                                tools:visibility="visible" />
+
+                            <!-- 큰 숫자가 없을 때의 짧은 설명 (예: 집 근처와는 1,000원 미만 차이예요) -->
+                            <TextView
+                                android:id="@+id/compare_caption"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/space_xxs"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:visibility="gone" />
+                        </LinearLayout>
+
+                        <com.google.android.material.divider.MaterialDivider
+                            style="@style/Widget.FindCheapGas.CompareDivider"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/space_xs"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            tools:text="양재셀프주유소에서 넣을 때 예상 총비용이에요" />
+                            android:layout_height="wrap_content" />
+
+                        <include
+                            android:id="@+id/compare_current"
+                            layout="@layout/item_place_compare_row" />
+
+                        <com.google.android.material.divider.MaterialDivider
+                            style="@style/Widget.FindCheapGas.CompareDivider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                        <include
+                            android:id="@+id/compare_home"
+                            layout="@layout/item_place_compare_row" />
+
+                        <com.google.android.material.divider.MaterialDivider
+                            style="@style/Widget.FindCheapGas.CompareDivider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
+
+                        <include
+                            android:id="@+id/compare_work"
+                            layout="@layout/item_place_compare_row" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-
-                <include
-                    android:id="@+id/compare_current"
-                    layout="@layout/item_place_compare" />
-
-                <include
-                    android:id="@+id/compare_home"
-                    layout="@layout/item_place_compare" />
-
-                <include
-                    android:id="@+id/compare_work"
-                    layout="@layout/item_place_compare" />
 
                 <TextView
                     android:layout_width="match_parent"

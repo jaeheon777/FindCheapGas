@@ -7,6 +7,7 @@ import com.example.findcheapgas.model.BrandSettings;
 import com.example.findcheapgas.model.CarInfo;
 import com.example.findcheapgas.model.GasStation;
 import com.example.findcheapgas.model.PlaceCompareCard;
+import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.model.SortOrder;
 import com.example.findcheapgas.model.StationError;
@@ -27,6 +28,7 @@ import java.util.List;
  * 예상 이득은 그 위치에서 가장 가까운 주유소를 기준으로 한 값이라 위치마다 기준이 달라서 서로 비교할 수 없다.
  * 예상 총비용(기름값 + 그 위치에서 가는 이동 비용)은 같은 주유량을 넣는 데 드는 돈이라 위치끼리 비교할 수 있다.
  * READY 카드가 두 장 이상일 때만 원 단위 예상 총비용이 가장 낮은 카드에 "가장 저렴"을 표시하고, 나머지는 차이를 계산한다.
+ * 즐겨찾기 탭 비교 카드 맨 위 결론(conclude)은 가장 저렴한 곳과 두 번째로 저렴한 곳의 차이로 정한다.
  */
 public final class PlaceCompareBuilder {
 
@@ -95,6 +97,98 @@ public final class PlaceCompareBuilder {
             }
         }
         return ready >= 2;
+    }
+
+    /**
+     * 비교 카드 맨 위 결론. conclude()가 만든다.
+     * - UNAVAILABLE: 비교한 카드(READY)가 두 장보다 적다. 큰 숫자 없이 짧은 안내만
+     * - CHEAPER: 가장 저렴한 곳이 두 번째로 저렴한 곳보다 1,000원 이상 싸다 (SavingLevel.GAIN). 차이를 큰 숫자로
+     * - SIMILAR: 모든 카드가 가장 저렴한 카드와 1,000원 미만 차이 (allSimilarToCheapest). 큰 숫자 없음
+     * - CLOSE: 두 번째로 저렴한 곳과는 1,000원 미만이지만 1,000원 이상 더 드는 곳도 있다. 큰 숫자 없이 결론만
+     */
+    public static final class Conclusion {
+
+        public enum Kind {
+            UNAVAILABLE,
+            CHEAPER,
+            SIMILAR,
+            CLOSE
+        }
+
+        private final Kind kind;
+        @Nullable
+        private final PlaceCompareCard cheapest;
+        @Nullable
+        private final PlaceCompareCard runnerUp;
+
+        Conclusion(Kind kind, @Nullable PlaceCompareCard cheapest, @Nullable PlaceCompareCard runnerUp) {
+            this.kind = kind;
+            this.cheapest = cheapest;
+            this.runnerUp = runnerUp;
+        }
+
+        public Kind getKind() {
+            return kind;
+        }
+
+        /** 가장 저렴한 카드 (원 단위로 같으면 입력 순서상 앞의 카드). UNAVAILABLE이면 null */
+        @Nullable
+        public PlaceCompareCard getCheapest() {
+            return cheapest;
+        }
+
+        /** 두 번째로 저렴한 카드. UNAVAILABLE이면 null */
+        @Nullable
+        public PlaceCompareCard getRunnerUp() {
+            return runnerUp;
+        }
+
+        /** 가장 저렴한 곳이 두 번째로 저렴한 곳보다 싼 금액(원). UNAVAILABLE이면 0 */
+        public long getSavingWon() {
+            return runnerUp != null ? runnerUp.getExtraCostWon() : 0;
+        }
+    }
+
+    /**
+     * 비교 카드 맨 위 결론을 정한다. 예상 총비용과 "가장 저렴" 판정은 build()의 결과를 그대로 쓰고,
+     * 차이는 두 번째로 저렴한 카드의 getExtraCostWon(가장 저렴한 카드보다 더 드는 금액)이다.
+     */
+    public static Conclusion conclude(@Nullable List<PlaceCompareCard> cards) {
+        if (cards == null) {
+            return new Conclusion(Conclusion.Kind.UNAVAILABLE, null, null);
+        }
+        PlaceCompareCard cheapest = null;
+        for (PlaceCompareCard card : cards) {
+            if (card.getStatus() == PlaceCompareCard.Status.READY && card.isCheapest()) {
+                cheapest = card;
+                break;
+            }
+        }
+        if (cheapest == null) {
+            // "가장 저렴"은 READY 카드가 두 장 이상일 때만 정해진다.
+            return new Conclusion(Conclusion.Kind.UNAVAILABLE, null, null);
+        }
+        PlaceCompareCard runnerUp = null;
+        for (PlaceCompareCard card : cards) {
+            if (card == cheapest || card.getStatus() != PlaceCompareCard.Status.READY) {
+                continue;
+            }
+            if (runnerUp == null || card.getExtraCostWon() < runnerUp.getExtraCostWon()) {
+                runnerUp = card;
+            }
+        }
+        if (runnerUp == null) {
+            return new Conclusion(Conclusion.Kind.UNAVAILABLE, null, null);
+        }
+        Conclusion.Kind kind;
+        if (SavingLevel.of(runnerUp.getExtraCostWon()) == SavingLevel.GAIN) {
+            kind = Conclusion.Kind.CHEAPER;
+        } else if (allSimilarToCheapest(cards)) {
+            kind = Conclusion.Kind.SIMILAR;
+        } else {
+            kind = Conclusion.Kind.CLOSE;
+        }
+        return new Conclusion(kind, cheapest, runnerUp);
     }
 
     /** 화면 목록에서 이득 1위 주유소. 없으면 null */

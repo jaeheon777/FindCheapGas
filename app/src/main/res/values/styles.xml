@@ -504,4 +504,11 @@
         <item name="dividerInsetStart">@dimen/space_l</item>
         <item name="dividerColor">?attr/colorOutlineVariant</item>
     </style>
+
+    <!-- 즐겨찾기 탭 집·회사 기준 비교 카드 안의 구분선: 카드 안쪽 여백만큼 양쪽을 띄운다 -->
+    <style name="Widget.FindCheapGas.CompareDivider" parent="Widget.Material3.MaterialDivider">
+        <item name="dividerInsetStart">@dimen/card_padding</item>
+        <item name="dividerInsetEnd">@dimen/card_padding</item>
+        <item name="dividerColor">?attr/colorOutlineVariant</item>
+    </style>
 </resources>

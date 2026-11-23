@@ -266,6 +266,101 @@ public class PlaceCompareBuilderTest {
         assertFalse(PlaceCompareBuilder.allSimilarToCheapest(null));
     }
 
+    // 회사 근처 w1(65,696원)보다 1,000원 이상 비싼 곳: 68,000 + 0.56 ÷ 12 × 1,700 = 68,079.33 → 68,079원 (2,383원 차이)
+    private static final List<GasStation> FAR = Collections.singletonList(
+            station("f1", "SKE", 1700, 400));
+
+    @Test
+    public void conclude_cheaperByThreshold_showsGapToRunnerUp() {
+        // 집 64,467 가장 저렴, 두 번째 회사 65,696(1,229원 차이), 지금 조회 위치 66,385(1,918원 차이)
+        List<PlaceCompareCard> cards = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.loaded(Slot.HOME, HOME, 0), Source.loaded(Slot.WORK, WORK, 0));
+        PlaceCompareBuilder.Conclusion conclusion = PlaceCompareBuilder.conclude(cards);
+
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.CHEAPER, conclusion.getKind());
+        assertEquals(Slot.HOME, conclusion.getCheapest().getSlot());
+        assertEquals(Slot.WORK, conclusion.getRunnerUp().getSlot());
+        assertEquals(1229, conclusion.getSavingWon());
+        // 예상 총비용과 가장 저렴 판정은 그대로
+        assertEquals(64467, conclusion.getCheapest().getTotalCostWon());
+        assertTrue(cards.get(1).isCheapest());
+    }
+
+    @Test
+    public void conclude_gapAtThreshold_isCheaper_belowIsNot() {
+        // SavingLevel과 같은 경계: 1,000원 차이부터 큰 숫자, 999원은 비슷
+        List<PlaceCompareCard> atThreshold = Arrays.asList(card(Slot.HOME, 0), card(Slot.WORK, 1000));
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.CHEAPER,
+                PlaceCompareBuilder.conclude(atThreshold).getKind());
+        assertEquals(1000, PlaceCompareBuilder.conclude(atThreshold).getSavingWon());
+
+        List<PlaceCompareCard> below = Arrays.asList(card(Slot.HOME, 0), card(Slot.WORK, 999));
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.SIMILAR, PlaceCompareBuilder.conclude(below).getKind());
+    }
+
+    @Test
+    public void conclude_allWithinThreshold_similar() {
+        // 회사 65,696 가장 저렴, 집 200원, 지금 조회 위치 689원 차이 → 모두 비슷
+        List<PlaceCompareCard> cards = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.loaded(Slot.HOME, NEAR_WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+        PlaceCompareBuilder.Conclusion conclusion = PlaceCompareBuilder.conclude(cards);
+
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.SIMILAR, conclusion.getKind());
+        assertEquals(Slot.WORK, conclusion.getCheapest().getSlot());
+        assertEquals(Slot.HOME, conclusion.getRunnerUp().getSlot());
+        assertEquals(200, conclusion.getSavingWon());
+    }
+
+    @Test
+    public void conclude_runnerUpClose_butAnotherFar_close() {
+        // 회사 65,696 가장 저렴, 집 200원(비슷), 지금 조회 위치 2,383원 더 듦
+        List<PlaceCompareCard> cards = build(Source.loaded(Slot.CURRENT, FAR, 0),
+                Source.loaded(Slot.HOME, NEAR_WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+        PlaceCompareBuilder.Conclusion conclusion = PlaceCompareBuilder.conclude(cards);
+
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.CLOSE, conclusion.getKind());
+        assertEquals(Slot.WORK, conclusion.getCheapest().getSlot());
+        assertEquals(Slot.HOME, conclusion.getRunnerUp().getSlot());
+        assertEquals(200, conclusion.getSavingWon());
+    }
+
+    @Test
+    public void conclude_tiedCheapest_noGap() {
+        // 집과 회사가 원 단위로 같으면 둘 다 가장 저렴, 차이 0원. 앞의 카드(집)를 결론에 쓴다.
+        List<PlaceCompareCard> tiedWithFar = build(Source.loaded(Slot.CURRENT, FAR, 0),
+                Source.loaded(Slot.HOME, WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+        PlaceCompareBuilder.Conclusion close = PlaceCompareBuilder.conclude(tiedWithFar);
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.CLOSE, close.getKind());
+        assertEquals(Slot.HOME, close.getCheapest().getSlot());
+        assertEquals(0, close.getSavingWon());
+
+        List<PlaceCompareCard> tiedOnly = build(Source.of(Slot.CURRENT, Status.WAITING),
+                Source.loaded(Slot.HOME, WORK, 0), Source.loaded(Slot.WORK, WORK, 0));
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.SIMILAR,
+                PlaceCompareBuilder.conclude(tiedOnly).getKind());
+    }
+
+    @Test
+    public void conclude_fewerThanTwoReady_unavailable() {
+        List<PlaceCompareCard> one = build(Source.loaded(Slot.CURRENT, CURRENT, 0),
+                Source.of(Slot.HOME, Status.NOT_REGISTERED), Source.error(Slot.WORK, StationError.DAILY_LIMIT));
+        PlaceCompareBuilder.Conclusion conclusion = PlaceCompareBuilder.conclude(one);
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.UNAVAILABLE, conclusion.getKind());
+        assertNull(conclusion.getCheapest());
+        assertNull(conclusion.getRunnerUp());
+        assertEquals(0, conclusion.getSavingWon());
+
+        List<PlaceCompareCard> none = build(Source.of(Slot.CURRENT, Status.WAITING),
+                Source.of(Slot.HOME, Status.LOADING), Source.of(Slot.WORK, Status.OUTSIDE_MOCK_AREA));
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.UNAVAILABLE, PlaceCompareBuilder.conclude(none).getKind());
+        assertEquals(PlaceCompareBuilder.Conclusion.Kind.UNAVAILABLE, PlaceCompareBuilder.conclude(null).getKind());
+    }
+
+    private static PlaceCompareCard card(Slot slot, long extra) {
+        return new PlaceCompareCard(slot, Status.READY, null, StationListBuilder.EmptyReason.NONE, null, 0,
+                extra == 0, extra);
+    }
+
     private static PlaceCompareCard card(long extra) {
         return new PlaceCompareCard(Slot.HOME, Status.READY, null, StationListBuilder.EmptyReason.NONE, null, 0,
                 extra == 0, extra);

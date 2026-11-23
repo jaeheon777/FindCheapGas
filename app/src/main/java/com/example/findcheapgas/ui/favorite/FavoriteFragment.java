@@ -15,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -38,6 +39,7 @@ import com.example.findcheapgas.model.SavingLevel;
 import com.example.findcheapgas.model.SearchOrigin;
 import com.example.findcheapgas.model.SearchRadius;
 import com.example.findcheapgas.ui.OriginLabels;
+import com.example.findcheapgas.ui.SavingColors;
 import com.example.findcheapgas.ui.detail.StationDetailActivity;
 import com.example.findcheapgas.ui.onboarding.OnboardingActivity;
 import com.example.findcheapgas.ui.place.PlaceSettingsActivity;
@@ -54,10 +56,12 @@ import java.util.List;
 /**
  * 즐겨찾기 탭.
  * - 맨 위 작은 글자 한 줄: 계산 기준 · 유종 · 반경 · 조회 위치 (누르면 내 차 정보 수정)
- * - 주인공 카드: 집·회사 기준 비교의 결론. "가장 저렴" 카드가 있으면 "회사 근처에서 넣으면 가장 저렴해요"와
- *   그 카드의 예상 총비용을 큰 숫자로, 없으면 (비교할 수 있는 카드가 두 장보다 적으면) 짧은 안내만 보여준다.
- * - 비교 카드 세 장 (지금 조회 위치 / 집 근처 / 회사 근처의 이득 1위 주유소와 예상 총비용, PlaceCompareViewModel).
- *   카드를 누르면 지도 탭으로 가서 그 위치 기준으로 이득 1위 주유소를 선택한다. 등록하지 않았으면 등록 버튼 하나만 보여준다.
+ * - 집·회사 기준 비교 카드 한 장 (PlaceCompareViewModel):
+ *   맨 위 결론 ("회사 근처에서 넣으면 가장 저렴해요"). 가장 저렴한 곳이 두 번째로 저렴한 곳보다 1,000원 이상 싸면
+ *   그 차이("다른 곳보다 약 1,200원 아껴요")를 큰 숫자로, 모두 1,000원 미만 차이면 큰 숫자 없이 "어디서 넣어도 비슷해요",
+ *   비교할 수 있는 위치가 두 곳보다 적으면 짧은 안내만 보여준다 (PlaceCompareBuilder.conclude).
+ *   구분선 아래 세 위치(지금 조회 위치 / 집 근처 / 회사 근처)를 한 줄씩: 이득 1위 주유소와 예상 총비용.
+ *   줄을 누르면 지도 탭으로 가서 그 위치 기준으로 이득 1위 주유소를 선택한다. 등록하지 않았으면 그 줄에 등록 버튼 하나만 보여준다.
  * - 저장한 주유소를 최근에 저장한 순서로 보여준다: 상호, 브랜드 · 조회 위치에서 거리, 지금 고른 유종 가격, 예상 이득
  *   (주소는 상세 화면에서만). 비어 있으면 안내와 "지도에서 주유소 찾기" 버튼
  * - 조회 위치, 유종, 기준 주유소는 지도 탭(MapViewModel, Activity 범위)의 마지막 주변 조회 결과를 쓴다.
@@ -72,12 +76,12 @@ public class FavoriteFragment extends Fragment {
     private MapViewModel mapViewModel;
     private FavoriteAdapter adapter;
 
-    private TextView heroTitle;
-    private TextView heroAmount;
-    private TextView heroCaption;
-    private PlaceCompareCardView compareCurrent;
-    private PlaceCompareCardView compareHome;
-    private PlaceCompareCardView compareWork;
+    private TextView compareConclusion;
+    private TextView compareSaving;
+    private TextView compareCaption;
+    private PlaceCompareRowView compareCurrent;
+    private PlaceCompareRowView compareHome;
+    private PlaceCompareRowView compareWork;
 
     private TextView countText;
     private TextView basisText;
@@ -107,12 +111,12 @@ public class FavoriteFragment extends Fragment {
         compareViewModel = new ViewModelProvider(this).get(PlaceCompareViewModel.class);
         mapViewModel = new ViewModelProvider(requireActivity()).get(MapViewModel.class);
 
-        heroTitle = view.findViewById(R.id.compare_hero_title);
-        heroAmount = view.findViewById(R.id.compare_hero_amount);
-        heroCaption = view.findViewById(R.id.compare_hero_caption);
-        compareCurrent = new PlaceCompareCardView(view.findViewById(R.id.compare_current));
-        compareHome = new PlaceCompareCardView(view.findViewById(R.id.compare_home));
-        compareWork = new PlaceCompareCardView(view.findViewById(R.id.compare_work));
+        compareConclusion = view.findViewById(R.id.compare_conclusion);
+        compareSaving = view.findViewById(R.id.compare_saving);
+        compareCaption = view.findViewById(R.id.compare_caption);
+        compareCurrent = new PlaceCompareRowView(view.findViewById(R.id.compare_current));
+        compareHome = new PlaceCompareRowView(view.findViewById(R.id.compare_home));
+        compareWork = new PlaceCompareRowView(view.findViewById(R.id.compare_work));
 
         countText = view.findViewById(R.id.favorite_count);
         basisText = view.findViewById(R.id.favorite_basis);
@@ -235,7 +239,7 @@ public class FavoriteFragment extends Fragment {
                 || Boolean.TRUE.equals(compareViewModel.getRefreshing().getValue()));
     }
 
-    /** 집·회사 기준 비교: 맨 위 기준 문구, 주인공 카드, 카드 세 장 */
+    /** 집·회사 기준 비교: 맨 위 기준 문구, 비교 카드의 결론과 세 줄 */
     private void renderCompare() {
         if (getView() == null) {
             return;
@@ -246,7 +250,7 @@ public class FavoriteFragment extends Fragment {
         if (cards == null) {
             return;
         }
-        renderHero(cards);
+        renderConclusion(cards);
         SavedPlaces places = compareViewModel.getPlaces().getValue();
         long now = System.currentTimeMillis();
         for (PlaceCompareCard card : cards) {
@@ -268,49 +272,61 @@ public class FavoriteFragment extends Fragment {
     }
 
     /**
-     * 주인공 카드. "가장 저렴" 카드가 있으면 "회사 근처에서 넣으면 가장 저렴해요" + 그 카드의 예상 총비용,
-     * 없으면 큰 숫자 없이 짧은 안내 (가져오는 중 / 등록하면 비교 / 지금은 비교할 수 없음).
-     * "가장 저렴"은 READY 카드가 두 장 이상일 때만 정해진다 (PlaceCompareBuilder).
+     * 비교 카드 맨 위 결론 (PlaceCompareBuilder.conclude). 예상 총비용과 "가장 저렴" 판정은 그대로 쓴다.
+     * - CHEAPER: "회사 근처에서 넣으면 가장 저렴해요" + 큰 숫자 "다른 곳보다 약 1,229원 아껴요"(두 번째로 저렴한 곳과의 차이)
+     * - CLOSE: 결론 문장 + "집 근처와는 1,000원 미만 차이예요" (큰 숫자 없음)
+     * - SIMILAR: "어디서 넣어도 비슷해요"만
+     * - UNAVAILABLE: 짧은 안내만 (가져오는 중 / 등록하면 비교 / 지금은 비교할 수 없음)
      */
-    private void renderHero(List<PlaceCompareCard> cards) {
-        PlaceCompareCard cheapest = null;
+    private void renderConclusion(List<PlaceCompareCard> cards) {
+        PlaceCompareBuilder.Conclusion conclusion = PlaceCompareBuilder.conclude(cards);
+        PlaceCompareCard cheapest = conclusion.getCheapest();
+        PlaceCompareCard runnerUp = conclusion.getRunnerUp();
+        compareSaving.setVisibility(View.GONE);
+        compareCaption.setVisibility(View.GONE);
+        switch (conclusion.getKind()) {
+            case CHEAPER:
+                compareConclusion.setText(getString(R.string.compare_conclusion_cheapest,
+                        slotName(cheapest.getSlot())));
+                compareSaving.setText(getString(R.string.compare_conclusion_saving,
+                        FormatUtil.formatWon(conclusion.getSavingWon())));
+                compareSaving.setTextColor(ContextCompat.getColor(requireContext(),
+                        SavingColors.heroTextColorOf(SavingLevel.GAIN)));
+                compareSaving.setVisibility(View.VISIBLE);
+                break;
+            case CLOSE:
+                compareConclusion.setText(getString(R.string.compare_conclusion_cheapest,
+                        slotName(cheapest.getSlot())));
+                compareCaption.setText(getString(R.string.compare_conclusion_close_caption,
+                        slotName(runnerUp.getSlot()), FormatUtil.formatWon(SavingLevel.THRESHOLD_WON)));
+                compareCaption.setVisibility(View.VISIBLE);
+                break;
+            case SIMILAR:
+                compareConclusion.setText(R.string.compare_conclusion_similar);
+                break;
+            default:
+                compareConclusion.setText(unavailableMessage(cards));
+                break;
+        }
+    }
+
+    /** 비교할 수 있는 위치가 두 곳보다 적을 때의 짧은 안내 */
+    @StringRes
+    private static int unavailableMessage(List<PlaceCompareCard> cards) {
         boolean loading = false;
         boolean unregistered = false;
         for (PlaceCompareCard card : cards) {
-            if (card.getStatus() == PlaceCompareCard.Status.READY && card.isCheapest() && card.getBest() != null) {
-                cheapest = card;
-            } else if (card.getStatus() == PlaceCompareCard.Status.LOADING) {
+            if (card.getStatus() == PlaceCompareCard.Status.LOADING) {
                 loading = true;
             } else if (card.getStatus() == PlaceCompareCard.Status.NOT_REGISTERED) {
                 unregistered = true;
             }
         }
-        if (cheapest != null && PlaceCompareBuilder.allSimilarToCheapest(cards)) {
-            // 모두 1,000원 미만 차이: 결론은 "어디서 넣어도 비슷해요", 큰 숫자는 가장 저렴한 곳의 예상 총비용 그대로
-            heroTitle.setText(R.string.compare_hero_similar);
-            heroAmount.setText(FormatUtil.formatApproxWon(cheapest.getBest().getTotalCost()));
-            heroCaption.setText(getString(R.string.compare_hero_similar_caption,
-                    slotName(cheapest.getSlot()), FormatUtil.formatWon(SavingLevel.THRESHOLD_WON)));
-            heroAmount.setVisibility(View.VISIBLE);
-            heroCaption.setVisibility(View.VISIBLE);
-            return;
-        }
-        if (cheapest != null) {
-            heroTitle.setText(getString(R.string.compare_hero_cheapest, slotName(cheapest.getSlot())));
-            heroAmount.setText(FormatUtil.formatApproxWon(cheapest.getBest().getTotalCost()));
-            heroCaption.setText(getString(R.string.compare_hero_caption,
-                    cheapest.getBest().getStation().getName()));
-            heroAmount.setVisibility(View.VISIBLE);
-            heroCaption.setVisibility(View.VISIBLE);
-            return;
-        }
-        heroTitle.setText(loading ? R.string.compare_hero_loading
-                : unregistered ? R.string.compare_hero_need_place : R.string.compare_hero_unavailable);
-        heroAmount.setVisibility(View.GONE);
-        heroCaption.setVisibility(View.GONE);
+        return loading ? R.string.compare_conclusion_loading
+                : unregistered ? R.string.compare_conclusion_need_place : R.string.compare_conclusion_unavailable;
     }
 
-    /** 주인공 카드의 위치 이름: "지금 조회 위치", "집 근처", "회사 근처" */
+    /** 결론에 쓰는 위치 이름: "지금 조회 위치", "집 근처", "회사 근처" */
     private String slotName(PlaceCompareCard.Slot slot) {
         switch (slot) {
             case CURRENT:
@@ -337,9 +353,9 @@ public class FavoriteFragment extends Fragment {
         return getString(home ? R.string.compare_slot_home : R.string.compare_slot_work, place.getName());
     }
 
-    private final PlaceCompareCardView.Listener compareListener = new PlaceCompareCardView.Listener() {
+    private final PlaceCompareRowView.Listener compareListener = new PlaceCompareRowView.Listener() {
         @Override
-        public void onCardClick(PlaceCompareCard card) {
+        public void onRowClick(PlaceCompareCard card) {
             openCompareOnMap(card);
         }
 
@@ -351,7 +367,7 @@ public class FavoriteFragment extends Fragment {
     };
 
     /**
-     * 비교 카드를 누르면 지도 탭으로 간다.
+     * 비교 카드의 줄을 누르면 지도 탭으로 간다.
      * 지금 조회 위치는 다시 조회하지 않고 이득 1위를 선택하고, 집·회사는 그 위치를 조회 위치("집 기준")로 조회한 뒤
      * 이득 1위를 선택한다 (같은 위치·유종을 20분 안에 조회했으면 캐시).
      */
