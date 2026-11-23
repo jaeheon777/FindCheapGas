@@ -60,9 +60,9 @@
     <!--
         목록 한 줄을 세로로 쌓는 기준 (AmountRowLayout, RowStackRule): 오른쪽 금액 묶음을 한 줄로 놓았을 때
         왼쪽(상호·보조 정보)에 남는 폭이 줄 안쪽 폭의 이 비율보다 작으면 금액 묶음을 왼쪽 아래로 내린다.
-        40%면 글꼴 1.0~1.3에서는 상호가 충분히 보여 지금 배치를 유지하고, 글꼴 2.0처럼 왼쪽이 몇 글자만 남는 경우에만 쌓는다.
+        50%면 글꼴 1.0~1.3에서는 상호가 충분히 보여 지금 배치를 유지하고, 글꼴 2.0처럼 왼쪽이 절반도 안 남아 상호가 잘리는 경우에는 쌓는다.
     -->
-    <item name="list_row_stack_min_start_ratio" format="float" type="dimen">0.4</item>
+    <item name="list_row_stack_min_start_ratio" format="float" type="dimen">0.5</item>
     <!-- 세로로 쌓았을 때 왼쪽 묶음과 금액 묶음 사이 간격 -->
     <dimen name="list_row_stack_gap">@dimen/space_xs</dimen>
     <!--
