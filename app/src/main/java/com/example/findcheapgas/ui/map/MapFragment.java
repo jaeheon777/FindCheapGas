@@ -35,6 +35,7 @@ import androidx.annotation.StringRes;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -159,6 +160,9 @@ public class MapFragment extends Fragment {
     private View sheetHandle;
     private TextView sheetTitle;
     private RecyclerView stationList;
+    // 가로 화면에서만 있다. 카드, 머리줄, 목록을 한 덩어리로 스크롤한다 (세로 화면은 null이고 목록만 스크롤).
+    @Nullable
+    private NestedScrollView stationScroll;
     private LinearLayoutManager stationLayoutManager;
     private StationAdapter stationAdapter;
     // 지도 아래 여백으로 쓴 시트 peek 높이. 이득 1위 카드 높이가 바뀌면 둘 다 다시 맞춘다.
@@ -366,6 +370,7 @@ public class MapFragment extends Fragment {
         sheetHiddenForKeyboard = false;
         afterSheetCollapsed = null;
         stationList = null;
+        stationScroll = null;
         stationLayoutManager = null;
         stationAdapter = null;
         cardStation = null;
@@ -641,6 +646,7 @@ public class MapFragment extends Fragment {
         sheetBehavior = BottomSheetBehavior.from(stationSheet);
         sheetTitle = view.findViewById(R.id.station_sheet_title);
         stationList = view.findViewById(R.id.station_list);
+        stationScroll = view.findViewById(R.id.station_scroll);
         // 시트는 내림 / 올림 두 단계다. 손잡이를 누르면 둘 사이를 바꾼다.
         sheetHandle = view.findViewById(R.id.station_sheet_handle);
         sheetHandle.setOnClickListener(v -> toggleSheet());
@@ -666,7 +672,7 @@ public class MapFragment extends Fragment {
                 // 시트를 내리면 목록을 맨 위로 되돌려서, 다시 올렸을 때 1번부터 보이게 한다.
                 if (newState == BottomSheetBehavior.STATE_COLLAPSED && stationList != null) {
                     stationList.stopScroll();
-                    stationLayoutManager.scrollToPosition(0);
+                    scrollListToPosition(0);
                 }
                 // 필터 칩을 눌러 시트를 내리는 중이었으면 다 내린 뒤에 메뉴를 연다. 그 사이 다시 올렸으면 열지 않는다.
                 if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN) {
@@ -862,7 +868,8 @@ public class MapFragment extends Fragment {
             return;
         }
         ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) bestCard.getLayoutParams();
-        int peek = bestCard.getBottom() + params.bottomMargin;
+        // 가로 화면은 카드가 스크롤 덩어리 안에 있으므로 시트 맨 위부터 카드 아래 끝까지를 잰다.
+        int peek = topInAncestor(bestCard, stationSheet) + bestCard.getHeight() + params.bottomMargin;
         if (peek == appliedPeekHeight) {
             return;
         }
@@ -997,9 +1004,9 @@ public class MapFragment extends Fragment {
         // 주유소 이름 검색에서 고른 주유소처럼 선택된 주유소가 있으면 그 줄을, 없으면 맨 위를 보여준다.
         int selectedPosition = selectedId != null ? stationAdapter.positionOf(selectedId) : RecyclerView.NO_POSITION;
         if (selectedPosition != RecyclerView.NO_POSITION) {
-            stationLayoutManager.scrollToPositionWithOffset(selectedPosition, 0);
+            scrollListToPosition(selectedPosition);
         } else {
-            stationLayoutManager.scrollToPosition(0);
+            scrollListToPosition(0);
         }
         renderSheetTitle();
         showStationMarkers(list);
@@ -1255,8 +1262,48 @@ public class MapFragment extends Fragment {
     private void scrollListTo(String stationId) {
         int position = stationAdapter.positionOf(stationId);
         if (position != RecyclerView.NO_POSITION) {
-            stationLayoutManager.scrollToPositionWithOffset(position, 0);
+            scrollListToPosition(position);
         }
+    }
+
+    /**
+     * 목록의 position번째 줄을 맨 위로 보낸다. 세로 화면은 목록 자체를 스크롤하고, 가로 화면은 목록이 스스로 스크롤하지 않고
+     * 카드와 함께 한 덩어리로 스크롤하므로 그 줄의 위치만큼 덩어리를 스크롤한다 (0번은 카드가 보이는 맨 위).
+     */
+    private void scrollListToPosition(int position) {
+        if (stationList == null) {
+            return;
+        }
+        NestedScrollView scroll = stationScroll;
+        if (scroll == null) {
+            stationLayoutManager.scrollToPositionWithOffset(position, 0);
+            return;
+        }
+        if (position <= 0) {
+            scroll.scrollTo(0, 0);
+            return;
+        }
+        // 목록이 새 내용으로 배치된 뒤에 줄의 위치를 잰다.
+        stationList.post(() -> {
+            if (stationList == null || stationScroll == null) {
+                return;
+            }
+            View row = stationLayoutManager.findViewByPosition(position);
+            if (row != null) {
+                stationScroll.scrollTo(0, topInAncestor(row, stationScroll.getChildAt(0)));
+            }
+        });
+    }
+
+    /** view의 위쪽 끝이 ancestor 안에서 몇 px 아래에 있는지 (스크롤 위치와 상관없이). */
+    private static int topInAncestor(View view, View ancestor) {
+        int top = 0;
+        View current = view;
+        while (current != null && current != ancestor) {
+            top += current.getTop();
+            current = current.getParent() instanceof View ? (View) current.getParent() : null;
+        }
+        return top;
     }
 
     private static int cheapestPrice(List<StationSaving> stations) {
